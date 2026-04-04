@@ -21,6 +21,7 @@
     }
 
     * { box-sizing: border-box; }
+
     html, body {
       margin: 0;
       padding: 0;
@@ -108,7 +109,9 @@
       line-height: 1.6;
     }
 
-    .error { color: #8a1f1f; }
+    .error {
+      color: #8a1f1f;
+    }
 
     .header {
       display: grid;
@@ -252,28 +255,39 @@
       line-height: 1.5;
     }
 
-    .hero-image-wrap {
+    .hero-gallery {
+      display: grid;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .hero-gallery.one {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-gallery.two {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .hero-gallery.three {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .hero-gallery-card {
       border: 1px solid var(--line);
       background: #fafafa;
-      min-height: 240px;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 14px;
+      padding: 10px;
+      min-height: 200px;
     }
 
-    .hero-image {
+    .hero-gallery-card img {
       width: 100%;
-      max-height: 230px;
+      height: 200px;
       object-fit: contain;
       display: block;
-    }
-
-    .hero-image-empty {
-      color: var(--ghost);
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
     }
 
     .spec-grid {
@@ -449,6 +463,11 @@
       .totals {
         width: 100%;
       }
+
+      .hero-gallery.two,
+      .hero-gallery.three {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -529,10 +548,7 @@ Kokomlemle, Accra</div>
             <div class="hero-sub" id="out-bike-category">—</div>
           </div>
 
-          <div class="hero-image-wrap">
-            <img id="out-bike-image" class="hero-image hidden" alt="Bike image" />
-            <div id="out-bike-image-empty" class="hero-image-empty">No Image</div>
-          </div>
+          <div id="out-bike-gallery" class="hero-gallery hidden"></div>
         </div>
       </section>
 
@@ -675,11 +691,11 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
 
     function buildCustomerBlock(record) {
       const lines = [
-        record.customer_name || record.client_name || "",
-        record.customer_company || record.client_company || "",
-        record.customer_phone || record.client_phone || "",
-        record.customer_email || record.client_email || "",
-        record.customer_address || record.client_address || ""
+        record.customer_name || "",
+        record.customer_company || "",
+        record.customer_phone || "",
+        record.customer_email || "",
+        record.customer_address || ""
       ].filter(Boolean);
 
       return lines.length ? lines.join("\n") : "—";
@@ -696,63 +712,43 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
     }
 
     async function fetchBikeFallback(record) {
-  const bikeSlug = record.bike_slug || null;
-  if (!bikeSlug) return null;
+      const bikeSlug = record.bike_slug || null;
+      if (!bikeSlug) return null;
 
-  const { data } = await client
-    .from("motorcycles")
-    .select("*")
-    .eq("slug", bikeSlug)
-    .single();
+      const { data } = await client
+        .from("motorcycles")
+        .select("*")
+        .eq("slug", bikeSlug)
+        .single();
 
-  return data || null;
-}
+      return data || null;
+    }
 
     function normalizeInvoice(record, snapshot, bikeFallback) {
       const src = snapshot || bikeFallback || {};
 
-      const quantity = Number(record.quantity ?? record.qty ?? 1) || 1;
-      const unitPrice = Number(
-        record.unit_price ??
-        record.price ??
-        src.unit_price ??
-        0
-      ) || 0;
-
-      const extra = Number(
-        record.additional_charges ??
-        record.extra_charges ??
-        record.extra ??
-        0
-      ) || 0;
-
-      const subtotal = Number(
-        record.subtotal ??
-        (quantity * unitPrice)
-      ) || 0;
-
-      const total = Number(
-        record.total ??
-        record.grand_total ??
-        (subtotal + extra)
-      ) || 0;
+      const quantity = Number(record.quantity ?? 1) || 1;
+      const unitPrice = Number(record.unit_price ?? src.unit_price ?? 0) || 0;
+      const extra = Number(record.additional_charges ?? 0) || 0;
+      const subtotal = Number(record.subtotal ?? (quantity * unitPrice)) || 0;
+      const total = Number(record.total ?? (subtotal + extra)) || 0;
 
       const currency = record.currency || "USD";
       const images = src.image_urls || src.images || [];
       const features = src.features || [];
-      const bikeModel = record.bike_model || src.model || src.name || "—";
+      const bikeModel = record.bike_model || src.model || "—";
       const bikeCategory = record.bike_category || src.category || "";
 
       return {
         id: record.id,
-        invoiceNumber: record.invoice_number || record.number || `INV-${record.id}`,
-        invoiceDate: record.invoice_date || record.created_at || record.date || null,
+        invoiceNumber: record.invoice_number || `INV-${record.id}`,
+        invoiceDate: record.invoice_date || record.created_at || null,
         status: record.status || "Draft",
         currency,
         customerBlock: buildCustomerBlock(record),
         bikeModel,
         bikeCategory,
-        imageUrl: Array.isArray(images) && images.length ? images[0] : "",
+        imageUrls: Array.isArray(images) ? images.filter(Boolean).slice(0, 3) : [],
         specs: src,
         features,
         quantity,
@@ -761,7 +757,7 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         extra,
         total,
         description: record.line_description || `${bikeModel}${bikeCategory ? " · " + bikeCategory : ""}`,
-        notes: record.notes || record.internal_note || "",
+        notes: record.notes || "",
         terms: record.terms || "3 years dealer-backed warranty from Rhobust Engineering Limited.\nComplimentary scheduled servicing for 2 years or 20,000 km, whichever is reached first."
       };
     }
@@ -807,20 +803,35 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       $("features-section").classList.toggle("hidden", pills.length === 0);
     }
 
-    function renderImage(url, alt) {
-      const img = $("out-bike-image");
-      const empty = $("out-bike-image-empty");
+    function renderImages(urls, alt) {
+      const gallery = $("out-bike-gallery");
+      gallery.innerHTML = "";
+      gallery.className = "hero-gallery";
 
-      if (url) {
+      if (!urls || urls.length === 0) {
+        gallery.classList.add("hidden");
+        return;
+      }
+
+      gallery.classList.remove("hidden");
+
+      if (urls.length === 1) gallery.classList.add("one");
+      if (urls.length === 2) gallery.classList.add("two");
+      if (urls.length === 3) gallery.classList.add("three");
+
+      urls.forEach(url => {
+        if (!url) return;
+
+        const card = document.createElement("div");
+        card.className = "hero-gallery-card";
+
+        const img = document.createElement("img");
         img.src = url;
         img.alt = alt || "Bike image";
-        img.classList.remove("hidden");
-        empty.classList.add("hidden");
-      } else {
-        img.src = "";
-        img.classList.add("hidden");
-        empty.classList.remove("hidden");
-      }
+
+        card.appendChild(img);
+        gallery.appendChild(card);
+      });
     }
 
     function renderInvoice(inv) {
@@ -832,11 +843,10 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       $("out-currency").textContent = inv.currency;
 
       $("out-customer-block").textContent = inv.customerBlock;
-
       $("out-bike-model").textContent = inv.bikeModel || "—";
       $("out-bike-category").textContent = inv.bikeCategory || "—";
 
-      renderImage(inv.imageUrl, inv.bikeModel);
+      renderImages(inv.imageUrls, inv.bikeModel);
       renderSpecs(inv.specs);
       renderFeatures(inv.features);
 
@@ -855,8 +865,7 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       $("out-terms").textContent = inv.terms;
       $("out-footer-right").textContent = `Invoice ${inv.invoiceNumber}`;
 
-      const editHref = `admin.html?invoice_id=${encodeURIComponent(inv.id)}`;
-      $("btn-edit").setAttribute("href", editHref);
+      $("btn-edit").setAttribute("href", `admin.html?invoice_id=${encodeURIComponent(inv.id)}`);
     }
 
     async function loadInvoice() {
