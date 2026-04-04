@@ -674,16 +674,18 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
 
         els.invoiceNumber.value = result.invoice_number || payload.invoice_number;
 
-        if (openPreview) {
+      if (openPreview) {
   console.log("SAVE RESULT:", result);
 
   if (!result || !result.id) {
-    alert("Invoice saved response did not include an id");
-    return null;
+    alert("Invoice did NOT return an id. Check console.");
+    return;
   }
 
- const url = `invoice.html?id=${encodeURIComponent(result.id)}&v=${Date.now()}`;
-window.open(url, "_blank");
+  const url = `invoice.html?id=${encodeURIComponent(result.id)}&v=${Date.now()}`;
+  console.log("OPENING URL:", url);
+
+  window.open(url, "_blank");
 } else {
   alert("Invoice saved");
 }
