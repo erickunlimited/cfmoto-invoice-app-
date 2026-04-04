@@ -644,58 +644,55 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       };
     }
 
-    async function saveInvoice({ openPreview = false } = {}) {
-      try {
-        const payload = getInvoicePayload();
+   async function saveInvoice({ openPreview = false } = {}) {
+  try {
+    const payload = getInvoicePayload();
 
-        let result;
+    let result;
 
-        if (currentInvoiceId) {
-          const { data, error } = await client
-            .from("invoices")
-            .update(payload)
-            .eq("id", currentInvoiceId)
-            .select()
-            .single();
+    if (currentInvoiceId) {
+      const { data, error } = await client
+        .from("invoices")
+        .update(payload)
+        .eq("id", currentInvoiceId)
+        .select()
+        .single();
 
-          if (error) throw error;
-          result = data;
-        } else {
-          const { data, error } = await client
-            .from("invoices")
-            .insert([payload])
-            .select()
-            .single();
+      if (error) throw error;
+      result = data;
+    } else {
+      const { data, error } = await client
+        .from("invoices")
+        .insert([payload])
+        .select()
+        .single();
 
-          if (error) throw error;
-          result = data;
-          currentInvoiceId = data.id;
-        }
+      if (error) throw error;
+      result = data;
+      currentInvoiceId = data.id;
+    }
 
-        els.invoiceNumber.value = result.invoice_number || payload.invoice_number;
+    els.invoiceNumber.value = result.invoice_number || payload.invoice_number;
 
-      if (openPreview) {
-  console.log("SAVE RESULT:", result);
+    if (openPreview) {
+      if (!result || !result.id) {
+        alert("Invoice saved but no invoice id was returned.");
+        return null;
+      }
 
-  if (!result || !result.id) {
-    alert("Invoice did NOT return an id. Check console.");
-    return;
+      const url = `invoice.html?id=${encodeURIComponent(result.id)}&v=${Date.now()}`;
+      window.open(url, "_blank");
+    } else {
+      alert("Invoice saved");
+    }
+
+    return result;
+  } catch (err) {
+    console.error("SAVE INVOICE ERROR:", err);
+    alert(err?.message || JSON.stringify(err) || "Failed to save invoice");
+    return null;
   }
-
-  const url = `invoice.html?id=${encodeURIComponent(result.id)}&v=${Date.now()}`;
-  console.log("OPENING URL:", url);
-
-  window.open(url, "_blank");
-} else {
-  alert("Invoice saved");
 }
-        return result;
-    } catch (err) {
-  console.error("SAVE INVOICE ERROR:", err);
-  alert(err?.message || JSON.stringify(err) || "Failed to save invoice");
-  return null;
-}
-
 async function loadInvoiceIntoAdmin(invoiceId) {
   const { data, error } = await client
     .from("invoices")
