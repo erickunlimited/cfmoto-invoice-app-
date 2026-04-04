@@ -427,56 +427,56 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       await loadBike(data[0].slug);
     }
 
-    async function loadBike(slug) {
-      if (!slug) {
-        clearBikeForm();
-        return;
-      }
+   async function loadBike(slug) {
+  if (!slug) {
+    clearBikeForm();
+    return;
+  }
 
-      const { data, error } = await client
-        .from("motorcycles")
-        .select("*")
-        .eq("slug", slug)
-        .single();
+  const { data, error } = await client
+    .from("motorcycles")
+    .select("*")
+    .eq("slug", slug)
+    .single();
 
-      if (error) {
-        console.error(error);
-        alert("Error loading bike");
-        return;
-      }
+  if (error) {
+    console.error(error);
+    alert("Error loading bike");
+    return;
+  }
 
-      currentBike = data;
+  currentBike = data;
 
-      els.model.value = data.model || "";
-      els.category.value = data.category || "";
-     els.invoiceUnitPrice.value = data.unit_price ?? "";
-      }
+  els.model.value = data.model || "";
+  els.category.value = data.category || "";
+  els.unitPrice.value = data.unit_price ?? "";
+  els.invoiceUnitPrice.value = data.unit_price ?? "";
 
-      els.engine.value = data.engine || "";
-      els.displacement.value = data.displacement || "";
-      els.power_hp.value = data.power_hp || "";
-      els.torque.value = data.torque || "";
-      els.fuel_system.value = data.fuel_system || "";
-      els.transmission.value = data.transmission || "";
-      els.throttle_type.value = data.throttle_type || "";
-      els.fuel_capacity.value = data.fuel_capacity || "";
-      els.abs.value = data.abs || "";
-      els.traction_control.value = data.traction_control || "";
-      els.headlight.value = data.headlight || "";
-      els.charging_port.value = data.charging_port || "";
-      els.color.value = data.color || "";
-      els.suspension.value = data.suspension || "";
-      els.brake.value = data.brake || "";
+  els.engine.value = data.engine || "";
+  els.displacement.value = data.displacement || "";
+  els.power_hp.value = data.power_hp || "";
+  els.torque.value = data.torque || "";
+  els.fuel_system.value = data.fuel_system || "";
+  els.transmission.value = data.transmission || "";
+  els.throttle_type.value = data.throttle_type || "";
+  els.fuel_capacity.value = data.fuel_capacity || "";
+  els.abs.value = data.abs || "";
+  els.traction_control.value = data.traction_control || "";
+  els.headlight.value = data.headlight || "";
+  els.charging_port.value = data.charging_port || "";
+  els.color.value = data.color || "";
+  els.suspension.value = data.suspension || "";
+  els.brake.value = data.brake || "";
 
-      els.featuresContainer.innerHTML = "";
-      (data.features || []).forEach(addFeature);
+  els.featuresContainer.innerHTML = "";
+  (data.features || []).forEach(addFeature);
 
-      els.imageUrlsContainer.innerHTML = "";
-      (data.image_urls || []).forEach(addImageUrl);
+  els.imageUrlsContainer.innerHTML = "";
+  (data.image_urls || []).forEach(addImageUrl);
 
-      renderImagePreviews();
-      recalculateInvoiceTotals();
-    }
+  renderImagePreviews();
+  recalculateInvoiceTotals();
+}
 
     async function saveBike() {
       if (!currentBike) {
