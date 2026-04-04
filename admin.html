@@ -1,142 +1,148 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
   <title>Bike Admin</title>
 
-  <!-- Supabase CDN -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
   <style>
-    body {
-      font-family: Arial;
-      padding: 20px;
-      background: #f5f5f5;
-    }
-
-    input, select {
-      margin-bottom: 10px;
-      padding: 8px;
-      width: 250px;
-    }
-
-    button {
-      padding: 10px 15px;
-      cursor: pointer;
-    }
+    body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+    input, textarea, select { display:block; margin-bottom:10px; padding:8px; width:300px; }
+    button { padding:10px; margin-top:10px; }
+    .feature-row { display:flex; gap:10px; margin-bottom:5px; }
   </style>
 </head>
 
 <body>
 
-  <h2>Bike Editor</h2>
+<h2>Bike Editor</h2>
 
-  <label>Select Bike:</label><br>
-  <select id="bikeSelect"></select><br><br>
+<select id="bikeSelect"></select>
 
-  <label>Model:</label><br>
-  <input id="model"><br><br>
+<input id="model" placeholder="Model">
+<input id="category" placeholder="Category">
+<input id="unitPrice" placeholder="Price">
 
-  <label>Category:</label><br>
-  <input id="category"><br><br>
+<h3>Specs</h3>
 
-  <label>Price:</label><br>
-  <input id="unitPrice"><br><br>
+<input id="engine_type" placeholder="Engine Type">
+<input id="displacement" placeholder="Displacement">
+<input id="power" placeholder="Power">
+<input id="torque" placeholder="Torque">
+<input id="transmission" placeholder="Transmission">
+<input id="cooling_system" placeholder="Cooling System">
+<input id="seat_height" placeholder="Seat Height">
+<input id="fuel_tank_capacity" placeholder="Fuel Tank Capacity">
+<input id="weight" placeholder="Weight">
 
-  <button id="saveBtn">Save</button>
+<input id="image_url" placeholder="Image URL">
 
-  <script>
-    // 🔑 PASTE YOUR DETAILS HERE
-    const SUPABASE_URL = "https://apmfnubljrutnnignehh.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_zi5AnOBw_D7pl9WuhcGDug_SK0zgESg";
+<h3>Features</h3>
+<div id="featuresContainer"></div>
+<button onclick="addFeature()">+ Add Feature</button>
 
-    // ✅ Create client (NO duplicate names)
-    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<br><br>
+<button id="saveBtn">Save</button>
 
-    const bikeSelect = document.getElementById("bikeSelect");
-    const saveBtn = document.getElementById("saveBtn");
+<script>
+const client = window.supabase.createClient(
+  "PASTE_URL",
+  "PASTE_KEY"
+);
 
-    let currentBike = null;
+let currentBike = null;
 
-    // 🚀 Load bikes
-    async function loadBikes() {
-      const { data, error } = await client
-        .from("motorcycles")
-        .select("*")
-        .order("model", { ascending: true });
+function addFeature(value = "") {
+  const div = document.createElement("div");
+  div.className = "feature-row";
 
-      if (error) {
-        console.error(error);
-        alert("Failed to load bikes");
-        return;
-      }
+  div.innerHTML = `
+    <input value="${value}" />
+    <button onclick="this.parentElement.remove()">X</button>
+  `;
 
-      console.log("Loaded bikes:", data);
+  document.getElementById("featuresContainer").appendChild(div);
+}
 
-      bikeSelect.innerHTML = data
-        .map(b => `<option value="${b.slug}">${b.model}</option>`)
-        .join("");
+function getFeatures() {
+  return [...document.querySelectorAll("#featuresContainer input")]
+    .map(i => i.value)
+    .filter(v => v);
+}
 
-      if (data.length) {
-        loadBike(data[0].slug);
-      }
-    }
+async function loadBikes() {
+  const { data } = await client.from("motorcycles").select("*");
 
-    // 📥 Load single bike
-    async function loadBike(slug) {
-      const { data, error } = await client
-        .from("motorcycles")
-        .select("*")
-        .eq("slug", slug)
-        .single();
+  document.getElementById("bikeSelect").innerHTML =
+    data.map(b => `<option value="${b.slug}">${b.model}</option>`).join("");
 
-      if (error) {
-        console.error(error);
-        return;
-      }
+  if (data.length) loadBike(data[0].slug);
+}
 
-      currentBike = data;
+async function loadBike(slug) {
+  const { data } = await client
+    .from("motorcycles")
+    .select("*")
+    .eq("slug", slug)
+    .single();
 
-      document.getElementById("model").value = data.model || "";
-      document.getElementById("category").value = data.category || "";
-      document.getElementById("unitPrice").value = data.unit_price || "";
-    }
+  currentBike = data;
 
-    // 💾 Save bike
-    async function saveBike() {
-      if (!currentBike) return;
+  model.value = data.model || "";
+  category.value = data.category || "";
+  unitPrice.value = data.unit_price || "";
 
-      const updated = {
-        model: document.getElementById("model").value,
-        category: document.getElementById("category").value,
-        unit_price: document.getElementById("unitPrice").value
-      };
+  engine_type.value = data.engine_type || "";
+  displacement.value = data.displacement || "";
+  power.value = data.power || "";
+  torque.value = data.torque || "";
+  transmission.value = data.transmission || "";
+  cooling_system.value = data.cooling_system || "";
+  seat_height.value = data.seat_height || "";
+  fuel_tank_capacity.value = data.fuel_tank_capacity || "";
+  weight.value = data.weight || "";
 
-      const { error } = await client
-        .from("motorcycles")
-        .update(updated)
-        .eq("slug", currentBike.slug);
+  image_url.value = data.image_url || "";
 
-      if (error) {
-        console.error(error);
-        alert("Save failed");
-        return;
-      }
+  featuresContainer.innerHTML = "";
+  (data.features || []).forEach(f => addFeature(f));
+}
 
-      alert("Saved successfully");
-      loadBikes();
-    }
+async function saveBike() {
+  const updated = {
+    model: model.value,
+    category: category.value,
+    unit_price: unitPrice.value,
 
-    // 🎯 Events
-    bikeSelect.addEventListener("change", e => {
-      loadBike(e.target.value);
-    });
+    engine_type: engine_type.value,
+    displacement: displacement.value,
+    power: power.value,
+    torque: torque.value,
+    transmission: transmission.value,
+    cooling_system: cooling_system.value,
+    seat_height: seat_height.value,
+    fuel_tank_capacity: fuel_tank_capacity.value,
+    weight: weight.value,
 
-    saveBtn.addEventListener("click", saveBike);
+    image_url: image_url.value,
+    features: getFeatures()
+  };
 
-    // 🚀 Start app
-    loadBikes();
-  </script>
+  await client
+    .from("motorcycles")
+    .update(updated)
+    .eq("slug", currentBike.slug);
+
+  alert("Saved");
+  loadBikes();
+}
+
+bikeSelect.onchange = (e) => loadBike(e.target.value);
+saveBtn.onclick = saveBike;
+
+loadBikes();
+</script>
 
 </body>
 </html>
