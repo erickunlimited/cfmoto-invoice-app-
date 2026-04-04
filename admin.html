@@ -137,7 +137,31 @@ async function saveBike() {
   alert("Saved");
   loadBikes();
 }
+async function createBike() {
+  const slug = prompt("Enter bike slug (e.g. 800nk):");
 
+  if (!slug) return;
+
+  const { error } = await client.from("motorcycles").insert([
+    {
+      slug: slug,
+      model: "New Bike",
+      category: "",
+      unit_price: 0,
+      features: []
+    }
+  ]);
+
+  if (error) {
+    alert("Error creating bike (maybe slug exists)");
+    console.error(error);
+    return;
+  }
+
+  alert("Bike created");
+
+  loadBikes();
+}
 bikeSelect.onchange = (e) => loadBike(e.target.value);
 saveBtn.onclick = saveBike;
 
