@@ -6,101 +6,27 @@
   <title>Rhobust Engineering Limited · Admin</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f5f5f5;
-      color: #111;
-    }
-
-    h2, h3 {
-      margin-top: 0;
-    }
-
-    input, select, textarea {
-      display: block;
-      margin-bottom: 10px;
-      padding: 8px;
-      width: 340px;
-      max-width: 100%;
-    }
-
-    textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
-
-    button {
-      padding: 10px 14px;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-
-    .feature-row,
-    .image-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 8px;
-      align-items: center;
-    }
-
-    .feature-row input,
-    .image-row input {
-      margin-bottom: 0;
-      width: 340px;
-    }
-
-    .section {
-      margin-top: 28px;
-      padding-top: 18px;
-      border-top: 1px solid #ddd;
-    }
-
-    .thumbs {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-
-    .thumbs img {
-      width: 120px;
-      height: 90px;
-      object-fit: cover;
-      border: 1px solid #ccc;
-      background: #fff;
-    }
-
-    .muted {
-      color: #666;
-      font-size: 13px;
-      margin-bottom: 8px;
-    }
-
-    .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 14px;
-    }
-
-    .inline-note {
-      font-size: 13px;
-      color: #666;
-      margin-top: 4px;
-      margin-bottom: 8px;
-    }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; color: #111; }
+    h2, h3 { margin-top: 0; }
+    input, select, textarea { display:block; margin-bottom:10px; padding:8px; width:340px; max-width:100%; }
+    textarea { min-height: 90px; resize: vertical; }
+    button { padding:10px 14px; margin-top:10px; cursor:pointer; }
+    .feature-row, .image-row { display:flex; gap:10px; margin-bottom:8px; align-items:center; }
+    .feature-row input, .image-row input { margin-bottom:0; width:340px; }
+    .section { margin-top:28px; padding-top:18px; border-top:1px solid #ddd; }
+    .thumbs { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .thumbs img { width:120px; height:90px; object-fit:cover; border:1px solid #ccc; background:#fff; }
+    .muted { color:#666; font-size:13px; margin-bottom:8px; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+    .inline-note { font-size:13px; color:#666; margin-top:4px; margin-bottom:8px; }
   </style>
 </head>
 <body>
-
   <h2>Rhobust Engineering Limited · Admin</h2>
 
   <div class="section" style="border-top:none; padding-top:0;">
     <h3>Bike Editor</h3>
-
     <select id="bikeSelect"></select>
-
     <div class="actions">
       <button type="button" id="createBikeBtn">+ Add New Bike</button>
       <button type="button" id="reloadBtn">Reload Bikes</button>
@@ -134,10 +60,8 @@
     <h3>Images</h3>
     <div class="muted">Upload PNG/JPG/WebP to Supabase Storage. The database will save the image URLs.</div>
     <input id="imageUpload" type="file" accept="image/png,image/jpeg,image/webp" multiple />
-
     <div id="imageUrlsContainer"></div>
     <button type="button" id="addImageUrlBtn">+ Add Image URL Manually</button>
-
     <div class="thumbs" id="imagePreviewContainer"></div>
   </div>
 
@@ -149,7 +73,6 @@
 
   <div class="section">
     <h3>Invoice Details</h3>
-
     <input id="invoiceNumber" placeholder="Invoice Number (optional)" />
     <input id="invoiceDate" type="date" />
     <input id="customerName" placeholder="Customer Name" />
@@ -197,7 +120,6 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       model: document.getElementById("model"),
       category: document.getElementById("category"),
       unitPrice: document.getElementById("unitPrice"),
-
       engine: document.getElementById("engine"),
       displacement: document.getElementById("displacement"),
       power_hp: document.getElementById("power_hp"),
@@ -213,18 +135,15 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       color: document.getElementById("color"),
       suspension: document.getElementById("suspension"),
       brake: document.getElementById("brake"),
-
       featuresContainer: document.getElementById("featuresContainer"),
       imageUrlsContainer: document.getElementById("imageUrlsContainer"),
       imagePreviewContainer: document.getElementById("imagePreviewContainer"),
       imageUpload: document.getElementById("imageUpload"),
-
       saveBtn: document.getElementById("saveBtn"),
       createBikeBtn: document.getElementById("createBikeBtn"),
       reloadBtn: document.getElementById("reloadBtn"),
       addFeatureBtn: document.getElementById("addFeatureBtn"),
       addImageUrlBtn: document.getElementById("addImageUrlBtn"),
-
       invoiceNumber: document.getElementById("invoiceNumber"),
       invoiceDate: document.getElementById("invoiceDate"),
       customerName: document.getElementById("customerName"),
@@ -252,11 +171,7 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
     }
 
     function slugify(value) {
-      return String(value || "")
-        .trim()
-        .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-_]/g, "");
+      return String(value || "").trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-_]/g, "");
     }
 
     function getParam(name) {
@@ -265,44 +180,28 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
 
     function todayInputValue() {
       const d = new Date();
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
       const day = String(d.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
+      return `${y}-${m}-${day}`;
     }
 
     function generateInvoiceNumber() {
       const d = new Date();
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
       const day = String(d.getDate()).padStart(2, "0");
       const rand = Math.floor(Math.random() * 9000) + 1000;
-      return `RES-${year}${month}${day}-${rand}`;
+      return `RES-${y}${m}${day}-${rand}`;
     }
 
-    function clearForm() {
+    function clearBikeForm() {
       currentBike = null;
-
-      els.model.value = "";
-      els.category.value = "";
-      els.unitPrice.value = "";
-
-      els.engine.value = "";
-      els.displacement.value = "";
-      els.power_hp.value = "";
-      els.torque.value = "";
-      els.fuel_system.value = "";
-      els.transmission.value = "";
-      els.throttle_type.value = "";
-      els.fuel_capacity.value = "";
-      els.abs.value = "";
-      els.traction_control.value = "";
-      els.headlight.value = "";
-      els.charging_port.value = "";
-      els.color.value = "";
-      els.suspension.value = "";
-      els.brake.value = "";
-
+      [
+        "model","category","unitPrice","engine","displacement","power_hp","torque","fuel_system",
+        "transmission","throttle_type","fuel_capacity","abs","traction_control","headlight",
+        "charging_port","color","suspension","brake"
+      ].forEach(k => els[k].value = "");
       els.featuresContainer.innerHTML = "";
       els.imageUrlsContainer.innerHTML = "";
       els.imagePreviewContainer.innerHTML = "";
@@ -311,58 +210,38 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
     function addFeature(value = "") {
       const div = document.createElement("div");
       div.className = "feature-row";
-      div.innerHTML = `
-        <input type="text" value="${escapeHtml(value)}" />
-        <button type="button">X</button>
-      `;
-
+      div.innerHTML = `<input type="text" value="${escapeHtml(value)}" /><button type="button">X</button>`;
       div.querySelector("button").addEventListener("click", () => div.remove());
       els.featuresContainer.appendChild(div);
     }
 
     function getFeatures() {
-      return [...els.featuresContainer.querySelectorAll("input")]
-        .map(input => input.value.trim())
-        .filter(Boolean);
+      return [...els.featuresContainer.querySelectorAll("input")].map(i => i.value.trim()).filter(Boolean);
     }
 
     function addImageUrl(value = "") {
       const div = document.createElement("div");
       div.className = "image-row";
-      div.innerHTML = `
-        <input type="text" value="${escapeHtml(value)}" placeholder="Image URL" />
-        <button type="button">X</button>
-      `;
-
+      div.innerHTML = `<input type="text" value="${escapeHtml(value)}" placeholder="Image URL" /><button type="button">X</button>`;
       const input = div.querySelector("input");
       const button = div.querySelector("button");
-
       input.addEventListener("input", renderImagePreviews);
-      button.addEventListener("click", () => {
-        div.remove();
-        renderImagePreviews();
-      });
-
+      button.addEventListener("click", () => { div.remove(); renderImagePreviews(); });
       els.imageUrlsContainer.appendChild(div);
       renderImagePreviews();
     }
 
     function getImageUrls() {
-      return [...els.imageUrlsContainer.querySelectorAll("input")]
-        .map(input => input.value.trim())
-        .filter(Boolean);
+      return [...els.imageUrlsContainer.querySelectorAll("input")].map(i => i.value.trim()).filter(Boolean);
     }
 
     function renderImagePreviews() {
       els.imagePreviewContainer.innerHTML = "";
-
       getImageUrls().forEach(url => {
         const img = document.createElement("img");
         img.src = url;
         img.alt = "Bike image";
-        img.onerror = () => {
-          img.style.display = "none";
-        };
+        img.onerror = () => img.style.display = "none";
         els.imagePreviewContainer.appendChild(img);
       });
     }
@@ -370,7 +249,6 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
     async function uploadSelectedImages() {
       const files = [...els.imageUpload.files];
       if (!files.length) return;
-
       if (!currentBike) {
         alert("Please select or create a bike first.");
         els.imageUpload.value = "";
@@ -379,54 +257,49 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
 
       for (const file of files) {
         const ext = (file.name.split(".").pop() || "png").toLowerCase();
-        const safeSlug = currentBike.slug;
-        const fileName = `${safeSlug}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const fileName = `${currentBike.slug}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-        const { error: uploadError } = await client.storage
-          .from(BUCKET_NAME)
-          .upload(fileName, file, {
-            upsert: false,
-            contentType: file.type || undefined
-          });
+        const { error } = await client.storage.from(BUCKET_NAME).upload(fileName, file, {
+          upsert: false,
+          contentType: file.type || undefined
+        });
 
-        if (uploadError) {
-          console.error("UPLOAD ERROR:", uploadError);
-          alert(`Image upload failed: ${uploadError.message || "Unknown error"}`);
+        if (error) {
+          console.error("UPLOAD ERROR:", error);
+          alert(`Image upload failed: ${error.message || "Unknown error"}`);
           els.imageUpload.value = "";
           return;
         }
 
-        const { data: publicUrlData } = client.storage
-          .from(BUCKET_NAME)
-          .getPublicUrl(fileName);
-
-        addImageUrl(publicUrlData.publicUrl);
+        const { data } = client.storage.from(BUCKET_NAME).getPublicUrl(fileName);
+        addImageUrl(data.publicUrl);
       }
 
       els.imageUpload.value = "";
     }
 
     async function loadBikes() {
-      const { data, error } = await client
-        .from("motorcycles")
-        .select("*")
-        .order("model", { ascending: true });
+      const { data, error } = await client.from("motorcycles").select("*").order("model", { ascending: true });
+      console.log("LOAD BIKES DATA:", data);
+      console.log("LOAD BIKES ERROR:", error);
 
       if (error) {
         console.error(error);
-        alert("Error loading bikes");
+        alert(`Error loading bikes: ${error.message || JSON.stringify(error)}`);
         return;
       }
 
-      els.bikeSelect.innerHTML = `
-        <option value="">Select a bike</option>
-        ${(data || []).map(bike => `
-          <option value="${escapeHtml(bike.slug)}">${escapeHtml(bike.model || bike.slug)}</option>
-        `).join("")}
-      `;
+      els.bikeSelect.innerHTML = `<option value="">Select a bike</option>${
+        (data || []).map(b => `<option value="${escapeHtml(b.slug)}">${escapeHtml(b.model || b.slug)}</option>`).join("")
+      }`;
+
+      if (!data || !data.length) {
+        clearBikeForm();
+        return;
+      }
 
       if (currentBike?.slug) {
-        const stillExists = (data || []).some(b => b.slug === currentBike.slug);
+        const stillExists = data.some(b => b.slug === currentBike.slug);
         if (stillExists) {
           els.bikeSelect.value = currentBike.slug;
           await loadBike(currentBike.slug);
@@ -434,26 +307,17 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         }
       }
 
-      if (data && data.length) {
-        els.bikeSelect.value = data[0].slug;
-        await loadBike(data[0].slug);
-      } else {
-        clearForm();
-      }
+      els.bikeSelect.value = data[0].slug;
+      await loadBike(data[0].slug);
     }
 
     async function loadBike(slug) {
       if (!slug) {
-        clearForm();
+        clearBikeForm();
         return;
       }
 
-      const { data, error } = await client
-        .from("motorcycles")
-        .select("*")
-        .eq("slug", slug)
-        .single();
-
+      const { data, error } = await client.from("motorcycles").select("*").eq("slug", slug).single();
       if (error) {
         console.error(error);
         alert("Error loading bike");
@@ -461,14 +325,10 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       }
 
       currentBike = data;
-
       els.model.value = data.model || "";
       els.category.value = data.category || "";
       els.unitPrice.value = data.unit_price ?? "";
-
-      if (!els.invoiceUnitPrice.value) {
-        els.invoiceUnitPrice.value = data.unit_price ?? "";
-      }
+      if (!els.invoiceUnitPrice.value) els.invoiceUnitPrice.value = data.unit_price ?? "";
 
       els.engine.value = data.engine || "";
       els.displacement.value = data.displacement || "";
@@ -487,10 +347,10 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       els.brake.value = data.brake || "";
 
       els.featuresContainer.innerHTML = "";
-      (data.features || []).forEach(feature => addFeature(feature));
+      (data.features || []).forEach(addFeature);
 
       els.imageUrlsContainer.innerHTML = "";
-      (data.image_urls || []).forEach(url => addImageUrl(url));
+      (data.image_urls || []).forEach(addImageUrl);
 
       renderImagePreviews();
     }
@@ -505,7 +365,6 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         model: els.model.value.trim(),
         category: els.category.value.trim(),
         unit_price: Number(els.unitPrice.value) || 0,
-
         engine: els.engine.value.trim(),
         displacement: els.displacement.value.trim(),
         power_hp: els.power_hp.value.trim(),
@@ -521,16 +380,11 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         color: els.color.value.trim(),
         suspension: els.suspension.value.trim(),
         brake: els.brake.value.trim(),
-
         features: getFeatures(),
         image_urls: getImageUrls()
       };
 
-      const { error } = await client
-        .from("motorcycles")
-        .update(updated)
-        .eq("slug", currentBike.slug);
-
+      const { error } = await client.from("motorcycles").update(updated).eq("slug", currentBike.slug);
       if (error) {
         console.error(error);
         alert("Save bike failed");
@@ -553,16 +407,14 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         return;
       }
 
-      const { error } = await client
-        .from("motorcycles")
-        .insert([{
-          slug: cleanSlug,
-          model: "New Bike",
-          category: "",
-          unit_price: 0,
-          features: [],
-          image_urls: []
-        }]);
+      const { error } = await client.from("motorcycles").insert([{
+        slug: cleanSlug,
+        model: "New Bike",
+        category: "",
+        unit_price: 0,
+        features: [],
+        image_urls: []
+      }]);
 
       if (error) {
         console.error(error);
@@ -578,12 +430,10 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
 
     function getBikeSnapshot() {
       return {
-        id: currentBike?.id || null,
         slug: currentBike?.slug || null,
         model: els.model.value.trim(),
         category: els.category.value.trim(),
         unit_price: Number(els.unitPrice.value) || 0,
-
         engine: els.engine.value.trim(),
         displacement: els.displacement.value.trim(),
         power_hp: els.power_hp.value.trim(),
@@ -599,16 +449,13 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         color: els.color.value.trim(),
         suspension: els.suspension.value.trim(),
         brake: els.brake.value.trim(),
-
         features: getFeatures(),
         image_urls: getImageUrls()
       };
     }
 
     function getInvoicePayload() {
-      if (!currentBike) {
-        throw new Error("Please select a bike first.");
-      }
+      if (!currentBike) throw new Error("Please select a bike first.");
 
       const quantity = Number(els.quantity.value) || 1;
       const unitPrice = Number(els.invoiceUnitPrice.value || els.unitPrice.value) || 0;
@@ -619,17 +466,14 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       return {
         invoice_number: els.invoiceNumber.value.trim() || generateInvoiceNumber(),
         invoice_date: els.invoiceDate.value || todayInputValue(),
-
         customer_name: els.customerName.value.trim(),
         customer_company: els.customerCompany.value.trim(),
         customer_phone: els.customerPhone.value.trim(),
         customer_email: els.customerEmail.value.trim(),
         customer_address: els.customerAddress.value.trim(),
-
         bike_slug: currentBike.slug,
         bike_model: els.model.value.trim(),
         bike_category: els.category.value.trim(),
-
         quantity,
         unit_price: unitPrice,
         subtotal,
@@ -639,98 +483,79 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         status: els.status.value.trim() || "Draft",
         notes: els.invoiceNotes.value.trim(),
         terms: els.invoiceTerms.value.trim(),
-
         bike_snapshot: getBikeSnapshot()
       };
     }
 
-   async function saveInvoice({ openPreview = false } = {}) {
-  try {
-    const payload = getInvoicePayload();
+    async function saveInvoice({ openPreview = false } = {}) {
+      try {
+        const payload = getInvoicePayload();
+        let result;
 
-    let result;
+        if (currentInvoiceId) {
+          const { data, error } = await client.from("invoices").update(payload).eq("id", currentInvoiceId).select().single();
+          if (error) throw error;
+          result = data;
+        } else {
+          const { data, error } = await client.from("invoices").insert([payload]).select().single();
+          if (error) throw error;
+          result = data;
+          currentInvoiceId = data.id;
+        }
 
-    if (currentInvoiceId) {
-      const { data, error } = await client
-        .from("invoices")
-        .update(payload)
-        .eq("id", currentInvoiceId)
-        .select()
-        .single();
+        els.invoiceNumber.value = result.invoice_number || payload.invoice_number;
 
-      if (error) throw error;
-      result = data;
-    } else {
-      const { data, error } = await client
-        .from("invoices")
-        .insert([payload])
-        .select()
-        .single();
+        if (openPreview) {
+          if (!result || !result.id) {
+            alert("Invoice saved but no invoice id was returned.");
+            return null;
+          }
+          const url = `invoice.html?id=${encodeURIComponent(result.id)}&v=${Date.now()}`;
+          window.open(url, "_blank");
+        } else {
+          alert("Invoice saved");
+        }
 
-      if (error) throw error;
-      result = data;
-      currentInvoiceId = data.id;
-    }
-
-    els.invoiceNumber.value = result.invoice_number || payload.invoice_number;
-
-    if (openPreview) {
-      if (!result || !result.id) {
-        alert("Invoice saved but no invoice id was returned.");
+        return result;
+      } catch (err) {
+        console.error("SAVE INVOICE ERROR:", err);
+        alert(err?.message || JSON.stringify(err) || "Failed to save invoice");
         return null;
       }
-
-      const url = `invoice.html?id=${encodeURIComponent(result.id)}&v=${Date.now()}`;
-      window.open(url, "_blank");
-    } else {
-      alert("Invoice saved");
     }
 
-    return result;
-  } catch (err) {
-    console.error("SAVE INVOICE ERROR:", err);
-    alert(err?.message || JSON.stringify(err) || "Failed to save invoice");
-    return null;
-  }
-}
-async function loadInvoiceIntoAdmin(invoiceId) {
-  const { data, error } = await client
-    .from("invoices")
-    .select("*")
-    .eq("id", invoiceId)
-    .single();
+    async function loadInvoiceIntoAdmin(invoiceId) {
+      const { data, error } = await client.from("invoices").select("*").eq("id", invoiceId).single();
+      if (error) {
+        console.error(error);
+        alert("Failed to load invoice");
+        return;
+      }
 
-  if (error) {
-    console.error(error);
-    alert("Failed to load invoice");
-    return;
-  }
+      currentInvoiceId = data.id;
+      els.invoiceNumber.value = data.invoice_number || "";
+      els.invoiceDate.value = data.invoice_date || todayInputValue();
+      els.customerName.value = data.customer_name || "";
+      els.customerCompany.value = data.customer_company || "";
+      els.customerPhone.value = data.customer_phone || "";
+      els.customerEmail.value = data.customer_email || "";
+      els.customerAddress.value = data.customer_address || "";
+      els.quantity.value = data.quantity ?? 1;
+      els.invoiceUnitPrice.value = data.unit_price ?? "";
+      els.additionalCharges.value = data.additional_charges ?? 0;
+      els.currency.value = data.currency || "USD";
+      els.status.value = data.status || "Draft";
+      els.invoiceNotes.value = data.notes || "";
+      els.invoiceTerms.value = data.terms || "";
 
-  currentInvoiceId = data.id;
-
-  els.invoiceNumber.value = data.invoice_number || "";
-  els.invoiceDate.value = data.invoice_date || todayInputValue();
-  els.customerName.value = data.customer_name || "";
-  els.customerCompany.value = data.customer_company || "";
-  els.customerPhone.value = data.customer_phone || "";
-  els.customerEmail.value = data.customer_email || "";
-  els.customerAddress.value = data.customer_address || "";
-  els.quantity.value = data.quantity ?? 1;
-  els.invoiceUnitPrice.value = data.unit_price ?? "";
-  els.additionalCharges.value = data.additional_charges ?? 0;
-  els.currency.value = data.currency || "USD";
-  els.status.value = data.status || "Draft";
-  els.invoiceNotes.value = data.notes || "";
-  els.invoiceTerms.value = data.terms || "";
-
-  if (data.bike_snapshot?.slug) {
-    els.bikeSelect.value = data.bike_snapshot.slug;
-    await loadBike(data.bike_snapshot.slug);
-  } else if (data.bike_slug) {
-    els.bikeSelect.value = data.bike_slug;
-    await loadBike(data.bike_slug);
-  }
-}
+      if (data.bike_snapshot?.slug) {
+        els.bikeSelect.value = data.bike_snapshot.slug;
+        await loadBike(data.bike_snapshot.slug);
+      } else if (data.bike_slug) {
+        els.bikeSelect.value = data.bike_slug;
+        await loadBike(data.bike_slug);
+      }
+    }
 
     els.bikeSelect.addEventListener("change", e => loadBike(e.target.value));
     els.saveBtn.addEventListener("click", saveBike);
@@ -743,16 +568,11 @@ async function loadInvoiceIntoAdmin(invoiceId) {
     els.previewInvoiceBtn.addEventListener("click", () => saveInvoice({ openPreview: true }));
 
     (async function initAdmin() {
-      if (els.invoiceDate && !els.invoiceDate.value) {
-        els.invoiceDate.value = todayInputValue();
-      }
-
+      if (!els.invoiceDate.value) els.invoiceDate.value = todayInputValue();
       await loadBikes();
 
       const invoiceId = getParam("invoice_id") || getParam("id");
-      if (invoiceId) {
-        await loadInvoiceIntoAdmin(invoiceId);
-      }
+      if (invoiceId) await loadInvoiceIntoAdmin(invoiceId);
     })();
   </script>
 </body>
