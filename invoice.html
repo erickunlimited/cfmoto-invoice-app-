@@ -2,168 +2,745 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Invoice Generator</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <script src="./bikes.js"></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>RES Invoice Generator</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --teal:#00B4B4;
-      --ink:#0D0D0D;
-      --mid:#3A3A3A;
-      --soft:#6B6B6B;
-      --paper:#F5F7F7;
-      --warm:#EDF2F2;
-      --border:#D4DCDC;
-      --fine:#E0E8E8;
-      --white:#FFFFFF;
-      --serif:"Cormorant Garamond", Georgia, serif;
-      --sans:"Outfit", Helvetica Neue, Arial, sans-serif;
-      --e-bg:#0D0D0D;
-      --e-card:#181818;
-      --e-bdr:#2A2A2A;
-      --e-inp:#1E1E1E;
-      --e-txt:rgba(255,255,255,.85);
+      --teal:   #00B4B4;
+      --tpale:  rgba(0,180,180,0.10);
+      --ink:    #0D0D0D;
+      --mid:    #3A3A3A;
+      --soft:   #6B6B6B;
+      --ghost:  #9E9E9E;
+      --paper:  #F5F7F7;
+      --warm:   #EDF2F2;
+      --border: #D4DCDC;
+      --fine:   #E0E8E8;
+      --white:  #FFFFFF;
+      --serif:  "Cormorant Garamond", Georgia, serif;
+      --sans:   "Outfit", Helvetica Neue, Arial, sans-serif;
+      --e-bg:   #0D0D0D;
+      --e-card: #181818;
+      --e-bdr:  #2A2A2A;
+      --e-inp:  #1E1E1E;
+      --e-txt:  rgba(255,255,255,0.85);
+      --e-gst:  rgba(255,255,255,0.32);
     }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:var(--sans);background:#111;color:var(--ink)}
-    .app{display:grid;grid-template-columns:320px 1fr;min-height:100vh}
-    .editor{background:var(--e-bg);border-right:1px solid var(--e-bdr);padding:18px;color:#fff}
-    .preview{background:var(--warm);padding:28px}
-    .paper{max-width:960px;margin:0 auto;background:var(--paper);border:1px solid var(--border);padding:30px}
-    h1{font-family:var(--serif);font-weight:400;margin:0 0 4px;color:#fff}
-    .sub{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-bottom:18px}
-    .section{margin-bottom:16px;padding:14px;background:var(--e-card);border:1px solid var(--e-bdr)}
-    .section-title{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin:0 0 10px}
-    label{display:block;font-size:12px;margin:0 0 6px;color:var(--e-txt)}
-    input,select,textarea,button{width:100%;font:inherit}
-    input,select,textarea{margin-bottom:10px;padding:10px 12px;background:var(--e-inp);color:#fff;border:1px solid var(--e-bdr)}
-    textarea{min-height:72px;resize:vertical}
-    button{padding:12px 14px;border:none;background:var(--teal);color:#001717;font-weight:600;cursor:pointer}
-    .btn2{background:transparent;border:1px solid var(--e-bdr);color:#fff}
-    .kicker{color:var(--teal);font-size:10px;letter-spacing:.18em;text-transform:uppercase}
-    .inv-title{font-family:var(--serif);font-size:48px;font-weight:400;margin:2px 0 0}
-    .top{display:grid;grid-template-columns:1fr auto;gap:24px;border-bottom:1px solid var(--border);padding-bottom:18px}
-    .company{font-family:var(--serif);font-size:30px;font-weight:400}
-    .meta{text-align:right}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-    .box{border-top:1px solid var(--border);padding-top:16px;margin-top:16px}
-    .spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px}
-    .spec-name{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
-    .spec-value{font-size:15px}
-    .bike-image{max-width:100%;max-height:260px;object-fit:contain;display:block;margin-left:auto}
-    table{width:100%;border-collapse:collapse;margin-top:16px}
-    th,td{padding:12px;border-bottom:1px solid var(--border);text-align:left}
-    th{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
-    .right{text-align:right}
-    @media print {.editor{display:none}.app{display:block}.preview{padding:0;background:#fff}.paper{border:none;max-width:none}}
-    @media (max-width:980px){.app{grid-template-columns:1fr}.row,.top,.spec-grid{grid-template-columns:1fr}.meta{text-align:left}}
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 17px; }
+    body {
+      font-family: var(--sans);
+      background: #111;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      min-height: 100vh;
+    }
+
+    .editor {
+      background: var(--e-bg);
+      border-right: 1px solid var(--e-bdr);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      overflow: hidden;
+    }
+
+    .editor__head {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--e-bdr);
+      flex-shrink: 0;
+    }
+
+    .editor__title {
+      font-family: var(--serif);
+      font-size: 18px;
+      font-weight: 400;
+      color: white;
+      letter-spacing: 0.03em;
+    }
+
+    .editor__sub {
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-top: 3px;
+      font-weight: 500;
+    }
+
+    .editor__body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px 24px;
+    }
+
+    .editor__section {
+      margin-bottom: 22px;
+    }
+
+    .editor__section-label {
+      font-size: 8.5px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--teal);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--e-bdr);
+      margin-bottom: 12px;
+    }
+
+    .field { margin-bottom: 10px; }
+    .field label {
+      display: block;
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--e-gst);
+      margin-bottom: 4px;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      background: var(--e-inp);
+      border: 1px solid var(--e-bdr);
+      border-radius: 3px;
+      color: var(--e-txt);
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 300;
+      padding: 8px 10px;
+      outline: none;
+      transition: border-color 0.15s;
+      appearance: none;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      border-color: var(--teal);
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 58px;
+      line-height: 1.5;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .check-row input {
+      width: auto;
+      accent-color: var(--teal);
+    }
+
+    .check-row label {
+      color: var(--e-txt);
+      font-size: 11px;
+      text-transform: none;
+      letter-spacing: 0;
+      margin: 0;
+    }
+
+    .editor__footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--e-bdr);
+      flex-shrink: 0;
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-main, .btn-alt {
+      flex: 1;
+      border-radius: 3px;
+      padding: 11px 0;
+      font-family: var(--sans);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-main {
+      background: var(--teal);
+      color: #000;
+      border: none;
+    }
+
+    .btn-alt {
+      background: var(--e-inp);
+      color: var(--e-txt);
+      border: 1px solid var(--e-bdr);
+    }
+
+    .btn-main:hover, .btn-alt:hover { opacity: 0.88; }
+
+    .preview {
+      background: var(--warm);
+      padding: 22px 14px 40px;
+    }
+
+    .preview__inner {
+      width: 794px;
+      margin: 0 auto;
+    }
+
+    .inv {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.10);
+      padding: 28px 28px 22px;
+    }
+
+    .hd {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 18px;
+      margin-bottom: 18px;
+    }
+
+    .hd-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .hd-brand {
+      font-family: var(--serif);
+      font-size: 24px;
+      line-height: 1;
+      font-weight: 400;
+      color: var(--ink);
+      letter-spacing: 0.02em;
+    }
+
+    .hd-sub {
+      margin-top: 6px;
+      color: var(--soft);
+      font-size: 10px;
+      line-height: 1.5;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .hd-right {
+      text-align: right;
+    }
+
+    .hd-doctype {
+      color: var(--teal);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .hd-docnum {
+      font-family: var(--serif);
+      font-size: 22px;
+      font-weight: 400;
+      line-height: 1.1;
+    }
+
+    .hd-date {
+      margin-top: 3px;
+      color: var(--soft);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .buyer-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      padding: 12px 0 0;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--fine);
+      padding-bottom: 16px;
+    }
+
+    .buyer-item-label {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--ghost);
+      margin-bottom: 4px;
+    }
+
+    .buyer-item-val {
+      font-size: 11px;
+      color: var(--ink);
+      line-height: 1.4;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 20px;
+      align-items: start;
+      margin-bottom: 18px;
+    }
+
+    .hero__kicker {
+      color: var(--teal);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .hero__title {
+      font-family: var(--serif);
+      font-size: 42px;
+      line-height: 0.96;
+      font-weight: 400;
+      margin-bottom: 8px;
+    }
+
+    .hero__desc {
+      color: var(--soft);
+      font-size: 11px;
+      line-height: 1.6;
+      max-width: 92%;
+    }
+
+    .hero__img-wrap {
+      background: var(--white);
+      border: 1px solid var(--border);
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .hero__img {
+      width: 100%;
+      max-height: 226px;
+      object-fit: contain;
+      display: none;
+    }
+
+    .hero__img-empty {
+      color: var(--ghost);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .sec-title {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 12px;
+      border-top: 1px solid var(--fine);
+      padding-top: 16px;
+    }
+
+    .sec-num {
+      color: var(--teal);
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .sec-name {
+      font-family: var(--serif);
+      font-size: 20px;
+      font-weight: 400;
+    }
+
+    .specs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 18px;
+    }
+
+    .spec-card {
+      display: none;
+      border-bottom: 1px solid var(--fine);
+      padding-bottom: 8px;
+    }
+
+    .spec-card.show {
+      display: block;
+    }
+
+    .spec-name {
+      color: var(--ghost);
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      margin-bottom: 4px;
+    }
+
+    .spec-val {
+      color: var(--ink);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .features-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+      list-style: none;
+      margin-top: 2px;
+    }
+
+    .features-list li {
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--ink);
+      padding-left: 12px;
+      position: relative;
+    }
+
+    .features-list li::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--teal);
+      position: absolute;
+      left: 0;
+      top: 8px;
+    }
+
+    .price-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 4px;
+    }
+
+    .price-table th,
+    .price-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--fine);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .price-table th {
+      color: var(--ghost);
+      font-size: 8px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .price-table td {
+      font-size: 11px;
+      color: var(--ink);
+    }
+
+    .price-table td.right,
+    .price-table th.right {
+      text-align: right;
+    }
+
+    .notes {
+      color: var(--soft);
+      font-size: 11px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    .foot {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: end;
+    }
+
+    .foot-brand {
+      font-family: var(--serif);
+      font-size: 18px;
+      font-weight: 400;
+    }
+
+    .foot-loc {
+      color: var(--soft);
+      font-size: 10px;
+      line-height: 1.5;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .foot-ref {
+      text-align: right;
+      color: var(--ghost);
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .foot-val {
+      text-align: right;
+      font-size: 11px;
+      color: var(--ink);
+      margin-top: 3px;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .editor { display: none !important; }
+      .app { display: block; }
+      .preview { background: #fff; padding: 0; }
+      .preview__inner { width: 100%; max-width: none; }
+      .inv {
+        border: none;
+        box-shadow: none;
+        width: 100%;
+        padding: 20px 18px 16px;
+      }
+    }
+
+    @media (max-width: 1000px) {
+      .app { grid-template-columns: 1fr; }
+      .editor { height: auto; position: static; }
+      .preview { padding: 16px 8px 32px; }
+      .preview__inner { width: 100%; max-width: 794px; }
+      .inv { width: 100%; }
+      .hero, .hd-row, .foot { grid-template-columns: 1fr; }
+      .hd-right, .foot-ref, .foot-val { text-align: left; }
+      .buyer-bar, .specs-grid, .features-list { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
-  <div class="app">
-    <aside class="editor">
-      <h1>Invoice Generator</h1>
-      <div class="sub">Rhobust Engineering Services</div>
+<div class="app">
 
-      <div class="section">
-        <div class="section-title">Document</div>
-        <label>Bike</label>
-        <select id="bikeSelect"></select>
-        <label>Invoice Number</label>
-        <input id="invoiceNumber" />
-        <label>Invoice Date</label>
-        <input id="invoiceDate" />
+  <aside class="editor">
+    <div class="editor__head">
+      <div class="editor__title">Invoice Generator</div>
+      <div class="editor__sub">Rhobust Engineering Services</div>
+    </div>
+
+    <div class="editor__body">
+      <div class="editor__section">
+        <div class="editor__section-label">Motorcycle</div>
+        <div class="field">
+          <label>Select Bike</label>
+          <select id="f-bike"></select>
+        </div>
       </div>
 
-      <div class="section">
-        <div class="section-title">Customer</div>
-        <label>Name</label><input id="customerName" />
-        <label>Phone</label><input id="customerPhone" />
-        <label>Address</label><textarea id="customerAddress"></textarea>
+      <div class="editor__section">
+        <div class="editor__section-label">Document</div>
+        <div class="field">
+          <label>Invoice Number</label>
+          <input id="f-invnum" type="text">
+        </div>
+        <div class="field">
+          <label>Invoice Date</label>
+          <input id="f-date" type="date">
+        </div>
+        <div class="field">
+          <label>Currency</label>
+          <input id="f-currency" type="text" value="USD">
+        </div>
       </div>
 
-      <div class="section">
-        <div class="section-title">Commercial</div>
-        <label>Quantity</label><input id="qty" value="1" />
-        <label>Unit Price</label><input id="unitPrice" />
-        <label>Discount</label><input id="discount" value="0" />
-        <label>Deposit Paid</label><input id="deposit" value="0" />
+      <div class="editor__section">
+        <div class="editor__section-label">Customer</div>
+        <div class="field">
+          <label>Customer Name</label>
+          <input id="f-buyer-name" type="text">
+        </div>
+        <div class="field">
+          <label>Contact</label>
+          <input id="f-buyer-contact" type="text">
+        </div>
+        <div class="field">
+          <label>Address</label>
+          <textarea id="f-buyer-loc"></textarea>
+        </div>
       </div>
 
-      <div class="section">
-        <div class="section-title">Terms</div>
-        <label>Delivery Period</label><input id="deliveryPeriod" value="60 days" />
-        <label>Warranty</label><textarea id="warrantyText">Standard dealership warranty applies. Assembly, import duty & all taxes included unless otherwise stated.</textarea>
-        <label>Notes</label><textarea id="notes"></textarea>
-      </div>
-
-      <div class="section">
-        <button id="printBtn">Print / Save PDF</button>
-      </div>
-    </aside>
-
-    <main class="preview">
-      <div class="paper">
-        <div class="top">
-          <div>
-            <div class="kicker">Motorcycle Sales Invoice</div>
-            <div class="company">Rhobust Engineering Services</div>
-            <div>No. 25, Nuumo Ayite Kobla Street, Kokomlemle<br>Accra, Ghana</div>
+      <div class="editor__section">
+        <div class="editor__section-label">Commercial</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Quantity</label>
+            <input id="f-qty" type="number" min="1" value="1">
           </div>
-          <div class="meta">
-            <div class="inv-title">Invoice</div>
-            <div id="pInvoiceNumber"></div>
-            <div id="pInvoiceDate"></div>
+          <div class="field">
+            <label>Unit Price</label>
+            <input id="f-unit" type="number" step="0.01" value="0">
           </div>
         </div>
-
-        <div class="row box">
-          <div>
-            <div class="spec-name">Bill To</div>
-            <div id="pCustomerName"></div>
-            <div id="pCustomerPhone"></div>
-            <div id="pCustomerAddress"></div>
+        <div class="field-row">
+          <div class="field">
+            <label>Discount</label>
+            <input id="f-discount" type="number" step="0.01" value="0">
           </div>
-          <div>
-            <div class="spec-name">Commercial Summary</div>
-            <div id="pDeliveryPeriod"></div>
-            <div id="pWarrantyText"></div>
+          <div class="field">
+            <label>Deposit Paid</label>
+            <input id="f-deposit" type="number" step="0.01" value="0">
           </div>
         </div>
+        <div class="field">
+          <label>Delivery Period</label>
+          <input id="f-delivery" type="text" value="60 days">
+        </div>
+        <div class="field">
+          <label>Warranty</label>
+          <textarea id="f-warranty">Standard dealership warranty applies. Assembly, import duty & all taxes included unless otherwise stated.</textarea>
+        </div>
+        <div class="field">
+          <label>Salesperson</label>
+          <input id="f-salesperson" type="text">
+        </div>
+      </div>
 
-        <div class="row box">
-          <div>
-            <div class="kicker">Selected Vehicle</div>
-            <div class="inv-title" id="pModel" style="font-size:40px"></div>
-            <div id="pCategory" style="color:#6B6B6B;margin-bottom:16px"></div>
+      <div class="editor__section">
+        <div class="editor__section-label">Display</div>
+        <div class="check-row">
+          <input id="f-show-image" type="checkbox" checked>
+          <label for="f-show-image">Include image</label>
+        </div>
+        <div class="check-row">
+          <input id="f-show-specs" type="checkbox" checked>
+          <label for="f-show-specs">Include specs</label>
+        </div>
+      </div>
 
-            <div class="spec-grid">
-              <div><div class="spec-name">Engine Type</div><div class="spec-value" id="pEngineType">—</div></div>
-              <div><div class="spec-name">Displacement</div><div class="spec-value" id="pDisplacement">—</div></div>
-              <div><div class="spec-name">Power</div><div class="spec-value" id="pPower">—</div></div>
-              <div><div class="spec-name">Torque</div><div class="spec-value" id="pTorque">—</div></div>
-              <div><div class="spec-name">Transmission</div><div class="spec-value" id="pTransmission">—</div></div>
-              <div><div class="spec-name">Cooling System</div><div class="spec-value" id="pCoolingSystem">—</div></div>
-              <div><div class="spec-name">Seat Height</div><div class="spec-value" id="pSeatHeight">—</div></div>
-              <div><div class="spec-name">Fuel Tank Capacity</div><div class="spec-value" id="pFuelTankCapacity">—</div></div>
-              <div><div class="spec-name">Weight</div><div class="spec-value" id="pWeight">—</div></div>
+      <div class="editor__section">
+        <div class="editor__section-label">Notes</div>
+        <div class="field">
+          <label>Notes</label>
+          <textarea id="f-notes"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="editor__footer">
+      <button class="btn-main" id="btn-save">Save Invoice</button>
+      <button class="btn-alt" id="btn-print">Print PDF</button>
+    </div>
+  </aside>
+
+  <main class="preview">
+    <div class="preview__inner">
+      <div class="inv" id="invoice">
+
+        <header class="hd">
+          <div class="hd-row">
+            <div>
+              <div class="hd-brand" id="o-seller-name">Rhobust Engineering Services</div>
+              <div class="hd-sub" id="o-seller-sub">Authorised Distributor · Kokomlemle · Accra, Ghana</div>
             </div>
-
-            <div class="box">
-              <div class="spec-name">Key Features</div>
-              <ul id="pFeatures"></ul>
+            <div class="hd-right">
+              <div class="hd-doctype">Proforma Invoice</div>
+              <div class="hd-docnum" id="o-invnum">RES-0001</div>
+              <div class="hd-date" id="o-date">—</div>
             </div>
           </div>
+        </header>
 
+        <div class="buyer-bar">
           <div>
-            <img id="pImage" class="bike-image" style="display:none" />
+            <div class="buyer-item-label">Bill To</div>
+            <div class="buyer-item-val" id="o-buyer-name">—</div>
+          </div>
+          <div>
+            <div class="buyer-item-label">Contact</div>
+            <div class="buyer-item-val" id="o-buyer-contact">—</div>
+          </div>
+          <div>
+            <div class="buyer-item-label">Location</div>
+            <div class="buyer-item-val" id="o-buyer-loc">—</div>
           </div>
         </div>
 
-        <div class="box">
-          <table>
+        <section class="hero">
+          <div>
+            <div class="hero__kicker">Selected Vehicle</div>
+            <div class="hero__title" id="o-model">—</div>
+            <div class="hero__desc" id="o-category">—</div>
+          </div>
+          <div class="hero__img-wrap">
+            <img class="hero__img" id="o-bike-img" alt="Bike image">
+            <div class="hero__img-empty" id="o-bike-empty">No Image</div>
+          </div>
+        </section>
+
+        <section id="specs-section">
+          <div class="sec-title">
+            <div class="sec-num">01</div>
+            <div class="sec-name">Technical Specification</div>
+          </div>
+
+          <div class="specs-grid">
+            <div class="spec-card" data-card="engine"><div class="spec-name">Engine</div><div class="spec-val" id="o-engine"></div></div>
+            <div class="spec-card" data-card="displacement"><div class="spec-name">Displacement</div><div class="spec-val" id="o-displacement"></div></div>
+            <div class="spec-card" data-card="power_hp"><div class="spec-name">Power / HP</div><div class="spec-val" id="o-power_hp"></div></div>
+            <div class="spec-card" data-card="torque"><div class="spec-name">Torque</div><div class="spec-val" id="o-torque"></div></div>
+            <div class="spec-card" data-card="fuel_system"><div class="spec-name">Fuel System</div><div class="spec-val" id="o-fuel_system"></div></div>
+            <div class="spec-card" data-card="transmission"><div class="spec-name">Transmission</div><div class="spec-val" id="o-transmission"></div></div>
+            <div class="spec-card" data-card="throttle_type"><div class="spec-name">Throttle Type</div><div class="spec-val" id="o-throttle_type"></div></div>
+            <div class="spec-card" data-card="fuel_capacity"><div class="spec-name">Fuel Capacity</div><div class="spec-val" id="o-fuel_capacity"></div></div>
+            <div class="spec-card" data-card="abs"><div class="spec-name">ABS</div><div class="spec-val" id="o-abs"></div></div>
+            <div class="spec-card" data-card="traction_control"><div class="spec-name">Traction Control</div><div class="spec-val" id="o-traction_control"></div></div>
+            <div class="spec-card" data-card="headlight"><div class="spec-name">Headlight</div><div class="spec-val" id="o-headlight"></div></div>
+            <div class="spec-card" data-card="charging_port"><div class="spec-name">Charging Port</div><div class="spec-val" id="o-charging_port"></div></div>
+            <div class="spec-card" data-card="color"><div class="spec-name">Color</div><div class="spec-val" id="o-color"></div></div>
+            <div class="spec-card" data-card="suspension"><div class="spec-name">Suspension</div><div class="spec-val" id="o-suspension"></div></div>
+            <div class="spec-card" data-card="brake"><div class="spec-name">Brake</div><div class="spec-val" id="o-brake"></div></div>
+          </div>
+        </section>
+
+        <section id="features-section">
+          <div class="sec-title">
+            <div class="sec-num">02</div>
+            <div class="sec-name">Key Features</div>
+          </div>
+          <ul class="features-list" id="o-features"></ul>
+        </section>
+
+        <section>
+          <div class="sec-title">
+            <div class="sec-num">03</div>
+            <div class="sec-name">Commercial Summary</div>
+          </div>
+
+          <table class="price-table">
             <thead>
               <tr>
                 <th>Description</th>
@@ -174,154 +751,317 @@
             </thead>
             <tbody>
               <tr>
-                <td id="pLineDescription"></td>
-                <td id="pQty"></td>
-                <td class="right" id="pUnitPrice"></td>
-                <td class="right" id="pSubtotal"></td>
+                <td id="o-line-desc">—</td>
+                <td id="o-qty">1</td>
+                <td class="right" id="o-unit">USD 0.00</td>
+                <td class="right" id="o-subtotal">USD 0.00</td>
               </tr>
               <tr>
                 <td colspan="3">Discount</td>
-                <td class="right" id="pDiscount"></td>
+                <td class="right" id="o-discount-money">USD 0.00</td>
               </tr>
               <tr>
                 <td colspan="3"><strong>Total</strong></td>
-                <td class="right" id="pTotal"></td>
+                <td class="right" id="o-total">USD 0.00</td>
               </tr>
               <tr>
                 <td colspan="3">Deposit Paid</td>
-                <td class="right" id="pDeposit"></td>
+                <td class="right" id="o-deposit">USD 0.00</td>
               </tr>
               <tr>
                 <td colspan="3"><strong>Balance Due</strong></td>
-                <td class="right" id="pBalance"></td>
+                <td class="right" id="o-balance">USD 0.00</td>
               </tr>
             </tbody>
           </table>
-        </div>
 
-        <div class="box">
-          <div class="spec-name">Notes</div>
-          <div id="pNotes"></div>
-        </div>
+          <div class="box" style="margin-top:14px;">
+            <div class="spec-name">Warranty</div>
+            <div class="notes" id="o-warranty">—</div>
+          </div>
+
+          <div class="box" style="margin-top:14px;">
+            <div class="spec-name">Notes</div>
+            <div class="notes" id="o-notes">—</div>
+          </div>
+        </section>
+
+        <footer class="foot">
+          <div>
+            <div class="foot-brand">Rhobust Engineering Services</div>
+            <div class="foot-loc">Assembly, import duty & all taxes included unless otherwise stated.</div>
+          </div>
+          <div>
+            <div class="foot-ref">Salesperson</div>
+            <div class="foot-val" id="o-salesperson">—</div>
+          </div>
+        </footer>
+
       </div>
-    </main>
-  </div>
+    </div>
+  </main>
+</div>
 
-  <script>
-    const STORAGE_KEY = "res_bike_catalogue_v1";
-    const bikes = localStorage.getItem(STORAGE_KEY)
-      ? JSON.parse(localStorage.getItem(STORAGE_KEY))
-      : (window.BIKES || []);
+<script>
+const client = window.supabase.createClient(
+  "PASTE_YOUR_URL_HERE",
+  "PASTE_YOUR_KEY_HERE"
+);
 
-    const $ = id => document.getElementById(id);
+const SPEC_FIELDS = [
+  "engine",
+  "displacement",
+  "power_hp",
+  "torque",
+  "fuel_system",
+  "transmission",
+  "throttle_type",
+  "fuel_capacity",
+  "abs",
+  "traction_control",
+  "headlight",
+  "charging_port",
+  "color",
+  "suspension",
+  "brake"
+];
 
-    function todayText() {
-      return new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
-    }
+let bikes = [];
+let currentBike = null;
 
-    function defaultInv() {
-      const d = new Date();
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      const rand = Math.floor(1000 + Math.random() * 9000);
-      return "RES-" + y + m + day + "-" + rand;
-    }
+const $ = id => document.getElementById(id);
 
-    function money(cur, val) {
-      const n = Number(val) || 0;
-      return (cur || "USD") + " " + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
+function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
 
-    function selectedBike() {
-      return bikes.find(b => b.slug === $("bikeSelect").value) || null;
-    }
+function humanDate(v) {
+  if (!v) return "—";
+  const d = new Date(v + "T00:00:00");
+  return d.toLocaleDateString(undefined, { year:"numeric", month:"long", day:"numeric" });
+}
 
-    function renderSelect() {
-      $("bikeSelect").innerHTML = bikes.map(b =>
-        '<option value="' + b.slug + '">' + b.model + '</option>'
-      ).join("");
-    }
+function makeInvoiceNumber() {
+  const d = new Date();
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `RES-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}-${rand}`;
+}
 
-    function update() {
-      const bike = selectedBike();
-      if (!bike) return;
+function money(cur, val) {
+  const n = Number(val) || 0;
+  return `${(cur || "USD").trim() || "USD"} ${n.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+}
 
-      if (!$("unitPrice").value && bike.pricing?.unitPrice) {
-        $("unitPrice").value = bike.pricing.unitPrice;
-      }
+async function loadBikes() {
+  const { data, error } = await client
+    .from("motorcycles")
+    .select("*")
+    .order("model", { ascending: true });
 
-      const qty = Number($("qty").value) || 1;
-      const unitPrice = Number($("unitPrice").value) || 0;
-      const discount = Number($("discount").value) || 0;
-      const deposit = Number($("deposit").value) || 0;
-      const currency = bike.pricing?.currency || "USD";
-      const subtotal = qty * unitPrice;
-      const total = Math.max(0, subtotal - discount);
-      const balance = Math.max(0, total - deposit);
+  if (error) {
+    console.error(error);
+    alert("Failed to load motorcycles");
+    return;
+  }
 
-      $("pInvoiceNumber").textContent = $("invoiceNumber").value || defaultInv();
-      $("pInvoiceDate").textContent = $("invoiceDate").value || todayText();
+  bikes = data || [];
+  $("f-bike").innerHTML = bikes.map(b => `<option value="${b.slug}">${b.model}</option>`).join("");
 
-      $("pCustomerName").textContent = $("customerName").value || "—";
-      $("pCustomerPhone").textContent = $("customerPhone").value || "—";
-      $("pCustomerAddress").textContent = $("customerAddress").value || "—";
-      $("pDeliveryPeriod").textContent = $("deliveryPeriod").value || "—";
-      $("pWarrantyText").textContent = $("warrantyText").value || "—";
+  if (bikes.length) {
+    await loadBike(bikes[0].slug);
+  }
+}
 
-      $("pModel").textContent = bike.model || "";
-      $("pCategory").textContent = bike.category || "";
-      $("pEngineType").textContent = bike.specs?.engineType || "—";
-      $("pDisplacement").textContent = bike.specs?.displacement || "—";
-      $("pPower").textContent = bike.specs?.power || "—";
-      $("pTorque").textContent = bike.specs?.torque || "—";
-      $("pTransmission").textContent = bike.specs?.transmission || "—";
-      $("pCoolingSystem").textContent = bike.specs?.coolingSystem || "—";
-      $("pSeatHeight").textContent = bike.specs?.seatHeight || "—";
-      $("pFuelTankCapacity").textContent = bike.specs?.fuelTankCapacity || "—";
-      $("pWeight").textContent = bike.specs?.weight || "—";
+async function loadBike(slug) {
+  const { data, error } = await client
+    .from("motorcycles")
+    .select("*")
+    .eq("slug", slug)
+    .single();
 
-      const ul = $("pFeatures");
-      ul.innerHTML = "";
-      (bike.keyFeatures || []).filter(Boolean).forEach(f => {
-        const li = document.createElement("li");
-        li.textContent = f;
-        ul.appendChild(li);
-      });
+  if (error) {
+    console.error(error);
+    alert("Failed to load motorcycle");
+    return;
+  }
 
-      const img = $("pImage");
-      if (bike.media?.imageUrl) {
-        img.src = bike.media.imageUrl;
-        img.style.display = "block";
-      } else {
-        img.style.display = "none";
-      }
+  currentBike = data;
+  if ((!$("f-unit").value || Number($("f-unit").value) === 0) && data.unit_price) {
+    $("f-unit").value = data.unit_price;
+  }
+  update();
+}
 
-      $("pLineDescription").textContent = bike.model + " · " + (bike.category || "CFMOTO motorcycle");
-      $("pQty").textContent = qty;
-      $("pUnitPrice").textContent = money(currency, unitPrice);
-      $("pSubtotal").textContent = money(currency, subtotal);
-      $("pDiscount").textContent = money(currency, discount);
-      $("pTotal").textContent = money(currency, total);
-      $("pDeposit").textContent = money(currency, deposit);
-      $("pBalance").textContent = money(currency, balance);
-      $("pNotes").textContent = $("notes").value || "—";
-    }
+function setSpec(field, value, visible) {
+  const card = document.querySelector(`[data-card="${field}"]`);
+  const output = $(`o-${field}`);
+  if (!card || !output) return;
 
-    renderSelect();
-    $("invoiceNumber").value = defaultInv();
-    $("invoiceDate").value = todayText();
-    $("bikeSelect").addEventListener("change", () => {
-      $("unitPrice").value = "";
-      update();
-    });
+  if (visible && value && String(value).trim()) {
+    output.textContent = value;
+    card.classList.add("show");
+  } else {
+    output.textContent = "";
+    card.classList.remove("show");
+  }
+}
 
-    ["invoiceNumber","invoiceDate","customerName","customerPhone","customerAddress","qty","unitPrice","discount","deposit","deliveryPeriod","warrantyText","notes"]
-      .forEach(id => $(id).addEventListener("input", update));
+function update() {
+  if (!currentBike) return;
 
-    $("printBtn").addEventListener("click", () => window.print());
+  const currency = $("f-currency").value || "USD";
+  const qty = Math.max(1, Number($("f-qty").value) || 1);
+  const unit = Math.max(0, Number($("f-unit").value) || 0);
+  const discount = Math.max(0, Number($("f-discount").value) || 0);
+  const deposit = Math.max(0, Number($("f-deposit").value) || 0);
 
-    update();
-  </script>
+  const subtotal = qty * unit;
+  const total = Math.max(0, subtotal - discount);
+  const balance = Math.max(0, total - deposit);
+
+  $("o-invnum").textContent = $("f-invnum").value || "—";
+  $("o-date").textContent = humanDate($("f-date").value);
+
+  $("o-buyer-name").textContent = $("f-buyer-name").value || "—";
+  $("o-buyer-contact").textContent = $("f-buyer-contact").value || "—";
+  $("o-buyer-loc").textContent = $("f-buyer-loc").value || "—";
+
+  $("o-model").textContent = currentBike.model || "—";
+  $("o-category").textContent = currentBike.category || "";
+
+  const showSpecs = $("f-show-specs").checked;
+  SPEC_FIELDS.forEach(field => setSpec(field, currentBike[field], showSpecs));
+
+  const visibleSpecs = SPEC_FIELDS.some(field => showSpecs && currentBike[field] && String(currentBike[field]).trim());
+  $("specs-section").style.display = visibleSpecs ? "block" : "none";
+
+  const feats = (currentBike.features || []).filter(Boolean);
+  $("o-features").innerHTML = "";
+  feats.forEach(f => {
+    const li = document.createElement("li");
+    li.textContent = f;
+    $("o-features").appendChild(li);
+  });
+  $("features-section").style.display = feats.length ? "block" : "none";
+
+  const imgs = currentBike.image_urls || [];
+  if ($("f-show-image").checked && imgs.length && imgs[0]) {
+    $("o-bike-img").src = imgs[0];
+    $("o-bike-img").style.display = "block";
+    $("o-bike-empty").style.display = "none";
+  } else {
+    $("o-bike-img").removeAttribute("src");
+    $("o-bike-img").style.display = "none";
+    $("o-bike-empty").style.display = "block";
+  }
+
+  $("o-line-desc").textContent = `${currentBike.model} · ${currentBike.category || "CFMOTO motorcycle"}`;
+  $("o-qty").textContent = qty;
+  $("o-unit").textContent = money(currency, unit);
+  $("o-subtotal").textContent = money(currency, subtotal);
+  $("o-discount-money").textContent = money(currency, discount);
+  $("o-total").textContent = money(currency, total);
+  $("o-deposit").textContent = money(currency, deposit);
+  $("o-balance").textContent = money(currency, balance);
+
+  $("o-warranty").textContent = $("f-warranty").value || "—";
+  $("o-notes").textContent = $("f-notes").value || "—";
+  $("o-salesperson").textContent = $("f-salesperson").value || "—";
+}
+
+async function saveInvoice() {
+  if (!currentBike) {
+    alert("Please select a bike first");
+    return;
+  }
+
+  const currency = $("f-currency").value || "USD";
+  const qty = Math.max(1, Number($("f-qty").value) || 1);
+  const unit = Math.max(0, Number($("f-unit").value) || 0);
+  const discount = Math.max(0, Number($("f-discount").value) || 0);
+  const deposit = Math.max(0, Number($("f-deposit").value) || 0);
+
+  const subtotal = qty * unit;
+  const total = Math.max(0, subtotal - discount);
+  const balance = Math.max(0, total - deposit);
+
+  const payload = {
+    invoice_number: $("f-invnum").value,
+    invoice_date: $("f-date").value || null,
+    motorcycle_slug: currentBike.slug,
+    customer_name: $("f-buyer-name").value || "",
+    customer_phone: $("f-buyer-contact").value || "",
+    customer_address: $("f-buyer-loc").value || "",
+    seller_name: "Rhobust Engineering Services",
+    seller_address: "Kokomlemle, Accra, Ghana",
+    seller_phone: "",
+    seller_email: "",
+    seller_website: "",
+    delivery_period: $("f-delivery").value || "",
+    warranty_text: $("f-warranty").value || "",
+    salesperson: $("f-salesperson").value || "",
+    currency: currency,
+    quantity: qty,
+    unit_price: unit,
+    discount: discount,
+    subtotal: subtotal,
+    total: total,
+    deposit_paid: deposit,
+    balance_due: balance,
+    notes: $("f-notes").value || "",
+    include_specs: $("f-show-specs").checked,
+    include_image: $("f-show-image").checked
+  };
+
+  const { error } = await client.from("invoices").insert([payload]);
+
+  if (error) {
+    console.error(error);
+    alert("Failed to save invoice");
+    return;
+  }
+
+  alert("Invoice saved");
+}
+
+$("f-bike").addEventListener("change", async (e) => {
+  $("f-unit").value = "0";
+  await loadBike(e.target.value);
+});
+
+[
+  "f-invnum",
+  "f-date",
+  "f-currency",
+  "f-buyer-name",
+  "f-buyer-contact",
+  "f-buyer-loc",
+  "f-qty",
+  "f-unit",
+  "f-discount",
+  "f-deposit",
+  "f-delivery",
+  "f-warranty",
+  "f-salesperson",
+  "f-notes",
+  "f-show-image",
+  "f-show-specs"
+].forEach(id => {
+  $(id).addEventListener("input", update);
+  $(id).addEventListener("change", update);
+});
+
+$("btn-save").addEventListener("click", saveInvoice);
+$("btn-print").addEventListener("click", () => window.print());
+
+$("f-invnum").value = makeInvoiceNumber();
+$("f-date").value = todayISO();
+
+loadBikes();
+</script>
 </body>
 </html>
