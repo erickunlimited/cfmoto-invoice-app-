@@ -1,324 +1,1863 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>RES Invoice v2</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Rhobust Engineering Limited · Invoice System</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --teal:#00B4B4;
+      --ink:#0D0D0D;
+      --soft:#6B6B6B;
+      --ghost:#9E9E9E;
+      --paper:#F5F7F7;
+      --warm:#EDF2F2;
+      --border:#D4DCDC;
+      --fine:#E0E8E8;
+      --white:#FFFFFF;
+      --serif:"Cormorant Garamond", Georgia, serif;
+      --sans:"Outfit", Helvetica Neue, Arial, sans-serif;
+      --e-bg:#0D0D0D;
+      --e-card:#181818;
+      --e-bdr:#2A2A2A;
+      --e-inp:#1E1E1E;
+      --e-txt:rgba(255,255,255,0.88);
+      --e-gst:rgba(255,255,255,0.34);
+      --ok:#16a34a;
+      --warn:#f59e0b;
+      --danger:#dc2626;
+    }
 
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family:var(--sans);
+      background:#111;
+      color:var(--ink);
+      min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+    }
 
-<style>
-body { margin:0; font-family:Arial; background:#111; }
-.app { display:grid; grid-template-columns:320px 1fr; }
+    .app {
+      display:grid;
+      grid-template-columns:360px 1fr;
+      min-height:100vh;
+    }
 
-.editor {
-  background:#0d0d0d; color:white; padding:20px; height:100vh; overflow:auto;
-}
+    .editor {
+      background:var(--e-bg);
+      border-right:1px solid var(--e-bdr);
+      display:flex;
+      flex-direction:column;
+      height:100vh;
+      position:sticky;
+      top:0;
+    }
 
-.editor input, .editor textarea, .editor select {
-  width:100%; margin-bottom:8px; padding:8px;
-  background:#1e1e1e; color:white; border:1px solid #333;
-}
+    .editor__head {
+      padding:18px 20px 14px;
+      border-bottom:1px solid var(--e-bdr);
+    }
 
-.editor label {
-  font-size:10px; opacity:0.6;
-}
+    .editor__title {
+      font-family:var(--serif);
+      font-size:20px;
+      color:#fff;
+      font-weight:400;
+    }
 
-.preview {
-  background:#f5f5f5; padding:20px;
-}
+    .editor__sub {
+      margin-top:4px;
+      font-size:9px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--teal);
+    }
 
-.invoice {
-  background:white;
-  max-width:800px;
-  margin:auto;
-  padding:24px;
-}
+    .editor__body {
+      flex:1;
+      overflow-y:auto;
+      padding:16px 20px 22px;
+    }
 
-.features { display:flex; flex-wrap:wrap; gap:8px; }
-.pill {
-  padding:6px 12px;
-  border-radius:20px;
-  background:#e6f7f7;
-  border:1px solid #00b4b4;
-  font-size:11px;
-}
+    .editor__footer {
+      border-top:1px solid var(--e-bdr);
+      padding:14px 20px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+    }
 
-.gallery img {
-  width:100%;
-  max-height:180px;
-  object-fit:contain;
-  border:1px solid #ddd;
-}
+    .editor__section {
+      margin-bottom:22px;
+    }
 
-.line-row {
-  display:grid;
-  grid-template-columns:2fr 1fr 1fr 1fr auto;
-  gap:6px;
-  margin-bottom:6px;
-}
+    .editor__section-label {
+      font-size:8.5px;
+      font-weight:600;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--teal);
+      padding-bottom:8px;
+      border-bottom:1px solid var(--e-bdr);
+      margin-bottom:12px;
+    }
 
-button { padding:10px; cursor:pointer; }
-</style>
+    .field { margin-bottom:10px; }
+    .field label {
+      display:block;
+      font-size:9px;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      color:var(--e-gst);
+      margin-bottom:4px;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width:100%;
+      background:var(--e-inp);
+      border:1px solid var(--e-bdr);
+      color:var(--e-txt);
+      border-radius:3px;
+      padding:8px 10px;
+      font-family:var(--sans);
+      font-size:12px;
+      outline:none;
+      appearance:none;
+    }
+
+    .field textarea {
+      resize:vertical;
+      min-height:62px;
+      line-height:1.5;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      border-color:var(--teal);
+    }
+
+    .field-row {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+    }
+
+    .btn-main, .btn-alt, .btn-mini {
+      border:none;
+      cursor:pointer;
+      border-radius:3px;
+      font-family:var(--sans);
+      transition:opacity .15s;
+    }
+
+    .btn-main:hover, .btn-alt:hover, .btn-mini:hover { opacity:.88; }
+
+    .btn-main {
+      background:var(--teal);
+      color:#000;
+      padding:11px 10px;
+      font-size:11px;
+      font-weight:600;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .btn-alt {
+      background:var(--e-inp);
+      color:var(--e-txt);
+      border:1px solid var(--e-bdr);
+      padding:11px 10px;
+      font-size:11px;
+      font-weight:600;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .btn-mini {
+      background:var(--e-inp);
+      color:var(--e-txt);
+      border:1px solid var(--e-bdr);
+      padding:8px 10px;
+      font-size:10px;
+      font-weight:600;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .list-box {
+      border:1px solid var(--e-bdr);
+      background:var(--e-card);
+      max-height:220px;
+      overflow:auto;
+    }
+
+    .list-item {
+      padding:10px;
+      border-bottom:1px solid var(--e-bdr);
+      cursor:pointer;
+    }
+
+    .list-item:last-child { border-bottom:none; }
+    .list-item:hover { background:#202020; }
+
+    .list-item__title {
+      color:#fff;
+      font-size:11px;
+      font-weight:600;
+    }
+
+    .list-item__meta {
+      color:var(--e-gst);
+      font-size:10px;
+      margin-top:3px;
+      line-height:1.4;
+    }
+
+    .row-actions {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:8px;
+    }
+
+    .line-grid, .payment-grid-editor {
+      display:grid;
+      gap:8px;
+    }
+
+    .line-item-card, .payment-card {
+      border:1px solid var(--e-bdr);
+      background:var(--e-card);
+      padding:10px;
+    }
+
+    .inline-5 {
+      display:grid;
+      grid-template-columns:2fr .8fr .9fr 1fr auto;
+      gap:6px;
+      align-items:end;
+    }
+
+    .inline-4 {
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr auto;
+      gap:6px;
+      align-items:end;
+    }
+
+    .preview {
+      background:var(--warm);
+      padding:22px 14px 40px;
+    }
+
+    .preview__inner {
+      width:794px;
+      margin:0 auto;
+    }
+
+    .inv {
+      background:var(--paper);
+      border:1px solid var(--border);
+      box-shadow:0 8px 28px rgba(0,0,0,.10);
+      padding:28px 28px 22px;
+    }
+
+    .hd {
+      border-bottom:1px solid var(--border);
+      padding-bottom:18px;
+      margin-bottom:18px;
+    }
+
+    .hd-row {
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:18px;
+      align-items:start;
+    }
+
+    .hd-brand {
+      font-family:var(--serif);
+      font-size:24px;
+      line-height:1;
+      font-weight:400;
+      color:var(--ink);
+      letter-spacing:.02em;
+    }
+
+    .hd-sub {
+      margin-top:6px;
+      color:var(--soft);
+      font-size:10px;
+      line-height:1.5;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      white-space:pre-line;
+    }
+
+    .hd-right { text-align:right; }
+
+    .hd-doctype {
+      color:var(--teal);
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      font-weight:600;
+      margin-bottom:5px;
+    }
+
+    .hd-docnum {
+      font-family:var(--serif);
+      font-size:22px;
+      font-weight:400;
+      line-height:1.1;
+    }
+
+    .hd-date {
+      margin-top:3px;
+      color:var(--soft);
+      font-size:10px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .status-badge {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:28px;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:10px;
+      font-weight:700;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      margin-top:8px;
+      border:1px solid var(--border);
+      background:#fff;
+    }
+
+    .status-draft { color:var(--soft); }
+    .status-quote, .status-proforma { color:var(--warn); }
+    .status-invoice, .status-sent, .status-part { color:var(--teal); }
+    .status-paid { color:var(--ok); }
+    .status-cancelled { color:var(--danger); }
+
+    .buyer-bar {
+      display:grid;
+      grid-template-columns:repeat(4, 1fr);
+      gap:12px;
+      padding:12px 0 0;
+      margin-bottom:18px;
+      border-bottom:1px solid var(--fine);
+      padding-bottom:16px;
+    }
+
+    .buyer-item-label {
+      font-size:8px;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      color:var(--ghost);
+      margin-bottom:4px;
+    }
+
+    .buyer-item-val {
+      font-size:11px;
+      color:var(--ink);
+      line-height:1.4;
+      white-space:pre-line;
+    }
+
+    .hero {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:18px;
+      margin-bottom:18px;
+    }
+
+    .hero__copy {
+      display:grid;
+      gap:10px;
+    }
+
+    .hero__kicker {
+      color:var(--teal);
+      font-size:9px;
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      font-weight:600;
+    }
+
+    .hero__title {
+      font-family:var(--serif);
+      font-size:42px;
+      line-height:.96;
+      font-weight:400;
+    }
+
+    .hero__desc {
+      color:var(--soft);
+      font-size:11px;
+      line-height:1.6;
+      max-width:94%;
+    }
+
+    .hero__gallery {
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+    }
+
+    .hero__gallery.one { grid-template-columns:1fr; }
+    .hero__gallery.two { grid-template-columns:1fr 1fr; }
+
+    .hero__gallery-card {
+      background:#fff;
+      border:1px solid var(--border);
+      min-height:170px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px;
+    }
+
+    .hero__gallery.one .hero__gallery-card { min-height:280px; }
+
+    .hero__gallery-img {
+      width:100%;
+      height:150px;
+      object-fit:contain;
+      display:block;
+    }
+
+    .hero__gallery.one .hero__gallery-img { height:255px; }
+
+    .hero__img-empty {
+      color:var(--ghost);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      padding:18px 0 10px;
+    }
+
+    .sec-title {
+      display:flex;
+      align-items:baseline;
+      gap:8px;
+      margin-bottom:12px;
+      border-top:1px solid var(--fine);
+      padding-top:16px;
+    }
+
+    .sec-num {
+      color:var(--teal);
+      font-size:9px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      font-weight:600;
+    }
+
+    .sec-name {
+      font-family:var(--serif);
+      font-size:20px;
+      font-weight:400;
+    }
+
+    .specs-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px 18px;
+    }
+
+    .spec-card {
+      display:none;
+      border-bottom:1px solid var(--fine);
+      padding-bottom:8px;
+    }
+
+    .spec-card.show { display:block; }
+
+    .spec-name {
+      color:var(--ghost);
+      font-size:8px;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      margin-bottom:4px;
+    }
+
+    .spec-val {
+      color:var(--ink);
+      font-size:12px;
+      line-height:1.45;
+    }
+
+    .features-pills {
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-top:2px;
+    }
+
+    .features-pill {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:40px;
+      padding:10px 16px;
+      border:1px solid rgba(0,180,180,.32);
+      background:rgba(0,180,180,.10);
+      color:var(--ink);
+      font-size:11px;
+      line-height:1.2;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      border-radius:999px;
+      font-weight:500;
+      max-width:100%;
+    }
+
+    .doc-table {
+      width:100%;
+      border-collapse:collapse;
+      margin-top:4px;
+    }
+
+    .doc-table th, .doc-table td {
+      padding:10px 8px;
+      border-bottom:1px solid var(--fine);
+      text-align:left;
+      vertical-align:top;
+    }
+
+    .doc-table th {
+      color:var(--ghost);
+      font-size:8px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      font-weight:500;
+    }
+
+    .doc-table td {
+      font-size:11px;
+      color:var(--ink);
+    }
+
+    .right { text-align:right !important; }
+
+    .notes {
+      color:var(--soft);
+      font-size:11px;
+      line-height:1.6;
+      white-space:pre-wrap;
+    }
+
+    .payment-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:10px 18px;
+      margin-top:4px;
+    }
+
+    .payment-block {
+      border-bottom:1px solid var(--fine);
+      padding-bottom:8px;
+    }
+
+    .foot {
+      margin-top:18px;
+      padding-top:14px;
+      border-top:1px solid var(--border);
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:14px;
+      align-items:end;
+    }
+
+    .foot-brand {
+      font-family:var(--serif);
+      font-size:18px;
+      font-weight:400;
+    }
+
+    .foot-loc {
+      color:var(--soft);
+      font-size:10px;
+      line-height:1.5;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      margin-top:4px;
+      white-space:pre-line;
+    }
+
+    .foot-ref {
+      text-align:right;
+      color:var(--ghost);
+      font-size:8px;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+    }
+
+    .foot-val {
+      text-align:right;
+      font-size:11px;
+      color:var(--ink);
+      margin-top:3px;
+    }
+
+    .hidden { display:none !important; }
+
+    @media print {
+      body { background:#fff; }
+      .editor { display:none !important; }
+      .app { display:block; }
+      .preview { background:#fff; padding:0; }
+      .preview__inner { width:100%; max-width:none; }
+      .inv {
+        border:none;
+        box-shadow:none;
+        width:100%;
+        padding:20px 18px 16px;
+      }
+    }
+
+    @media (max-width: 1050px) {
+      .app { grid-template-columns:1fr; }
+      .editor { height:auto; position:static; }
+      .preview { padding:16px 8px 32px; }
+      .preview__inner { width:100%; max-width:794px; }
+      .inv { width:100%; }
+      .hd-row, .foot, .buyer-bar, .specs-grid, .payment-grid, .field-row, .inline-5, .inline-4 {
+        grid-template-columns:1fr;
+      }
+      .hd-right, .foot-ref, .foot-val { text-align:left; }
+      .hero__gallery, .hero__gallery.two { grid-template-columns:1fr; }
+      .editor__footer { grid-template-columns:1fr; }
+    }
+  </style>
 </head>
-
 <body>
 <div class="app">
+  <aside class="editor">
+    <div class="editor__head">
+      <div class="editor__title">Invoice System</div>
+      <div class="editor__sub">Rhobust Engineering Limited</div>
+    </div>
 
-<!-- EDITOR -->
-<div class="editor">
+    <div class="editor__body">
+      <div class="editor__section">
+        <div class="editor__section-label">Search / Load</div>
+        <div class="field">
+          <label>Search old invoices</label>
+          <input id="f-search" type="text" placeholder="Invoice #, customer, bike...">
+        </div>
+        <div class="list-box" id="invoice-list"></div>
+        <div class="row-actions">
+          <button class="btn-mini" id="btn-new" type="button">New</button>
+          <button class="btn-mini" id="btn-duplicate" type="button">Duplicate</button>
+          <button class="btn-mini" id="btn-mark-paid" type="button">Mark Paid</button>
+        </div>
+      </div>
 
-<h3>Invoice Setup</h3>
+      <div class="editor__section">
+        <div class="editor__section-label">Document</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Document Type</label>
+            <select id="f-document-type">
+              <option value="DRAFT">DRAFT</option>
+              <option value="QUOTE">QUOTE</option>
+              <option value="PROFORMA">PROFORMA</option>
+              <option value="INVOICE">INVOICE</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <select id="f-status">
+              <option value="DRAFT">DRAFT</option>
+              <option value="SENT">SENT</option>
+              <option value="DEPOSIT_PAID">DEPOSIT PAID</option>
+              <option value="PART_PAID">PART PAID</option>
+              <option value="PAID">PAID</option>
+              <option value="CANCELLED">CANCELLED</option>
+            </select>
+          </div>
+        </div>
 
-<label>Status</label>
-<select id="status">
-  <option>DRAFT</option>
-  <option>QUOTE</option>
-  <option>INVOICE</option>
-  <option>PAID</option>
-  <option>CANCELLED</option>
-</select>
+        <div class="field-row">
+          <div class="field">
+            <label>Invoice Number</label>
+            <input id="f-invnum" type="text" readonly>
+          </div>
+          <div class="field">
+            <label>Version</label>
+            <input id="f-version" type="number" value="1" readonly>
+          </div>
+        </div>
 
-<label>Invoice #</label>
-<input id="inv">
+        <div class="field-row">
+          <div class="field">
+            <label>Invoice Date</label>
+            <input id="f-date" type="date">
+          </div>
+          <div class="field">
+            <label>Expiry Date</label>
+            <input id="f-expiry" type="date">
+          </div>
+        </div>
 
-<label>Date</label>
-<input type="date" id="date">
+        <div class="field-row">
+          <div class="field">
+            <label>Due Date</label>
+            <input id="f-due" type="date">
+          </div>
+          <div class="field">
+            <label>Balance Due Date</label>
+            <input id="f-balance-due-date" type="date">
+          </div>
+        </div>
 
-<label>Expiry Date</label>
-<input type="date" id="expiry">
+        <div class="field">
+          <label>Currency</label>
+          <input id="f-currency" type="text" value="USD">
+        </div>
+      </div>
 
-<label>Due Date</label>
-<input type="date" id="due">
+      <div class="editor__section">
+        <div class="editor__section-label">Customer</div>
+        <div class="field">
+          <label>Customer Name</label>
+          <input id="f-customer-name" type="text">
+        </div>
+        <div class="field">
+          <label>Contact</label>
+          <input id="f-customer-contact" type="text">
+        </div>
+        <div class="field">
+          <label>Address</label>
+          <textarea id="f-customer-address"></textarea>
+        </div>
+        <div class="field">
+          <label>Customer Internal Ref</label>
+          <input id="f-customer-reference" type="text">
+        </div>
+      </div>
 
-<label>Balance Due Date</label>
-<input type="date" id="balance_due_date">
+      <div class="editor__section">
+        <div class="editor__section-label">Motorcycle</div>
+        <div class="field">
+          <label>Select Bike</label>
+          <select id="f-bike"></select>
+        </div>
+      </div>
 
-<hr>
+      <div class="editor__section">
+        <div class="editor__section-label">Line Items</div>
+        <div id="line-items" class="line-grid"></div>
+        <div class="row-actions">
+          <button class="btn-mini" id="btn-add-bike-line" type="button">Add Bike</button>
+          <button class="btn-mini" id="btn-add-accessory-line" type="button">Add Accessory</button>
+          <button class="btn-mini" id="btn-add-service-line" type="button">Add Service</button>
+        </div>
+      </div>
 
-<h4>Customer</h4>
+      <div class="editor__section">
+        <div class="editor__section-label">Payment Summary</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Payment Status</label>
+            <select id="f-payment-status">
+              <option value="">Select</option>
+              <option value="UNPAID">UNPAID</option>
+              <option value="DEPOSIT PAID">DEPOSIT PAID</option>
+              <option value="PART PAID">PART PAID</option>
+              <option value="PAID IN FULL">PAID IN FULL</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Payment Method</label>
+            <select id="f-payment-method">
+              <option value="">Select</option>
+              <option value="CASH">CASH</option>
+              <option value="BANK TRANSFER">BANK TRANSFER</option>
+              <option value="MOBILE MONEY">MOBILE MONEY</option>
+              <option value="CARD">CARD</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Payment Reference</label>
+          <input id="f-payment-reference" type="text">
+        </div>
+        <div class="field">
+          <label>Payment Note</label>
+          <textarea id="f-payment-note"></textarea>
+        </div>
+      </div>
 
-<input id="cust_name" placeholder="Name">
-<input id="cust_contact" placeholder="Contact">
-<textarea id="cust_addr" placeholder="Address"></textarea>
-<input id="cust_ref" placeholder="Internal Ref">
+      <div class="editor__section">
+        <div class="editor__section-label">Payment History</div>
+        <div id="payments" class="payment-grid-editor"></div>
+        <div class="row-actions">
+          <button class="btn-mini" id="btn-add-payment" type="button">Add Payment</button>
+        </div>
+      </div>
 
-<hr>
+      <div class="editor__section">
+        <div class="editor__section-label">Optional Notes</div>
+        <div class="field">
+          <label>Notes</label>
+          <textarea id="f-notes"></textarea>
+        </div>
+        <div class="field">
+          <label>Bank / Payment Instructions</label>
+          <textarea id="f-bank-details"></textarea>
+        </div>
+      </div>
 
-<h4>Bike</h4>
-<select id="bike"></select>
+      <div class="editor__section">
+        <div class="editor__section-label">Display</div>
+        <div class="check-row">
+          <input id="f-show-image" type="checkbox" checked>
+          <label for="f-show-image">Include image</label>
+        </div>
+        <div class="check-row">
+          <input id="f-show-specs" type="checkbox" checked>
+          <label for="f-show-specs">Include specs</label>
+        </div>
+      </div>
+    </div>
 
-<hr>
+    <div class="editor__footer">
+      <button class="btn-main" id="btn-save">Save</button>
+      <button class="btn-alt" id="btn-pdf">Download PDF</button>
+    </div>
+  </aside>
 
-<h4>Line Items</h4>
-<div id="lines"></div>
-<button onclick="addLine()">+ Add Item</button>
+  <main class="preview">
+    <div class="preview__inner">
+      <div class="inv" id="invoice">
+        <header class="hd">
+          <div class="hd-row">
+            <div>
+              <div class="hd-brand">Rhobust Engineering Limited</div>
+              <div class="hd-sub">No. 25, Nuumo Ayite Kobla Street
+Kokomlemle, Accra</div>
+            </div>
+            <div class="hd-right">
+              <div class="hd-doctype" id="o-document-type">INVOICE</div>
+              <div class="hd-docnum" id="o-invnum">—</div>
+              <div class="hd-date" id="o-date">—</div>
+              <div class="status-badge" id="o-status-badge">DRAFT</div>
+            </div>
+          </div>
+        </header>
 
-<hr>
+        <div class="buyer-bar">
+          <div>
+            <div class="buyer-item-label">Customer</div>
+            <div class="buyer-item-val" id="o-customer-name">—</div>
+          </div>
+          <div>
+            <div class="buyer-item-label">Contact</div>
+            <div class="buyer-item-val" id="o-customer-contact">—</div>
+          </div>
+          <div>
+            <div class="buyer-item-label">Address</div>
+            <div class="buyer-item-val" id="o-customer-address">—</div>
+          </div>
+          <div>
+            <div class="buyer-item-label">Internal Ref</div>
+            <div class="buyer-item-val" id="o-customer-reference">—</div>
+          </div>
+        </div>
 
-<h4>Payment</h4>
+        <section class="hero">
+          <div class="hero__copy">
+            <div class="hero__kicker">Selected Vehicle</div>
+            <div class="hero__title" id="o-bike-model">—</div>
+            <div class="hero__desc" id="o-bike-category">—</div>
+          </div>
 
-<select id="pay_status">
-<option></option>
-<option>UNPAID</option>
-<option>DEPOSIT PAID</option>
-<option>PART PAID</option>
-<option>PAID IN FULL</option>
-</select>
+          <div>
+            <div class="hero__gallery" id="o-gallery"></div>
+            <div class="hero__img-empty" id="o-gallery-empty">No Image</div>
+          </div>
+        </section>
 
-<select id="pay_method">
-<option></option>
-<option>CASH</option>
-<option>BANK</option>
-<option>MOMO</option>
-<option>CARD</option>
-</select>
+        <section id="specs-section">
+          <div class="sec-title">
+            <div class="sec-num">01</div>
+            <div class="sec-name">Technical Specification</div>
+          </div>
 
-<input id="pay_ref" placeholder="Payment Ref">
-<input id="deposit" placeholder="Deposit">
-<textarea id="pay_note" placeholder="Payment note"></textarea>
+          <div class="specs-grid">
+            <div class="spec-card" data-card="engine"><div class="spec-name">Engine</div><div class="spec-val" id="o-engine"></div></div>
+            <div class="spec-card" data-card="displacement"><div class="spec-name">Displacement</div><div class="spec-val" id="o-displacement"></div></div>
+            <div class="spec-card" data-card="power_hp"><div class="spec-name">Power / HP</div><div class="spec-val" id="o-power_hp"></div></div>
+            <div class="spec-card" data-card="torque"><div class="spec-name">Torque</div><div class="spec-val" id="o-torque"></div></div>
+            <div class="spec-card" data-card="fuel_system"><div class="spec-name">Fuel System</div><div class="spec-val" id="o-fuel_system"></div></div>
+            <div class="spec-card" data-card="transmission"><div class="spec-name">Transmission</div><div class="spec-val" id="o-transmission"></div></div>
+            <div class="spec-card" data-card="throttle_type"><div class="spec-name">Throttle Type</div><div class="spec-val" id="o-throttle_type"></div></div>
+            <div class="spec-card" data-card="fuel_capacity"><div class="spec-name">Fuel Capacity</div><div class="spec-val" id="o-fuel_capacity"></div></div>
+            <div class="spec-card" data-card="abs"><div class="spec-name">ABS</div><div class="spec-val" id="o-abs"></div></div>
+            <div class="spec-card" data-card="traction_control"><div class="spec-name">Traction Control</div><div class="spec-val" id="o-traction_control"></div></div>
+            <div class="spec-card" data-card="headlight"><div class="spec-name">Headlight</div><div class="spec-val" id="o-headlight"></div></div>
+            <div class="spec-card" data-card="charging_port"><div class="spec-name">Charging Port</div><div class="spec-val" id="o-charging_port"></div></div>
+            <div class="spec-card" data-card="color"><div class="spec-name">Color</div><div class="spec-val" id="o-color"></div></div>
+            <div class="spec-card" data-card="suspension"><div class="spec-name">Suspension</div><div class="spec-val" id="o-suspension"></div></div>
+            <div class="spec-card" data-card="brake"><div class="spec-name">Brake</div><div class="spec-val" id="o-brake"></div></div>
+          </div>
+        </section>
 
-<hr>
+        <section id="features-section">
+          <div class="sec-title">
+            <div class="sec-num">02</div>
+            <div class="sec-name">Key Features</div>
+          </div>
+          <div class="features-pills" id="o-features"></div>
+        </section>
 
-<h4>Notes</h4>
-<textarea id="notes"></textarea>
+        <section>
+          <div class="sec-title">
+            <div class="sec-num">03</div>
+            <div class="sec-name">Commercial Summary</div>
+          </div>
 
-<button onclick="downloadPDF()">Download PDF</button>
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Type</th>
+                <th>Qty</th>
+                <th class="right">Unit Price</th>
+                <th class="right">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="o-items"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4">Subtotal</td>
+                <td class="right" id="o-subtotal">USD 0.00</td>
+              </tr>
+              <tr>
+                <td colspan="4">Discount</td>
+                <td class="right" id="o-discount-total">USD 0.00</td>
+              </tr>
+              <tr>
+                <td colspan="4">Tax / VAT</td>
+                <td class="right" id="o-tax-total">USD 0.00</td>
+              </tr>
+              <tr>
+                <td colspan="4"><strong>Total</strong></td>
+                <td class="right" id="o-grand-total">USD 0.00</td>
+              </tr>
+              <tr>
+                <td colspan="4">Deposit / Payments Received</td>
+                <td class="right" id="o-deposit-total">USD 0.00</td>
+              </tr>
+              <tr>
+                <td colspan="4"><strong>Balance Due</strong></td>
+                <td class="right" id="o-balance-due">USD 0.00</td>
+              </tr>
+            </tfoot>
+          </table>
 
-</div>
+          <div class="box" style="margin-top:14px;">
+            <div class="spec-name">Dates</div>
+            <div class="notes" id="o-dates-block"></div>
+          </div>
 
-<!-- PREVIEW -->
-<div class="preview">
-<div class="invoice" id="invoice">
+          <div class="box" style="margin-top:14px;">
+            <div class="spec-name">Dealer Warranty</div>
+            <div class="notes">3 years dealer-backed warranty from Rhobust Engineering Limited.</div>
+          </div>
 
-<h2 id="o_status"></h2>
-<h3 id="o_inv"></h3>
+          <div class="box" style="margin-top:14px;">
+            <div class="spec-name">Service Support</div>
+            <div class="notes">Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached first.</div>
+          </div>
 
-<div id="o_dates"></div>
+          <div class="box" style="margin-top:14px;">
+            <div class="spec-name">Payment Summary</div>
+            <div class="payment-grid">
+              <div class="payment-block">
+                <div class="spec-name">Status</div>
+                <div class="spec-val" id="o-payment-status">—</div>
+              </div>
+              <div class="payment-block">
+                <div class="spec-name">Method</div>
+                <div class="spec-val" id="o-payment-method">—</div>
+              </div>
+              <div class="payment-block">
+                <div class="spec-name">Reference</div>
+                <div class="spec-val" id="o-payment-reference">—</div>
+              </div>
+            </div>
+          </div>
 
-<hr>
+          <div class="box" style="margin-top:14px;" id="payment-history-section">
+            <div class="spec-name">Payment History</div>
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Method</th>
+                  <th>Reference</th>
+                  <th>Note</th>
+                  <th class="right">Amount</th>
+                </tr>
+              </thead>
+              <tbody id="o-payments"></tbody>
+            </table>
+          </div>
 
-<h3>Customer</h3>
-<div id="o_customer"></div>
+          <div class="box" style="margin-top:14px;" id="payment-note-section">
+            <div class="spec-name">Payment Note</div>
+            <div class="notes" id="o-payment-note">—</div>
+          </div>
 
-<hr>
+          <div class="box" style="margin-top:14px;" id="bank-details-section">
+            <div class="spec-name">Bank / Payment Instructions</div>
+            <div class="notes" id="o-bank-details">—</div>
+          </div>
 
-<h3 id="o_bike"></h3>
-<div class="gallery" id="gallery"></div>
+          <div class="box" style="margin-top:14px;" id="notes-section">
+            <div class="spec-name">Notes</div>
+            <div class="notes" id="o-notes">—</div>
+          </div>
+        </section>
 
-<div class="features" id="features"></div>
-
-<hr>
-
-<h3>Items</h3>
-<div id="items"></div>
-
-<hr>
-
-<h3>Totals</h3>
-<div id="totals"></div>
-
-<hr>
-
-<h3>Payment</h3>
-<div id="payment"></div>
-
-<hr>
-
-<h3>Notes</h3>
-<div id="o_notes"></div>
-
-</div>
-</div>
-
+        <footer class="foot">
+          <div>
+            <div class="foot-brand">Rhobust Engineering Limited</div>
+            <div class="foot-loc">No. 25, Nuumo Ayite Kobla Street
+Kokomlemle, Accra</div>
+          </div>
+          <div>
+            <div class="foot-ref">Document Type</div>
+            <div class="foot-val" id="o-foot-doc-type">INVOICE</div>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </main>
 </div>
 
 <script>
-
-const client = supabase.createClient(
-"https://apmfnubljrutnnignehh.supabase.co",
-"sb_publishable_zi5AnOBw_D7pl9WuhcGDug_SK0zgESg"
+const client = window.supabase.createClient(
+  "https://apmfnubljrutnnignehh.supabase.co",
+  "sb_publishable_zi5AnOBw_D7pl9WuhcGDug_SK0zgESg"
 );
 
-let bikes = [];
-let currentBike = null;
+const SPEC_FIELDS = [
+  "engine","displacement","power_hp","torque","fuel_system","transmission",
+  "throttle_type","fuel_capacity","abs","traction_control","headlight",
+  "charging_port","color","suspension","brake"
+];
 
-async function loadBikes(){
-const {data}=await client.from("motorcycles").select("*");
-bikes=data;
-bike.innerHTML=data.map(b=>`<option value="${b.slug}">${b.model}</option>`).join("");
-selectBike(data[0].slug);
+let motorcycles = [];
+let currentMotorcycle = null;
+let currentInvoiceId = null;
+let currentParentInvoiceId = null;
+
+const $ = id => document.getElementById(id);
+
+function money(cur, val) {
+  const n = Number(val) || 0;
+  return `${(cur || "USD").trim() || "USD"} ${n.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
 }
 
-async function selectBike(slug){
-const {data}=await client.from("motorcycles").select("*").eq("slug",slug).single();
-currentBike=data;
-render();
+function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 }
 
-bike.onchange=e=>selectBike(e.target.value);
-
-function addLine(desc="",qty=1,price=0){
-const div=document.createElement("div");
-div.className="line-row";
-div.innerHTML=`
-<input placeholder="Description" value="${desc}">
-<input type="number" value="${qty}">
-<input type="number" value="${price}">
-<div class="amt">0</div>
-<button onclick="this.parentElement.remove();render()">X</button>
-`;
-lines.appendChild(div);
-render();
+function humanDate(v) {
+  if (!v) return "—";
+  const d = new Date(v + "T00:00:00");
+  return d.toLocaleDateString(undefined, { year:"numeric", month:"long", day:"numeric" });
 }
 
-function getLines(){
-return [...lines.children].map(r=>{
-const i=r.querySelectorAll("input");
-return {
-desc:i[0].value,
-qty:Number(i[1].value),
-price:Number(i[2].value)
-};
+function esc(v) {
+  return String(v ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function splitFeaturePills(rawFeatures) {
+  return rawFeatures
+    .flatMap(f => String(f).split(/[,.]+/))
+    .map(f => f.trim())
+    .filter(Boolean);
+}
+
+function statusClass(status) {
+  const s = String(status || "").toUpperCase();
+  if (s === "DRAFT") return "status-draft";
+  if (s === "QUOTE" || s === "PROFORMA" || s === "SENT") return "status-quote";
+  if (s === "INVOICE" || s === "DEPOSIT_PAID" || s === "PART_PAID") return "status-invoice";
+  if (s === "PAID") return "status-paid";
+  if (s === "CANCELLED") return "status-cancelled";
+  return "status-draft";
+}
+
+async function loadMotorcycles() {
+  const { data, error } = await client
+    .from("motorcycles")
+    .select("*")
+    .order("model", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    alert("Failed to load motorcycles");
+    return;
+  }
+
+  motorcycles = data || [];
+  $("f-bike").innerHTML = motorcycles.map(m => `<option value="${m.slug}">${m.model}</option>`).join("");
+
+  if (motorcycles.length) {
+    await selectMotorcycle(motorcycles[0].slug);
+  }
+}
+
+async function selectMotorcycle(slug) {
+  const { data, error } = await client
+    .from("motorcycles")
+    .select("*")
+    .eq("slug", slug)
+    .single();
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  currentMotorcycle = data;
+  updatePreview();
+}
+
+function addLineItem(item = {}) {
+  const row = document.createElement("div");
+  row.className = "line-item-card";
+  row.innerHTML = `
+    <div class="inline-5">
+      <div class="field">
+        <label>Description</label>
+        <input class="li-desc" type="text" value="${esc(item.description || "")}">
+      </div>
+      <div class="field">
+        <label>Type</label>
+        <select class="li-type">
+          <option ${item.item_type==="BIKE"?"selected":""}>BIKE</option>
+          <option ${item.item_type==="ACCESSORY"?"selected":""}>ACCESSORY</option>
+          <option ${item.item_type==="SERVICE"?"selected":""}>SERVICE</option>
+          <option ${item.item_type==="DELIVERY"?"selected":""}>DELIVERY</option>
+          <option ${item.item_type==="REGISTRATION"?"selected":""}>REGISTRATION</option>
+          <option ${item.item_type==="MISC"?"selected":""}>MISC</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Qty</label>
+        <input class="li-qty" type="number" step="0.01" value="${item.qty ?? 1}">
+      </div>
+      <div class="field">
+        <label>Unit Price</label>
+        <input class="li-price" type="number" step="0.01" value="${item.unit_price ?? 0}">
+      </div>
+      <div class="field">
+        <label>Remove</label>
+        <button class="btn-mini li-remove" type="button">X</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Line Note</label>
+      <input class="li-note" type="text" value="${esc(item.notes || "")}">
+    </div>
+  `;
+
+  row.querySelector(".li-remove").addEventListener("click", () => {
+    row.remove();
+    updatePreview();
+  });
+
+  row.querySelectorAll("input,select").forEach(el => {
+    el.addEventListener("input", updatePreview);
+    el.addEventListener("change", updatePreview);
+  });
+
+  $("line-items").appendChild(row);
+}
+
+function getLineItems() {
+  return [...$("line-items").children].map((row, index) => {
+    const qty = Number(row.querySelector(".li-qty").value) || 0;
+    const unit = Number(row.querySelector(".li-price").value) || 0;
+    return {
+      sort_order: index + 1,
+      item_type: row.querySelector(".li-type").value || "MISC",
+      description: row.querySelector(".li-desc").value || "",
+      qty,
+      unit_price: unit,
+      line_total: qty * unit,
+      notes: row.querySelector(".li-note").value || ""
+    };
+  }).filter(x => x.description || x.line_total || x.notes);
+}
+
+function addPayment(payment = {}) {
+  const row = document.createElement("div");
+  row.className = "payment-card";
+  row.innerHTML = `
+    <div class="inline-4">
+      <div class="field">
+        <label>Date</label>
+        <input class="pay-date" type="date" value="${payment.payment_date || ""}">
+      </div>
+      <div class="field">
+        <label>Method</label>
+        <input class="pay-method" type="text" value="${esc(payment.method || "")}">
+      </div>
+      <div class="field">
+        <label>Reference</label>
+        <input class="pay-ref" type="text" value="${esc(payment.reference || "")}">
+      </div>
+      <div class="field">
+        <label>Remove</label>
+        <button class="btn-mini pay-remove" type="button">X</button>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Amount</label>
+        <input class="pay-amount" type="number" step="0.01" value="${payment.amount ?? 0}">
+      </div>
+      <div class="field">
+        <label>Note</label>
+        <input class="pay-note" type="text" value="${esc(payment.note || "")}">
+      </div>
+    </div>
+  `;
+
+  row.querySelector(".pay-remove").addEventListener("click", () => {
+    row.remove();
+    updatePreview();
+  });
+
+  row.querySelectorAll("input").forEach(el => {
+    el.addEventListener("input", updatePreview);
+    el.addEventListener("change", updatePreview);
+  });
+
+  $("payments").appendChild(row);
+}
+
+function getPayments() {
+  return [...$("payments").children].map(row => ({
+    payment_date: row.querySelector(".pay-date").value || null,
+    method: row.querySelector(".pay-method").value || "",
+    reference: row.querySelector(".pay-ref").value || "",
+    amount: Number(row.querySelector(".pay-amount").value) || 0,
+    note: row.querySelector(".pay-note").value || ""
+  })).filter(x => x.payment_date || x.amount || x.method || x.reference || x.note);
+}
+
+function setSpec(field, value, visible) {
+  const card = document.querySelector(`[data-card="${field}"]`);
+  const output = $(`o-${field}`);
+  if (!card || !output) return;
+
+  if (visible && value && String(value).trim()) {
+    output.textContent = value;
+    card.classList.add("show");
+  } else {
+    output.textContent = "";
+    card.classList.remove("show");
+  }
+}
+
+function renderGallery(imgs) {
+  const gallery = $("o-gallery");
+  gallery.innerHTML = "";
+  gallery.className = "hero__gallery";
+
+  if (!imgs.length) {
+    $("o-gallery-empty").classList.remove("hidden");
+    return;
+  }
+
+  $("o-gallery-empty").classList.add("hidden");
+
+  if (imgs.length === 1) gallery.classList.add("one");
+  if (imgs.length === 2) gallery.classList.add("two");
+
+  imgs.forEach(url => {
+    const card = document.createElement("div");
+    card.className = "hero__gallery-card";
+    const img = document.createElement("img");
+    img.className = "hero__gallery-img";
+    img.src = url;
+    img.alt = currentMotorcycle?.model || "Bike image";
+    card.appendChild(img);
+    gallery.appendChild(card);
+  });
+}
+
+function recalcTotals() {
+  const items = getLineItems();
+  const subtotal = items.reduce((sum, item) => sum + (Number(item.line_total) || 0), 0);
+  const discount = 0;
+  const tax = 0;
+  const payments = getPayments();
+  const depositTotal = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  const grandTotal = subtotal - discount + tax;
+  const balance = grandTotal - depositTotal;
+  return { subtotal, discount, tax, grandTotal, depositTotal, balance };
+}
+
+function updatePreview() {
+  if (!currentMotorcycle) return;
+
+  $("o-document-type").textContent = $("f-document-type").value || "INVOICE";
+  $("o-foot-doc-type").textContent = $("f-document-type").value || "INVOICE";
+  $("o-invnum").textContent = $("f-invnum").value || "Pending";
+  $("o-date").textContent = humanDate($("f-date").value);
+
+  const badge = $("o-status-badge");
+  badge.textContent = $("f-status").value || "DRAFT";
+  badge.className = `status-badge ${statusClass($("f-status").value)}`;
+
+  $("o-customer-name").textContent = $("f-customer-name").value || "—";
+  $("o-customer-contact").textContent = $("f-customer-contact").value || "—";
+  $("o-customer-address").textContent = $("f-customer-address").value || "—";
+  $("o-customer-reference").textContent = $("f-customer-reference").value || "—";
+
+  $("o-bike-model").textContent = currentMotorcycle.model || "—";
+  $("o-bike-category").textContent = currentMotorcycle.category || "";
+
+  const showSpecs = $("f-show-specs").checked;
+  SPEC_FIELDS.forEach(field => setSpec(field, currentMotorcycle[field], showSpecs));
+  const visibleSpecs = SPEC_FIELDS.some(field => showSpecs && currentMotorcycle[field] && String(currentMotorcycle[field]).trim());
+  $("specs-section").classList.toggle("hidden", !visibleSpecs);
+
+  const rawFeatures = (currentMotorcycle.features || []).filter(Boolean);
+  const splitFeatures = splitFeaturePills(rawFeatures);
+  $("o-features").innerHTML = "";
+  splitFeatures.forEach(f => {
+    const pill = document.createElement("div");
+    pill.className = "features-pill";
+    pill.textContent = f.toUpperCase();
+    $("o-features").appendChild(pill);
+  });
+  $("features-section").classList.toggle("hidden", !splitFeatures.length);
+
+  const imgs = (currentMotorcycle.image_urls || []).filter(Boolean).slice(0, 3);
+  if ($("f-show-image").checked) renderGallery(imgs);
+  else renderGallery([]);
+
+  const items = getLineItems();
+  $("o-items").innerHTML = "";
+  items.forEach(item => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${esc(item.description)}${item.notes ? `<br><span style="color:#6B6B6B;">${esc(item.notes)}</span>` : ""}</td>
+      <td>${esc(item.item_type)}</td>
+      <td>${item.qty}</td>
+      <td class="right">${money($("f-currency").value, item.unit_price)}</td>
+      <td class="right">${money($("f-currency").value, item.line_total)}</td>
+    `;
+    $("o-items").appendChild(tr);
+  });
+
+  const totals = recalcTotals();
+  $("o-subtotal").textContent = money($("f-currency").value, totals.subtotal);
+  $("o-discount-total").textContent = money($("f-currency").value, totals.discount);
+  $("o-tax-total").textContent = money($("f-currency").value, totals.tax);
+  $("o-grand-total").textContent = money($("f-currency").value, totals.grandTotal);
+  $("o-deposit-total").textContent = money($("f-currency").value, totals.depositTotal);
+  $("o-balance-due").textContent = money($("f-currency").value, totals.balance);
+
+  $("o-dates-block").textContent =
+`Invoice Date: ${humanDate($("f-date").value)}
+Expiry Date: ${humanDate($("f-expiry").value)}
+Due Date: ${humanDate($("f-due").value)}
+Balance Due Date: ${humanDate($("f-balance-due-date").value)}`;
+
+  $("o-payment-status").textContent = $("f-payment-status").value || "—";
+  $("o-payment-method").textContent = $("f-payment-method").value || "—";
+  $("o-payment-reference").textContent = $("f-payment-reference").value || "—";
+  $("o-payment-note").textContent = $("f-payment-note").value || "—";
+  $("payment-note-section").classList.toggle("hidden", !$("f-payment-note").value.trim());
+
+  $("o-notes").textContent = $("f-notes").value || "—";
+  $("notes-section").classList.toggle("hidden", !$("f-notes").value.trim());
+
+  $("o-bank-details").textContent = $("f-bank-details").value || "—";
+  $("bank-details-section").classList.toggle("hidden", !$("f-bank-details").value.trim());
+
+  const payments = getPayments();
+  $("o-payments").innerHTML = "";
+  payments.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${humanDate(p.payment_date)}</td>
+      <td>${esc(p.method || "—")}</td>
+      <td>${esc(p.reference || "—")}</td>
+      <td>${esc(p.note || "—")}</td>
+      <td class="right">${money($("f-currency").value, p.amount)}</td>
+    `;
+    $("o-payments").appendChild(tr);
+  });
+  $("payment-history-section").classList.toggle("hidden", !payments.length);
+}
+
+async function searchInvoices(query = "") {
+  let request = client
+    .from("invoices")
+    .select("id, invoice_number, customer_name, motorcycle_slug, status, invoice_date")
+    .order("id", { ascending:false })
+    .limit(20);
+
+  if (query.trim()) {
+    request = request.or(`invoice_number.ilike.%${query}%,customer_name.ilike.%${query}%,motorcycle_slug.ilike.%${query}%`);
+  }
+
+  const { data, error } = await request;
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  $("invoice-list").innerHTML = "";
+  (data || []).forEach(inv => {
+    const div = document.createElement("div");
+    div.className = "list-item";
+    div.innerHTML = `
+      <div class="list-item__title">${inv.invoice_number || "Pending Number"}</div>
+      <div class="list-item__meta">${inv.customer_name || "No customer"} · ${inv.motorcycle_slug || "No bike"}<br>${inv.status || "—"} · ${inv.invoice_date || "—"}</div>
+    `;
+    div.addEventListener("click", () => loadInvoice(inv.id));
+    $("invoice-list").appendChild(div);
+  });
+}
+
+async function loadInvoice(id) {
+  const { data: inv, error: invErr } = await client
+    .from("invoices")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (invErr) {
+    console.error(invErr);
+    alert("Failed to load invoice");
+    return;
+  }
+
+  const { data: items } = await client
+    .from("invoice_items")
+    .select("*")
+    .eq("invoice_id", id)
+    .order("sort_order", { ascending:true });
+
+  const { data: payments } = await client
+    .from("invoice_payments")
+    .select("*")
+    .eq("invoice_id", id)
+    .order("id", { ascending:true });
+
+  currentInvoiceId = inv.id;
+  currentParentInvoiceId = inv.parent_invoice_id || null;
+
+  $("f-document-type").value = inv.document_type || "DRAFT";
+  $("f-status").value = inv.status || "DRAFT";
+  $("f-invnum").value = inv.invoice_number || "";
+  $("f-version").value = inv.version_no || 1;
+  $("f-date").value = inv.invoice_date || "";
+  $("f-expiry").value = inv.expiry_date || "";
+  $("f-due").value = inv.due_date || "";
+  $("f-balance-due-date").value = inv.balance_due_date || "";
+  $("f-currency").value = inv.currency || "USD";
+  $("f-customer-name").value = inv.customer_name || "";
+  $("f-customer-contact").value = inv.customer_contact || "";
+  $("f-customer-address").value = inv.customer_address || "";
+  $("f-customer-reference").value = inv.customer_reference || "";
+  $("f-payment-status").value = inv.payment_status || "";
+  $("f-payment-method").value = inv.payment_method || "";
+  $("f-payment-reference").value = inv.payment_reference || "";
+  $("f-payment-note").value = inv.payment_note || "";
+  $("f-notes").value = inv.notes || "";
+  $("f-bank-details").value = inv.bank_details || "";
+
+  if (inv.motorcycle_slug) {
+    $("f-bike").value = inv.motorcycle_slug;
+    await selectMotorcycle(inv.motorcycle_slug);
+  }
+
+  $("line-items").innerHTML = "";
+  (items || []).forEach(addLineItem);
+
+  $("payments").innerHTML = "";
+  (payments || []).forEach(addPayment);
+
+  updatePreview();
+}
+
+function clearForm() {
+  currentInvoiceId = null;
+  currentParentInvoiceId = null;
+
+  $("f-document-type").value = "DRAFT";
+  $("f-status").value = "DRAFT";
+  $("f-invnum").value = "";
+  $("f-version").value = 1;
+  $("f-date").value = todayISO();
+  $("f-expiry").value = "";
+  $("f-due").value = "";
+  $("f-balance-due-date").value = "";
+  $("f-currency").value = "USD";
+  $("f-customer-name").value = "";
+  $("f-customer-contact").value = "";
+  $("f-customer-address").value = "";
+  $("f-customer-reference").value = "";
+  $("f-payment-status").value = "";
+  $("f-payment-method").value = "";
+  $("f-payment-reference").value = "";
+  $("f-payment-note").value = "";
+  $("f-notes").value = "";
+  $("f-bank-details").value = "";
+  $("f-show-image").checked = true;
+  $("f-show-specs").checked = true;
+
+  $("line-items").innerHTML = "";
+  $("payments").innerHTML = "";
+
+  if (motorcycles.length) {
+    $("f-bike").value = motorcycles[0].slug;
+    currentMotorcycle = motorcycles[0];
+    addLineItem({
+      item_type:"BIKE",
+      description:motorcycles[0].model,
+      qty:1,
+      unit_price:motorcycles[0].unit_price || 0
+    });
+  }
+
+  updatePreview();
+}
+
+function addDefaultBikeLine() {
+  if (!currentMotorcycle) return;
+  addLineItem({
+    item_type:"BIKE",
+    description:currentMotorcycle.model,
+    qty:1,
+    unit_price:currentMotorcycle.unit_price || 0
+  });
+  updatePreview();
+}
+
+async function saveInvoice() {
+  if (!currentMotorcycle) {
+    alert("Select a bike first");
+    return;
+  }
+
+  const totals = recalcTotals();
+  const payments = getPayments();
+  const items = getLineItems();
+
+  const headerPayload = {
+    document_type: $("f-document-type").value || "DRAFT",
+    status: $("f-status").value || "DRAFT",
+    customer_name: $("f-customer-name").value || "",
+    customer_contact: $("f-customer-contact").value || "",
+    customer_address: $("f-customer-address").value || "",
+    customer_reference: $("f-customer-reference").value || "",
+    motorcycle_slug: $("f-bike").value || "",
+    invoice_date: $("f-date").value || null,
+    expiry_date: $("f-expiry").value || null,
+    due_date: $("f-due").value || null,
+    balance_due_date: $("f-balance-due-date").value || null,
+    currency: $("f-currency").value || "USD",
+    subtotal: totals.subtotal,
+    discount_total: totals.discount,
+    tax_total: totals.tax,
+    grand_total: totals.grandTotal,
+    deposit_total: totals.depositTotal,
+    balance_due: totals.balance,
+    payment_status: $("f-payment-status").value || "",
+    payment_method: $("f-payment-method").value || "",
+    payment_reference: $("f-payment-reference").value || "",
+    payment_note: $("f-payment-note").value || "",
+    notes: $("f-notes").value || "",
+    bank_details: $("f-bank-details").value || "",
+    version_no: Number($("f-version").value) || 1,
+    parent_invoice_id: currentParentInvoiceId
+  };
+
+  let invoiceId = currentInvoiceId;
+
+  if (invoiceId) {
+    const { error } = await client
+      .from("invoices")
+      .update(headerPayload)
+      .eq("id", invoiceId);
+
+    if (error) {
+      console.error(error);
+      alert("Failed to update invoice");
+      return;
+    }
+
+    await client.from("invoice_items").delete().eq("invoice_id", invoiceId);
+    await client.from("invoice_payments").delete().eq("invoice_id", invoiceId);
+  } else {
+    const { data, error } = await client
+      .from("invoices")
+      .insert([headerPayload])
+      .select()
+      .single();
+
+    if (error) {
+      console.error(error);
+      alert("Failed to create invoice");
+      return;
+    }
+
+    invoiceId = data.id;
+    currentInvoiceId = data.id;
+    $("f-invnum").value = data.invoice_number;
+    $("f-version").value = data.version_no || 1;
+  }
+
+  if (items.length) {
+    const payloadItems = items.map(x => ({ ...x, invoice_id: invoiceId }));
+    const { error } = await client.from("invoice_items").insert(payloadItems);
+    if (error) {
+      console.error(error);
+      alert("Failed to save line items");
+      return;
+    }
+  }
+
+  if (payments.length) {
+    const payloadPayments = payments.map(x => ({ ...x, invoice_id: invoiceId }));
+    const { error } = await client.from("invoice_payments").insert(payloadPayments);
+    if (error) {
+      console.error(error);
+      alert("Failed to save payments");
+      return;
+    }
+  }
+
+  await loadInvoice(invoiceId);
+  await searchInvoices($("f-search").value);
+  alert("Invoice saved");
+}
+
+async function duplicateInvoice() {
+  if (!currentInvoiceId) {
+    alert("Load an invoice first");
+    return;
+  }
+
+  const { data: inv, error } = await client
+    .from("invoices")
+    .select("*")
+    .eq("id", currentInvoiceId)
+    .single();
+
+  if (error || !inv) {
+    alert("Unable to duplicate invoice");
+    return;
+  }
+
+  const { data: items } = await client
+    .from("invoice_items")
+    .select("*")
+    .eq("invoice_id", currentInvoiceId)
+    .order("sort_order", { ascending:true });
+
+  const { data: payments } = await client
+    .from("invoice_payments")
+    .select("*")
+    .eq("invoice_id", currentInvoiceId);
+
+  const newInvoicePayload = {
+    document_type: inv.document_type,
+    status: "DRAFT",
+    customer_name: inv.customer_name,
+    customer_contact: inv.customer_contact,
+    customer_address: inv.customer_address,
+    customer_reference: inv.customer_reference,
+    motorcycle_slug: inv.motorcycle_slug,
+    invoice_date: inv.invoice_date,
+    expiry_date: inv.expiry_date,
+    due_date: inv.due_date,
+    balance_due_date: inv.balance_due_date,
+    currency: inv.currency,
+    subtotal: inv.subtotal,
+    discount_total: inv.discount_total,
+    tax_total: inv.tax_total,
+    grand_total: inv.grand_total,
+    deposit_total: inv.deposit_total,
+    balance_due: inv.balance_due,
+    payment_status: inv.payment_status,
+    payment_method: inv.payment_method,
+    payment_reference: inv.payment_reference,
+    payment_note: inv.payment_note,
+    notes: inv.notes,
+    bank_details: inv.bank_details,
+    version_no: (Number(inv.version_no) || 1) + 1,
+    parent_invoice_id: inv.parent_invoice_id || inv.id
+  };
+
+  const { data: newInv, error: newErr } = await client
+    .from("invoices")
+    .insert([newInvoicePayload])
+    .select()
+    .single();
+
+  if (newErr) {
+    console.error(newErr);
+    alert("Duplicate failed");
+    return;
+  }
+
+  if (items?.length) {
+    await client.from("invoice_items").insert(
+      items.map(i => ({
+        invoice_id:newInv.id,
+        sort_order:i.sort_order,
+        item_type:i.item_type,
+        description:i.description,
+        qty:i.qty,
+        unit_price:i.unit_price,
+        line_total:i.line_total,
+        notes:i.notes
+      }))
+    );
+  }
+
+  if (payments?.length) {
+    await client.from("invoice_payments").insert(
+      payments.map(p => ({
+        invoice_id:newInv.id,
+        payment_date:p.payment_date,
+        amount:p.amount,
+        method:p.method,
+        reference:p.reference,
+        note:p.note
+      }))
+    );
+  }
+
+  await loadInvoice(newInv.id);
+  await searchInvoices($("f-search").value);
+  alert("Invoice duplicated");
+}
+
+async function markPaid() {
+  if (!currentInvoiceId) {
+    alert("Load an invoice first");
+    return;
+  }
+
+  const { error } = await client
+    .from("invoices")
+    .update({
+      status: "PAID",
+      payment_status: "PAID IN FULL"
+    })
+    .eq("id", currentInvoiceId);
+
+  if (error) {
+    console.error(error);
+    alert("Failed to mark paid");
+    return;
+  }
+
+  await loadInvoice(currentInvoiceId);
+  await searchInvoices($("f-search").value);
+  alert("Marked as paid");
+}
+
+function downloadPDF() {
+  const element = $("invoice");
+  const invoiceNumber = $("f-invnum").value || "invoice";
+  const opt = {
+    margin: 0,
+    filename: `${invoiceNumber}.pdf`,
+    image: { type: "jpeg", quality: 1 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+  };
+  html2pdf().set(opt).from(element).save();
+}
+
+$("f-bike").addEventListener("change", async e => {
+  await selectMotorcycle(e.target.value);
 });
-}
 
-function render(){
-
-o_status.innerText=status.value;
-o_inv.innerText=inv.value;
-
-o_dates.innerText=
-`DATE: ${date.value}
-EXPIRY: ${expiry.value}
-DUE: ${due.value}
-BALANCE DUE: ${balance_due_date.value}`;
-
-o_customer.innerText=
-`${cust_name.value}
-${cust_contact.value}
-${cust_addr.value}
-REF: ${cust_ref.value}`;
-
-o_bike.innerText=currentBike.model;
-
-gallery.innerHTML="";
-(currentBike.image_urls||[]).slice(0,3).forEach(u=>{
-gallery.innerHTML+=`<img src="${u}">`;
+$("btn-add-bike-line").addEventListener("click", () => {
+  addLineItem({
+    item_type:"BIKE",
+    description:currentMotorcycle?.model || "",
+    qty:1,
+    unit_price:currentMotorcycle?.unit_price || 0
+  });
+  updatePreview();
 });
 
-const feats=(currentBike.features||[])
-.flatMap(f=>f.split(/[,.]+/))
-.map(f=>f.trim())
-.filter(Boolean);
-
-features.innerHTML=feats.map(f=>`<div class="pill">${f.toUpperCase()}</div>`).join("");
-
-const lineData=getLines();
-
-items.innerHTML="";
-let subtotal=0;
-
-lineData.forEach(l=>{
-const amt=l.qty*l.price;
-subtotal+=amt;
-items.innerHTML+=`${l.desc} — ${l.qty} x ${l.price} = ${amt}<br>`;
+$("btn-add-accessory-line").addEventListener("click", () => {
+  addLineItem({ item_type:"ACCESSORY", description:"", qty:1, unit_price:0 });
+  updatePreview();
 });
 
-const dep=Number(deposit.value||0);
-const total=subtotal;
-const balance=total-dep;
+$("btn-add-service-line").addEventListener("click", () => {
+  addLineItem({ item_type:"SERVICE", description:"", qty:1, unit_price:0 });
+  updatePreview();
+});
 
-totals.innerHTML=
-`Subtotal: ${subtotal}<br>
-Total: ${total}<br>
-Deposit: ${dep}<br>
-Balance: ${balance}`;
+$("btn-add-payment").addEventListener("click", () => {
+  addPayment({ payment_date: todayISO(), amount:0 });
+  updatePreview();
+});
 
-payment.innerText=
-`Status: ${pay_status.value}
-Method: ${pay_method.value}
-Ref: ${pay_ref.value}
-Note: ${pay_note.value}`;
+$("btn-save").addEventListener("click", saveInvoice);
+$("btn-pdf").addEventListener("click", downloadPDF);
+$("btn-new").addEventListener("click", clearForm);
+$("btn-duplicate").addEventListener("click", duplicateInvoice);
+$("btn-mark-paid").addEventListener("click", markPaid);
+$("f-search").addEventListener("input", e => searchInvoices(e.target.value));
 
-o_notes.innerText=notes.value;
-}
+[
+  "f-document-type","f-status","f-date","f-expiry","f-due","f-balance-due-date","f-currency",
+  "f-customer-name","f-customer-contact","f-customer-address","f-customer-reference",
+  "f-payment-status","f-payment-method","f-payment-reference","f-payment-note",
+  "f-notes","f-bank-details","f-show-image","f-show-specs"
+].forEach(id => {
+  $(id).addEventListener("input", updatePreview);
+  $(id).addEventListener("change", updatePreview);
+});
 
-document.querySelectorAll("input,textarea,select")
-.forEach(el=>el.oninput=render);
-
-function downloadPDF(){
-html2pdf().from(invoice).set({
-filename: `${inv.value||"invoice"}.pdf`
-}).save();
-}
-
-inv.value="RES-"+Math.floor(Math.random()*100000);
-date.value=new Date().toISOString().split("T")[0];
-
-loadBikes();
-
+(async function init() {
+  await loadMotorcycles();
+  clearForm();
+  await searchInvoices("");
+})();
 </script>
-
 </body>
 </html>
