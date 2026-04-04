@@ -6,19 +6,90 @@
   <title>Rhobust Engineering Limited · Admin</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; color: #111; }
-    h2, h3 { margin-top: 0; }
-    input, select, textarea { display:block; margin-bottom:10px; padding:8px; width:340px; max-width:100%; }
-    textarea { min-height: 90px; resize: vertical; }
-    button { padding:10px 14px; margin-top:10px; cursor:pointer; }
-    .feature-row, .image-row { display:flex; gap:10px; margin-bottom:8px; align-items:center; }
-    .feature-row input, .image-row input { margin-bottom:0; width:340px; }
-    .section { margin-top:28px; padding-top:18px; border-top:1px solid #ddd; }
-    .thumbs { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-    .thumbs img { width:120px; height:90px; object-fit:cover; border:1px solid #ccc; background:#fff; }
-    .muted { color:#666; font-size:13px; margin-bottom:8px; }
-    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
-    .inline-note { font-size:13px; color:#666; margin-top:4px; margin-bottom:8px; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #111;
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    input, select, textarea {
+      display: block;
+      margin-bottom: 10px;
+      padding: 8px;
+      width: 340px;
+      max-width: 100%;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    button {
+      padding: 10px 14px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    .feature-row,
+    .image-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    .feature-row input,
+    .image-row input {
+      margin-bottom: 0;
+      width: 340px;
+    }
+
+    .section {
+      margin-top: 28px;
+      padding-top: 18px;
+      border-top: 1px solid #ddd;
+    }
+
+    .thumbs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .thumbs img {
+      width: 120px;
+      height: 90px;
+      object-fit: cover;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+
+    .muted {
+      color: #666;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .inline-note {
+      font-size: 13px;
+      color: #666;
+      margin-top: 4px;
+      margin-bottom: 8px;
+    }
   </style>
 </head>
 <body>
@@ -27,6 +98,7 @@
   <div class="section" style="border-top:none; padding-top:0;">
     <h3>Bike Editor</h3>
     <select id="bikeSelect"></select>
+
     <div class="actions">
       <button type="button" id="createBikeBtn">+ Add New Bike</button>
       <button type="button" id="reloadBtn">Reload Bikes</button>
@@ -73,6 +145,7 @@
 
   <div class="section">
     <h3>Invoice Details</h3>
+
     <input id="invoiceNumber" placeholder="Leave blank for auto number" />
     <input id="invoiceDate" type="date" />
     <input id="customerName" placeholder="Customer Name" />
@@ -100,6 +173,16 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
   </div>
 
   <div class="section">
+    <h3>Payment Update</h3>
+
+    <input id="amountPaid" type="number" step="0.01" value="0" placeholder="Amount Paid" />
+    <input id="balanceDue" type="number" step="0.01" value="0" placeholder="Balance Due" readonly />
+    <input id="paymentStatus" value="Unpaid" placeholder="Payment Status" />
+    <input id="datePaid" type="date" />
+    <textarea id="paymentNote" placeholder="Payment Note"></textarea>
+  </div>
+
+  <div class="section">
     <div class="actions">
       <button id="saveBtn" type="button">Save Bike</button>
     </div>
@@ -120,6 +203,7 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       model: document.getElementById("model"),
       category: document.getElementById("category"),
       unitPrice: document.getElementById("unitPrice"),
+
       engine: document.getElementById("engine"),
       displacement: document.getElementById("displacement"),
       power_hp: document.getElementById("power_hp"),
@@ -135,15 +219,18 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       color: document.getElementById("color"),
       suspension: document.getElementById("suspension"),
       brake: document.getElementById("brake"),
+
       featuresContainer: document.getElementById("featuresContainer"),
       imageUrlsContainer: document.getElementById("imageUrlsContainer"),
       imagePreviewContainer: document.getElementById("imagePreviewContainer"),
       imageUpload: document.getElementById("imageUpload"),
+
       saveBtn: document.getElementById("saveBtn"),
       createBikeBtn: document.getElementById("createBikeBtn"),
       reloadBtn: document.getElementById("reloadBtn"),
       addFeatureBtn: document.getElementById("addFeatureBtn"),
       addImageUrlBtn: document.getElementById("addImageUrlBtn"),
+
       invoiceNumber: document.getElementById("invoiceNumber"),
       invoiceDate: document.getElementById("invoiceDate"),
       customerName: document.getElementById("customerName"),
@@ -159,7 +246,13 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       invoiceNotes: document.getElementById("invoiceNotes"),
       invoiceTerms: document.getElementById("invoiceTerms"),
       saveInvoiceBtn: document.getElementById("saveInvoiceBtn"),
-      previewInvoiceBtn: document.getElementById("previewInvoiceBtn")
+      previewInvoiceBtn: document.getElementById("previewInvoiceBtn"),
+
+      amountPaid: document.getElementById("amountPaid"),
+      balanceDue: document.getElementById("balanceDue"),
+      paymentStatus: document.getElementById("paymentStatus"),
+      datePaid: document.getElementById("datePaid"),
+      paymentNote: document.getElementById("paymentNote")
     };
 
     function escapeHtml(value) {
@@ -171,7 +264,11 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
     }
 
     function slugify(value) {
-      return String(value || "").trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-_]/g, "");
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-_]/g, "");
     }
 
     function getParam(name) {
@@ -186,14 +283,17 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       return `${y}-${m}-${day}`;
     }
 
-   
     function clearBikeForm() {
       currentBike = null;
+
       [
         "model","category","unitPrice","engine","displacement","power_hp","torque","fuel_system",
         "transmission","throttle_type","fuel_capacity","abs","traction_control","headlight",
         "charging_port","color","suspension","brake"
-      ].forEach(k => els[k].value = "");
+      ].forEach(k => {
+        els[k].value = "";
+      });
+
       els.featuresContainer.innerHTML = "";
       els.imageUrlsContainer.innerHTML = "";
       els.imagePreviewContainer.innerHTML = "";
@@ -208,32 +308,45 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
     }
 
     function getFeatures() {
-      return [...els.featuresContainer.querySelectorAll("input")].map(i => i.value.trim()).filter(Boolean);
+      return [...els.featuresContainer.querySelectorAll("input")]
+        .map(i => i.value.trim())
+        .filter(Boolean);
     }
 
     function addImageUrl(value = "") {
       const div = document.createElement("div");
       div.className = "image-row";
       div.innerHTML = `<input type="text" value="${escapeHtml(value)}" placeholder="Image URL" /><button type="button">X</button>`;
+
       const input = div.querySelector("input");
       const button = div.querySelector("button");
+
       input.addEventListener("input", renderImagePreviews);
-      button.addEventListener("click", () => { div.remove(); renderImagePreviews(); });
+      button.addEventListener("click", () => {
+        div.remove();
+        renderImagePreviews();
+      });
+
       els.imageUrlsContainer.appendChild(div);
       renderImagePreviews();
     }
 
     function getImageUrls() {
-      return [...els.imageUrlsContainer.querySelectorAll("input")].map(i => i.value.trim()).filter(Boolean);
+      return [...els.imageUrlsContainer.querySelectorAll("input")]
+        .map(i => i.value.trim())
+        .filter(Boolean);
     }
 
     function renderImagePreviews() {
       els.imagePreviewContainer.innerHTML = "";
+
       getImageUrls().forEach(url => {
         const img = document.createElement("img");
         img.src = url;
         img.alt = "Bike image";
-        img.onerror = () => img.style.display = "none";
+        img.onerror = () => {
+          img.style.display = "none";
+        };
         els.imagePreviewContainer.appendChild(img);
       });
     }
@@ -241,6 +354,7 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
     async function uploadSelectedImages() {
       const files = [...els.imageUpload.files];
       if (!files.length) return;
+
       if (!currentBike) {
         alert("Please select or create a bike first.");
         els.imageUpload.value = "";
@@ -251,10 +365,12 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         const ext = (file.name.split(".").pop() || "png").toLowerCase();
         const fileName = `${currentBike.slug}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-        const { error } = await client.storage.from(BUCKET_NAME).upload(fileName, file, {
-          upsert: false,
-          contentType: file.type || undefined
-        });
+        const { error } = await client.storage
+          .from(BUCKET_NAME)
+          .upload(fileName, file, {
+            upsert: false,
+            contentType: file.type || undefined
+          });
 
         if (error) {
           console.error("UPLOAD ERROR:", error);
@@ -271,7 +387,11 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
     }
 
     async function loadBikes() {
-      const { data, error } = await client.from("motorcycles").select("*").order("model", { ascending: true });
+      const { data, error } = await client
+        .from("motorcycles")
+        .select("*")
+        .order("model", { ascending: true });
+
       console.log("LOAD BIKES DATA:", data);
       console.log("LOAD BIKES ERROR:", error);
 
@@ -309,7 +429,12 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         return;
       }
 
-      const { data, error } = await client.from("motorcycles").select("*").eq("slug", slug).single();
+      const { data, error } = await client
+        .from("motorcycles")
+        .select("*")
+        .eq("slug", slug)
+        .single();
+
       if (error) {
         console.error(error);
         alert("Error loading bike");
@@ -317,10 +442,14 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       }
 
       currentBike = data;
+
       els.model.value = data.model || "";
       els.category.value = data.category || "";
       els.unitPrice.value = data.unit_price ?? "";
-      if (!els.invoiceUnitPrice.value) els.invoiceUnitPrice.value = data.unit_price ?? "";
+
+      if (!els.invoiceUnitPrice.value) {
+        els.invoiceUnitPrice.value = data.unit_price ?? "";
+      }
 
       els.engine.value = data.engine || "";
       els.displacement.value = data.displacement || "";
@@ -345,6 +474,7 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       (data.image_urls || []).forEach(addImageUrl);
 
       renderImagePreviews();
+      recalculateInvoiceTotals();
     }
 
     async function saveBike() {
@@ -376,7 +506,11 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         image_urls: getImageUrls()
       };
 
-      const { error } = await client.from("motorcycles").update(updated).eq("slug", currentBike.slug);
+      const { error } = await client
+        .from("motorcycles")
+        .update(updated)
+        .eq("slug", currentBike.slug);
+
       if (error) {
         console.error(error);
         alert("Save bike failed");
@@ -399,14 +533,16 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         return;
       }
 
-      const { error } = await client.from("motorcycles").insert([{
-        slug: cleanSlug,
-        model: "New Bike",
-        category: "",
-        unit_price: 0,
-        features: [],
-        image_urls: []
-      }]);
+      const { error } = await client
+        .from("motorcycles")
+        .insert([{
+          slug: cleanSlug,
+          model: "New Bike",
+          category: "",
+          unit_price: 0,
+          features: [],
+          image_urls: []
+        }]);
 
       if (error) {
         console.error(error);
@@ -446,26 +582,62 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       };
     }
 
+    function recalculateInvoiceTotals() {
+      const quantity = Number(els.quantity.value) || 1;
+      const unitPrice = Number(els.invoiceUnitPrice.value || els.unitPrice.value) || 0;
+      const additionalCharges = Number(els.additionalCharges.value) || 0;
+      const amountPaid = Number(els.amountPaid.value) || 0;
+
+      const subtotal = quantity * unitPrice;
+      const total = subtotal + additionalCharges;
+      const balanceDue = Math.max(total - amountPaid, 0);
+
+      els.balanceDue.value = balanceDue.toFixed(2);
+
+      if (amountPaid <= 0) {
+        els.paymentStatus.value = "Unpaid";
+      } else if (balanceDue <= 0) {
+        els.paymentStatus.value = "Paid";
+      } else {
+        els.paymentStatus.value = "Part Paid";
+      }
+    }
+
     function getInvoicePayload() {
       if (!currentBike) throw new Error("Please select a bike first.");
 
       const quantity = Number(els.quantity.value) || 1;
       const unitPrice = Number(els.invoiceUnitPrice.value || els.unitPrice.value) || 0;
       const additionalCharges = Number(els.additionalCharges.value) || 0;
+      const amountPaid = Number(els.amountPaid.value) || 0;
+
       const subtotal = quantity * unitPrice;
       const total = subtotal + additionalCharges;
+      const balanceDue = Math.max(total - amountPaid, 0);
+
+      els.balanceDue.value = balanceDue.toFixed(2);
+
+      let paymentStatus = (els.paymentStatus.value || "").trim();
+      if (!paymentStatus) {
+        if (amountPaid <= 0) paymentStatus = "Unpaid";
+        else if (balanceDue <= 0) paymentStatus = "Paid";
+        else paymentStatus = "Part Paid";
+      }
 
       return {
         invoice_number: els.invoiceNumber.value.trim() || null,
         invoice_date: els.invoiceDate.value || todayInputValue(),
+
         customer_name: els.customerName.value.trim(),
         customer_company: els.customerCompany.value.trim(),
         customer_phone: els.customerPhone.value.trim(),
         customer_email: els.customerEmail.value.trim(),
         customer_address: els.customerAddress.value.trim(),
+
         bike_slug: currentBike.slug,
         bike_model: els.model.value.trim(),
         bike_category: els.category.value.trim(),
+
         quantity,
         unit_price: unitPrice,
         subtotal,
@@ -475,6 +647,13 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         status: els.status.value.trim() || "Draft",
         notes: els.invoiceNotes.value.trim(),
         terms: els.invoiceTerms.value.trim(),
+
+        amount_paid: amountPaid,
+        balance_due: balanceDue,
+        payment_status: paymentStatus,
+        date_paid: els.datePaid.value || null,
+        payment_note: els.paymentNote.value.trim(),
+
         bike_snapshot: getBikeSnapshot()
       };
     }
@@ -485,11 +664,22 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         let result;
 
         if (currentInvoiceId) {
-          const { data, error } = await client.from("invoices").update(payload).eq("id", currentInvoiceId).select().single();
+          const { data, error } = await client
+            .from("invoices")
+            .update(payload)
+            .eq("id", currentInvoiceId)
+            .select()
+            .single();
+
           if (error) throw error;
           result = data;
         } else {
-          const { data, error } = await client.from("invoices").insert([payload]).select().single();
+          const { data, error } = await client
+            .from("invoices")
+            .insert([payload])
+            .select()
+            .single();
+
           if (error) throw error;
           result = data;
           currentInvoiceId = data.id;
@@ -517,7 +707,12 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
     }
 
     async function loadInvoiceIntoAdmin(invoiceId) {
-      const { data, error } = await client.from("invoices").select("*").eq("id", invoiceId).single();
+      const { data, error } = await client
+        .from("invoices")
+        .select("*")
+        .eq("id", invoiceId)
+        .single();
+
       if (error) {
         console.error(error);
         alert("Failed to load invoice");
@@ -540,6 +735,12 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       els.invoiceNotes.value = data.notes || "";
       els.invoiceTerms.value = data.terms || "";
 
+      els.amountPaid.value = data.amount_paid ?? 0;
+      els.balanceDue.value = data.balance_due ?? 0;
+      els.paymentStatus.value = data.payment_status || "Unpaid";
+      els.datePaid.value = data.date_paid || "";
+      els.paymentNote.value = data.payment_note || "";
+
       if (data.bike_snapshot?.slug) {
         els.bikeSelect.value = data.bike_snapshot.slug;
         await loadBike(data.bike_snapshot.slug);
@@ -547,6 +748,8 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         els.bikeSelect.value = data.bike_slug;
         await loadBike(data.bike_slug);
       }
+
+      recalculateInvoiceTotals();
     }
 
     els.bikeSelect.addEventListener("change", e => loadBike(e.target.value));
@@ -559,12 +762,22 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
     els.saveInvoiceBtn.addEventListener("click", () => saveInvoice({ openPreview: false }));
     els.previewInvoiceBtn.addEventListener("click", () => saveInvoice({ openPreview: true }));
 
+    ["quantity", "invoiceUnitPrice", "additionalCharges", "amountPaid"].forEach(key => {
+      els[key].addEventListener("input", recalculateInvoiceTotals);
+      els[key].addEventListener("change", recalculateInvoiceTotals);
+    });
+
     (async function initAdmin() {
       if (!els.invoiceDate.value) els.invoiceDate.value = todayInputValue();
+
       await loadBikes();
 
       const invoiceId = getParam("invoice_id") || getParam("id");
-      if (invoiceId) await loadInvoiceIntoAdmin(invoiceId);
+      if (invoiceId) {
+        await loadInvoiceIntoAdmin(invoiceId);
+      }
+
+      recalculateInvoiceTotals();
     })();
   </script>
 </body>
