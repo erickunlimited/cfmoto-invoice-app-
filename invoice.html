@@ -872,11 +872,9 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       $("out-unit-price").textContent = money(inv.unitPrice, inv.currency);
       $("out-line-total").textContent = money(inv.subtotal, inv.currency);
 
-      $("out-subtotal").textContent = money(inv.subtotal, inv.currency);
-      $("out-extra").textContent = money(inv.extra, inv.currency);
       $("out-amount-paid").textContent = money(inv.amountPaid, inv.currency);
-      $("out-balance-due").textContent = money(inv.balanceDue, inv.currency);
-      $("out-total").textContent = money(inv.total, inv.currency);
+$("out-balance-due").textContent = money(inv.balanceDue, inv.currency);
+$("out-total").textContent = money(inv.total, inv.currency);
 
       $("out-notes").textContent = inv.notes || "—";
       $("notes-section").classList.toggle("hidden", !inv.notes);
