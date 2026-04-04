@@ -14,7 +14,6 @@
       --soft: #666666;
       --ghost: #999999;
       --line: #D7DFDF;
-      --paper: #F7F8F8;
       --white: #FFFFFF;
       --serif: "Cormorant Garamond", Georgia, serif;
       --sans: "Outfit", Arial, sans-serif;
@@ -161,7 +160,7 @@
 
     .meta-row {
       display: grid;
-      grid-template-columns: 96px 1fr;
+      grid-template-columns: 110px 1fr;
       gap: 10px;
       padding: 5px 0;
       border-bottom: 1px solid #edf1f1;
@@ -235,58 +234,9 @@
     }
 
     .vehicle-head {
-  margin-bottom: 18px;
-}
+      margin-bottom: 18px;
+    }
 
-.hero-title {
-  font-family: var(--serif);
-  font-size: 42px;
-  line-height: 0.94;
-  font-weight: 400;
-  margin-bottom: 6px;
-}
-
-.hero-sub {
-  color: var(--soft);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.hero-gallery {
-  display: grid;
-  gap: 16px;
-  width: 100%;
-  align-items: stretch;
-}
-
-.hero-gallery.one {
-  grid-template-columns: 1fr;
-}
-
-.hero-gallery.two {
-  grid-template-columns: 1fr 1fr;
-}
-
-.hero-gallery.three {
-  grid-template-columns: 1fr 1fr 1fr;
-}
-
-.hero-gallery-card {
-  border: 1px solid var(--line);
-  background: #fafafa;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 18px;
-  min-height: 240px;
-}
-
-.hero-gallery-card img {
-  width: 100%;
-  height: 180px;
-  object-fit: contain;
-  display: block;
-}
     .hero-title {
       font-family: var(--serif);
       font-size: 42px;
@@ -303,8 +253,9 @@
 
     .hero-gallery {
       display: grid;
-      gap: 10px;
+      gap: 16px;
       width: 100%;
+      align-items: stretch;
     }
 
     .hero-gallery.one {
@@ -325,13 +276,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 10px;
-      min-height: 200px;
+      padding: 18px;
+      min-height: 240px;
     }
 
     .hero-gallery-card img {
       width: 100%;
-      height: 200px;
+      height: 180px;
       object-fit: contain;
       display: block;
     }
@@ -413,7 +364,7 @@
     .totals {
       margin-top: 14px;
       margin-left: auto;
-      width: 320px;
+      width: 340px;
     }
 
     .totals-row {
@@ -495,11 +446,11 @@
         width: 100%;
       }
 
-     .header,
-.customer-grid,
-.spec-grid {
-  grid-template-columns: 1fr;
-}
+      .header,
+      .customer-grid,
+      .spec-grid {
+        grid-template-columns: 1fr;
+      }
 
       .meta-kicker {
         text-align: left;
@@ -545,12 +496,20 @@ Kokomlemle, Accra</div>
               <div id="out-invoice-number">—</div>
             </div>
             <div class="meta-row">
-              <div class="meta-label">Date</div>
+              <div class="meta-label">Invoice Date</div>
               <div id="out-invoice-date">—</div>
             </div>
             <div class="meta-row">
-              <div class="meta-label">Status</div>
+              <div class="meta-label">Order Status</div>
               <div id="out-status">Draft</div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-label">Payment Status</div>
+              <div id="out-payment-status">Unpaid</div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-label">Date Paid</div>
+              <div id="out-date-paid">—</div>
             </div>
             <div class="meta-row">
               <div class="meta-label">Currency</div>
@@ -581,19 +540,19 @@ Kokomlemle, Accra</div>
         </div>
       </section>
 
-     <section class="section">
-  <div class="section-head">
-    <div class="section-num">02</div>
-    <div class="section-name">Vehicle</div>
-  </div>
+      <section class="section">
+        <div class="section-head">
+          <div class="section-num">02</div>
+          <div class="section-name">Vehicle</div>
+        </div>
 
-  <div class="vehicle-head">
-    <div class="hero-title" id="out-bike-model">—</div>
-    <div class="hero-sub" id="out-bike-category">—</div>
-  </div>
+        <div class="vehicle-head">
+          <div class="hero-title" id="out-bike-model">—</div>
+          <div class="hero-sub" id="out-bike-category">—</div>
+        </div>
 
-  <div id="out-bike-gallery" class="hero-gallery hidden"></div>
-</section>
+        <div id="out-bike-gallery" class="hero-gallery hidden"></div>
+      </section>
 
       <section class="section" id="specs-section">
         <div class="section-head">
@@ -645,6 +604,14 @@ Kokomlemle, Accra</div>
             <div>Additional Charges</div>
             <div id="out-extra">USD 0.00</div>
           </div>
+          <div class="totals-row">
+            <div>Amount Paid</div>
+            <div id="out-amount-paid">USD 0.00</div>
+          </div>
+          <div class="totals-row">
+            <div>Balance Due</div>
+            <div id="out-balance-due">USD 0.00</div>
+          </div>
           <div class="totals-row final">
             <div>Total</div>
             <div id="out-total">USD 0.00</div>
@@ -660,9 +627,17 @@ Kokomlemle, Accra</div>
         <div class="notes" id="out-notes"></div>
       </section>
 
-      <section class="section">
+      <section class="section" id="payment-note-section">
         <div class="section-head">
           <div class="section-num">07</div>
+          <div class="section-name">Payment Note</div>
+        </div>
+        <div class="notes" id="out-payment-note"></div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <div class="section-num">08</div>
           <div class="section-name">Terms</div>
         </div>
         <div class="terms" id="out-terms">3 years dealer-backed warranty from Rhobust Engineering Limited.
@@ -787,6 +762,11 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         invoiceNumber: record.invoice_number || `INV-${record.id}`,
         invoiceDate: record.invoice_date || record.created_at || null,
         status: record.status || "Draft",
+        paymentStatus: record.payment_status || "Unpaid",
+        datePaid: record.date_paid || null,
+        paymentNote: record.payment_note || "",
+        amountPaid: Number(record.amount_paid ?? 0) || 0,
+        balanceDue: Number(record.balance_due ?? 0) || 0,
         currency,
         customerBlock: buildCustomerBlock(record),
         bikeModel,
@@ -883,6 +863,8 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       $("out-invoice-number").textContent = inv.invoiceNumber;
       $("out-invoice-date").textContent = niceDate(inv.invoiceDate);
       $("out-status").textContent = inv.status;
+      $("out-payment-status").textContent = inv.paymentStatus;
+      $("out-date-paid").textContent = niceDate(inv.datePaid);
       $("out-currency").textContent = inv.currency;
 
       $("out-customer-block").textContent = inv.customerBlock;
@@ -900,10 +882,15 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
 
       $("out-subtotal").textContent = money(inv.subtotal, inv.currency);
       $("out-extra").textContent = money(inv.extra, inv.currency);
+      $("out-amount-paid").textContent = money(inv.amountPaid, inv.currency);
+      $("out-balance-due").textContent = money(inv.balanceDue, inv.currency);
       $("out-total").textContent = money(inv.total, inv.currency);
 
       $("out-notes").textContent = inv.notes || "—";
       $("notes-section").classList.toggle("hidden", !inv.notes);
+
+      $("out-payment-note").textContent = inv.paymentNote || "—";
+      $("payment-note-section").classList.toggle("hidden", !inv.paymentNote);
 
       $("out-terms").textContent = inv.terms;
       $("out-footer-right").textContent = `Invoice ${inv.invoiceNumber}`;
