@@ -376,14 +376,13 @@
       font-size: 13px;
     }
 
-    totals-row.final {
-  border-bottom: 1px solid var(--line);
-  padding-top: 12px;
-  padding-bottom: 12px;
-  font-weight: 600;
-  font-size: 18px;
-  color: #000;
-}
+    .totals-row.final {
+      border-bottom: 1px solid var(--line);
+      padding-top: 12px;
+      padding-bottom: 12px;
+      font-weight: 600;
+      font-size: 18px;
+      color: #000;
     }
 
     .terms, .notes {
@@ -498,8 +497,8 @@ Kokomlemle, Accra</div>
               <div id="out-invoice-number">—</div>
             </div>
             <div class="meta-row">
-              <div class="meta-label">Order Status</div>
-              <div id="out-status">Draft</div>
+              <div class="meta-label">Date</div>
+              <div id="out-invoice-date">—</div>
             </div>
             <div class="meta-row">
               <div class="meta-label">Payment Status</div>
@@ -594,21 +593,19 @@ Kokomlemle, Accra</div>
         </table>
 
         <div class="totals">
-  <div class="totals-row">
-    <div>Original Total</div>
-    <div id="out-total">USD 0.00</div>
-  </div>
-
-  <div class="totals-row">
-    <div>Amount Paid</div>
-    <div id="out-amount-paid">USD 0.00</div>
-  </div>
-
-  <div class="totals-row final">
-    <div>Amount Due</div>
-    <div id="out-balance-due">USD 0.00</div>
-  </div>
-</div>
+          <div class="totals-row">
+            <div>Original Total</div>
+            <div id="out-total">USD 0.00</div>
+          </div>
+          <div class="totals-row">
+            <div>Amount Paid</div>
+            <div id="out-amount-paid">USD 0.00</div>
+          </div>
+          <div class="totals-row final">
+            <div>Amount Due</div>
+            <div id="out-balance-due">USD 0.00</div>
+          </div>
+        </div>
       </section>
 
       <section class="section" id="notes-section">
@@ -753,7 +750,6 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         id: record.id,
         invoiceNumber: record.invoice_number || `INV-${record.id}`,
         invoiceDate: record.invoice_date || record.created_at || null,
-        status: record.status || "Draft",
         paymentStatus: record.payment_status || "Unpaid",
         datePaid: record.date_paid || null,
         paymentNote: record.payment_note || "",
@@ -871,9 +867,9 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       $("out-unit-price").textContent = money(inv.unitPrice, inv.currency);
       $("out-line-total").textContent = money(inv.subtotal, inv.currency);
 
+      $("out-total").textContent = money(inv.total, inv.currency);
       $("out-amount-paid").textContent = money(inv.amountPaid, inv.currency);
-$("out-balance-due").textContent = money(inv.balanceDue, inv.currency);
-$("out-total").textContent = money(inv.total, inv.currency);
+      $("out-balance-due").textContent = money(inv.balanceDue, inv.currency);
 
       $("out-notes").textContent = inv.notes || "—";
       $("notes-section").classList.toggle("hidden", !inv.notes);
