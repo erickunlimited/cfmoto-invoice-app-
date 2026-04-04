@@ -3,91 +3,197 @@
 <head>
   <meta charset="UTF-8">
   <title>Bike Admin</title>
-
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
   <style>
-    body { font-family: Arial; padding: 20px; background: #f5f5f5; }
-    input, textarea, select { display:block; margin-bottom:10px; padding:8px; width:300px; }
-    button { padding:10px; margin-top:10px; }
-    .feature-row { display:flex; gap:10px; margin-bottom:5px; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    input, select, textarea { display:block; margin-bottom:10px; padding:8px; width:340px; }
+    button { padding:10px 14px; margin-top:10px; cursor:pointer; }
+    .feature-row, .image-row { display:flex; gap:10px; margin-bottom:8px; align-items:center; }
+    .feature-row input, .image-row input { margin-bottom:0; width:340px; }
+    .section { margin-top:24px; }
+    .thumbs { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .thumbs img { width:120px; height:90px; object-fit:cover; border:1px solid #ccc; background:#fff; }
+    .muted { color:#666; font-size:13px; }
   </style>
 </head>
-
 <body>
 
 <h2>Bike Editor</h2>
 
 <select id="bikeSelect"></select>
-<button onclick="createBike()">+ Add New Bike</button>
-<select id="bikeSelect"></select>
-<button onclick="createBike()">+ Add New Bike</button>
+<button type="button" onclick="createBike()">+ Add New Bike</button>
+
 <input id="model" placeholder="Model">
 <input id="category" placeholder="Category">
 <input id="unitPrice" placeholder="Price">
 
-<h3>Specs</h3>
+<div class="section">
+  <h3>Specs</h3>
 
-<input id="engine_type" placeholder="Engine Type">
-<input id="displacement" placeholder="Displacement">
-<input id="power" placeholder="Power">
-<input id="torque" placeholder="Torque">
-<input id="transmission" placeholder="Transmission">
-<input id="cooling_system" placeholder="Cooling System">
-<input id="seat_height" placeholder="Seat Height">
-<input id="fuel_tank_capacity" placeholder="Fuel Tank Capacity">
-<input id="weight" placeholder="Weight">
+  <input id="engine" placeholder="Engine">
+  <input id="displacement" placeholder="Displacement">
+  <input id="power_hp" placeholder="Power / HP">
+  <input id="torque" placeholder="Torque">
+  <input id="fuel_system" placeholder="Fuel System">
+  <input id="transmission" placeholder="Transmission">
+  <input id="throttle_type" placeholder="Throttle Type">
+  <input id="fuel_capacity" placeholder="Fuel Capacity">
+  <input id="abs" placeholder="ABS">
+  <input id="traction_control" placeholder="Traction Control">
+  <input id="headlight" placeholder="Headlight">
+  <input id="charging_port" placeholder="Charging Port">
+  <input id="color" placeholder="Color">
+  <input id="suspension" placeholder="Suspension">
+  <input id="brake" placeholder="Brake">
+</div>
 
-<input id="image_url" placeholder="Image URL">
+<div class="section">
+  <h3>Images</h3>
+
+  <div class="muted">Upload PNG/JPG/WebP to Supabase Storage. The database will save the image URLs.</div>
+  <input id="imageUpload" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+
+  <div id="imageUrlsContainer"></div>
+  <button type="button" onclick="addImageUrl()">+ Add Image URL Manually</button>
+
+  <div class="thumbs" id="imagePreviewContainer"></div>
+</div>
 
 <h3>Features</h3>
 <div id="featuresContainer"></div>
-<button onclick="addFeature()">+ Add Feature</button>
+<button type="button" onclick="addFeature()">+ Add Feature</button>
 
 <br><br>
 <button id="saveBtn">Save</button>
 
 <script>
 const client = window.supabase.createClient(
-  "PASTE_URL",
-  "PASTE_KEY"
+  "PASTE_YOUR_URL_HERE",
+  "PASTE_YOUR_KEY_HERE"
 );
 
+const BUCKET_NAME = "bike-images";
 let currentBike = null;
 
+// ---------- FEATURES ----------
 function addFeature(value = "") {
   const div = document.createElement("div");
   div.className = "feature-row";
-
   div.innerHTML = `
-    <input value="${value}" />
-    <button onclick="this.parentElement.remove()">X</button>
+    <input value="${escapeHtml(value)}" />
+    <button type="button" onclick="this.parentElement.remove()">X</button>
   `;
-
   document.getElementById("featuresContainer").appendChild(div);
 }
 
 function getFeatures() {
   return [...document.querySelectorAll("#featuresContainer input")]
-    .map(i => i.value)
-    .filter(v => v);
+    .map(i => i.value.trim())
+    .filter(Boolean);
 }
 
-async function loadBikes() {
-  const { data } = await client.from("motorcycles").select("*");
+// ---------- IMAGES ----------
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
 
-  document.getElementById("bikeSelect").innerHTML =
-    data.map(b => `<option value="${b.slug}">${b.model}</option>`).join("");
+function addImageUrl(value = "") {
+  const div = document.createElement("div");
+  div.className = "image-row";
+  div.innerHTML = `
+    <input value="${escapeHtml(value)}" placeholder="Image URL" />
+    <button type="button" onclick="this.parentElement.remove(); renderImagePreviews();">X</button>
+  `;
+  div.querySelector("input").addEventListener("input", renderImagePreviews);
+  document.getElementById("imageUrlsContainer").appendChild(div);
+  renderImagePreviews();
+}
+
+function getImageUrls() {
+  return [...document.querySelectorAll("#imageUrlsContainer input")]
+    .map(i => i.value.trim())
+    .filter(Boolean);
+}
+
+function renderImagePreviews() {
+  const wrap = document.getElementById("imagePreviewContainer");
+  wrap.innerHTML = "";
+  getImageUrls().forEach(url => {
+    const img = document.createElement("img");
+    img.src = url;
+    img.onerror = () => { img.style.display = "none"; };
+    wrap.appendChild(img);
+  });
+}
+
+async function uploadSelectedImages() {
+  const fileInput = document.getElementById("imageUpload");
+  const files = [...fileInput.files];
+
+  if (!files.length) return;
+
+  if (!currentBike) {
+    alert("Please select or create a bike first.");
+    return;
+  }
+
+  for (const file of files) {
+    const ext = file.name.split(".").pop();
+    const safeSlug = currentBike.slug;
+    const fileName = `${safeSlug}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+    const { error } = await client.storage
+      .from(BUCKET_NAME)
+      .upload(fileName, file, { upsert: false });
+
+    if (error) {
+      console.error(error);
+      alert("Image upload failed");
+      return;
+    }
+
+    const { data } = client.storage.from(BUCKET_NAME).getPublicUrl(fileName);
+    addImageUrl(data.publicUrl);
+  }
+
+  fileInput.value = "";
+}
+
+// ---------- BIKES ----------
+async function loadBikes() {
+  const { data, error } = await client
+    .from("motorcycles")
+    .select("*")
+    .order("model", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    alert("Error loading bikes");
+    return;
+  }
+
+  const select = document.getElementById("bikeSelect");
+  select.innerHTML = data.map(b => `<option value="${b.slug}">${b.model}</option>`).join("");
 
   if (data.length) loadBike(data[0].slug);
 }
 
 async function loadBike(slug) {
-  const { data } = await client
+  const { data, error } = await client
     .from("motorcycles")
     .select("*")
     .eq("slug", slug)
     .single();
+
+  if (error) {
+    console.error(error);
+    alert("Error loading bike");
+    return;
+  }
 
   currentBike = data;
 
@@ -95,94 +201,114 @@ async function loadBike(slug) {
   category.value = data.category || "";
   unitPrice.value = data.unit_price || "";
 
-  engine_type.value = data.engine_type || "";
+  engine.value = data.engine || "";
   displacement.value = data.displacement || "";
-  power.value = data.power || "";
+  power_hp.value = data.power_hp || "";
   torque.value = data.torque || "";
+  fuel_system.value = data.fuel_system || "";
   transmission.value = data.transmission || "";
-  cooling_system.value = data.cooling_system || "";
-  seat_height.value = data.seat_height || "";
-  fuel_tank_capacity.value = data.fuel_tank_capacity || "";
-  weight.value = data.weight || "";
-
-  image_url.value = data.image_url || "";
+  throttle_type.value = data.throttle_type || "";
+  fuel_capacity.value = data.fuel_capacity || "";
+  abs.value = data.abs || "";
+  traction_control.value = data.traction_control || "";
+  headlight.value = data.headlight || "";
+  charging_port.value = data.charging_port || "";
+  color.value = data.color || "";
+  suspension.value = data.suspension || "";
+  brake.value = data.brake || "";
 
   featuresContainer.innerHTML = "";
   (data.features || []).forEach(f => addFeature(f));
+
+  imageUrlsContainer.innerHTML = "";
+  (data.image_urls || []).forEach(url => addImageUrl(url));
+  renderImagePreviews();
 }
 
 async function saveBike() {
+  if (!currentBike) {
+    alert("No bike selected");
+    return;
+  }
+
   const updated = {
-    model: model.value,
-    category: category.value,
-    unit_price: unitPrice.value,
+    model: model.value.trim(),
+    category: category.value.trim(),
+    unit_price: unitPrice.value || 0,
 
-    engine_type: engine_type.value,
-    displacement: displacement.value,
-    power: power.value,
-    torque: torque.value,
-    transmission: transmission.value,
-    cooling_system: cooling_system.value,
-    seat_height: seat_height.value,
-    fuel_tank_capacity: fuel_tank_capacity.value,
-    weight: weight.value,
+    engine: engine.value.trim(),
+    displacement: displacement.value.trim(),
+    power_hp: power_hp.value.trim(),
+    torque: torque.value.trim(),
+    fuel_system: fuel_system.value.trim(),
+    transmission: transmission.value.trim(),
+    throttle_type: throttle_type.value.trim(),
+    fuel_capacity: fuel_capacity.value.trim(),
+    abs: abs.value.trim(),
+    traction_control: traction_control.value.trim(),
+    headlight: headlight.value.trim(),
+    charging_port: charging_port.value.trim(),
+    color: color.value.trim(),
+    suspension: suspension.value.trim(),
+    brake: brake.value.trim(),
 
-    image_url: image_url.value,
-    features: getFeatures()
+    features: getFeatures(),
+    image_urls: getImageUrls()
   };
 
-  await client
+  const { error } = await client
     .from("motorcycles")
     .update(updated)
     .eq("slug", currentBike.slug);
 
+  if (error) {
+    console.error(error);
+    alert("Save failed");
+    return;
+  }
+
   alert("Saved");
-  loadBikes();
+  await loadBikes();
+  document.getElementById("bikeSelect").value = currentBike.slug;
+  await loadBike(currentBike.slug);
 }
 
-bikeSelect.onchange = (e) => loadBike(e.target.value);
-saveBtn.onclick = saveBike;
-
-loadBikes();
-</script>
-<script>
-
-const client = window.supabase.createClient(
-  "YOUR_URL",
-  "YOUR_KEY"
-);
-
-// ✅ ADD THIS HERE
 async function createBike() {
-  const slug = prompt("Enter bike slug (e.g. 800nk):");
+  const slug = prompt("Enter bike slug, e.g. 800nk");
 
   if (!slug) return;
 
+  const cleanSlug = slug.trim().toLowerCase().replace(/\s+/g, "-");
+
   const { error } = await client.from("motorcycles").insert([
     {
-      slug: slug,
+      slug: cleanSlug,
       model: "New Bike",
       category: "",
       unit_price: 0,
-      features: []
+      features: [],
+      image_urls: []
     }
   ]);
 
   if (error) {
-    alert("Error creating bike");
     console.error(error);
+    alert("Error creating bike. Slug may already exist.");
     return;
   }
 
   alert("Bike created");
-  loadBikes();
+  await loadBikes();
+  document.getElementById("bikeSelect").value = cleanSlug;
+  await loadBike(cleanSlug);
 }
 
-// existing functions below...
-async function loadBikes() {
-  ...
-}
+bikeSelect.onchange = (e) => loadBike(e.target.value);
+saveBtn.onclick = saveBike;
+document.getElementById("imageUpload").addEventListener("change", uploadSelectedImages);
 
+loadBikes();
 </script>
+
 </body>
 </html>
