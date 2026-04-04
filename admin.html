@@ -18,8 +18,8 @@
 
 <h2>Bike Editor</h2>
 
+<select id="bikeSelect"></select>
 <button onclick="createBike()">+ Add New Bike</button>
-
 <input id="model" placeholder="Model">
 <input id="category" placeholder="Category">
 <input id="unitPrice" placeholder="Price">
@@ -137,6 +137,20 @@ async function saveBike() {
   alert("Saved");
   loadBikes();
 }
+
+bikeSelect.onchange = (e) => loadBike(e.target.value);
+saveBtn.onclick = saveBike;
+
+loadBikes();
+</script>
+<script>
+
+const client = window.supabase.createClient(
+  "YOUR_URL",
+  "YOUR_KEY"
+);
+
+// ✅ ADD THIS HERE
 async function createBike() {
   const slug = prompt("Enter bike slug (e.g. 800nk):");
 
@@ -153,20 +167,20 @@ async function createBike() {
   ]);
 
   if (error) {
-    alert("Error creating bike (maybe slug exists)");
+    alert("Error creating bike");
     console.error(error);
     return;
   }
 
   alert("Bike created");
-
   loadBikes();
 }
-bikeSelect.onchange = (e) => loadBike(e.target.value);
-saveBtn.onclick = saveBike;
 
-loadBikes();
+// existing functions below...
+async function loadBikes() {
+  ...
+}
+
 </script>
-
 </body>
 </html>
