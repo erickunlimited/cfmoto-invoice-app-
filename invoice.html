@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Rhobust Engineering Limited · Invoice System</title>
+  <title>Rhobust Engineering Limited · Bike Editor</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <style>
@@ -28,7 +27,6 @@
       --e-txt:rgba(255,255,255,0.88);
       --e-gst:rgba(255,255,255,0.34);
       --ok:#16a34a;
-      --warn:#f59e0b;
       --danger:#dc2626;
     }
 
@@ -43,7 +41,7 @@
 
     .app {
       display:grid;
-      grid-template-columns:360px 1fr;
+      grid-template-columns:380px 1fr;
       min-height:100vh;
     }
 
@@ -149,7 +147,7 @@
       gap:8px;
     }
 
-    .btn-main, .btn-alt, .btn-mini {
+    .btn-main, .btn-alt, .btn-mini, .btn-danger {
       border:none;
       cursor:pointer;
       border-radius:3px;
@@ -157,7 +155,7 @@
       transition:opacity .15s;
     }
 
-    .btn-main:hover, .btn-alt:hover, .btn-mini:hover { opacity:.88; }
+    .btn-main:hover, .btn-alt:hover, .btn-mini:hover, .btn-danger:hover { opacity:.88; }
 
     .btn-main {
       background:var(--teal);
@@ -191,10 +189,21 @@
       text-transform:uppercase;
     }
 
+    .btn-danger {
+      background:#2a1111;
+      color:#ffb4b4;
+      border:1px solid #5b2121;
+      padding:8px 10px;
+      font-size:10px;
+      font-weight:600;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
     .list-box {
       border:1px solid var(--e-bdr);
       background:var(--e-card);
-      max-height:220px;
+      max-height:240px;
       overflow:auto;
     }
 
@@ -227,28 +236,17 @@
       margin-top:8px;
     }
 
-    .line-grid, .payment-grid-editor {
-      display:grid;
-      gap:8px;
-    }
-
-    .line-item-card, .payment-card {
+    .feature-item, .image-item {
       border:1px solid var(--e-bdr);
       background:var(--e-card);
       padding:10px;
+      margin-bottom:8px;
     }
 
-    .inline-5 {
+    .image-grid {
       display:grid;
-      grid-template-columns:2fr .8fr .9fr 1fr auto;
-      gap:6px;
-      align-items:end;
-    }
-
-    .inline-4 {
-      display:grid;
-      grid-template-columns:1fr 1fr 1fr auto;
-      gap:6px;
+      grid-template-columns:1fr auto;
+      gap:8px;
       align-items:end;
     }
 
@@ -258,40 +256,36 @@
     }
 
     .preview__inner {
-      width:794px;
+      width:820px;
       margin:0 auto;
     }
 
-    .inv {
+    .card {
       background:var(--paper);
       border:1px solid var(--border);
       box-shadow:0 8px 28px rgba(0,0,0,.10);
-      padding:28px 28px 22px;
+      padding:28px;
     }
 
-    .hd {
+    .card__head {
       border-bottom:1px solid var(--border);
       padding-bottom:18px;
       margin-bottom:18px;
-    }
-
-    .hd-row {
       display:grid;
       grid-template-columns:1fr auto;
       gap:18px;
       align-items:start;
     }
 
-    .hd-brand {
+    .brand {
       font-family:var(--serif);
-      font-size:24px;
+      font-size:26px;
       line-height:1;
       font-weight:400;
       color:var(--ink);
-      letter-spacing:.02em;
     }
 
-    .hd-sub {
+    .brand-sub {
       margin-top:6px;
       color:var(--soft);
       font-size:10px;
@@ -301,123 +295,45 @@
       white-space:pre-line;
     }
 
-    .hd-right { text-align:right; }
-
-    .hd-doctype {
+    .card-kicker {
       color:var(--teal);
       font-size:10px;
       text-transform:uppercase;
       letter-spacing:.18em;
       font-weight:600;
-      margin-bottom:5px;
-    }
-
-    .hd-docnum {
-      font-family:var(--serif);
-      font-size:22px;
-      font-weight:400;
-      line-height:1.1;
-    }
-
-    .hd-date {
-      margin-top:3px;
-      color:var(--soft);
-      font-size:10px;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-    }
-
-    .status-badge {
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-height:28px;
-      padding:6px 12px;
-      border-radius:999px;
-      font-size:10px;
-      font-weight:700;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      margin-top:8px;
-      border:1px solid var(--border);
-      background:#fff;
-    }
-
-    .status-draft { color:var(--soft); }
-    .status-quote, .status-proforma { color:var(--warn); }
-    .status-invoice, .status-sent, .status-part { color:var(--teal); }
-    .status-paid { color:var(--ok); }
-    .status-cancelled { color:var(--danger); }
-
-    .buyer-bar {
-      display:grid;
-      grid-template-columns:repeat(4, 1fr);
-      gap:12px;
-      padding:12px 0 0;
-      margin-bottom:18px;
-      border-bottom:1px solid var(--fine);
-      padding-bottom:16px;
-    }
-
-    .buyer-item-label {
-      font-size:8px;
-      text-transform:uppercase;
-      letter-spacing:.16em;
-      color:var(--ghost);
-      margin-bottom:4px;
-    }
-
-    .buyer-item-val {
-      font-size:11px;
-      color:var(--ink);
-      line-height:1.4;
-      white-space:pre-line;
+      text-align:right;
     }
 
     .hero {
       display:grid;
       grid-template-columns:1fr;
       gap:18px;
-      margin-bottom:18px;
     }
 
-    .hero__copy {
-      display:grid;
-      gap:10px;
-    }
-
-    .hero__kicker {
-      color:var(--teal);
-      font-size:9px;
-      text-transform:uppercase;
-      letter-spacing:.18em;
-      font-weight:600;
-    }
-
-    .hero__title {
+    .hero-title {
       font-family:var(--serif);
       font-size:42px;
       line-height:.96;
       font-weight:400;
     }
 
-    .hero__desc {
+    .hero-cat {
       color:var(--soft);
-      font-size:11px;
-      line-height:1.6;
-      max-width:94%;
+      font-size:12px;
+      margin-top:6px;
     }
 
-    .hero__gallery {
+    .gallery {
       display:grid;
       grid-template-columns:repeat(3,1fr);
       gap:10px;
+      margin-top:10px;
     }
 
-    .hero__gallery.one { grid-template-columns:1fr; }
-    .hero__gallery.two { grid-template-columns:1fr 1fr; }
+    .gallery.one { grid-template-columns:1fr; }
+    .gallery.two { grid-template-columns:1fr 1fr; }
 
-    .hero__gallery-card {
+    .gallery-card {
       background:#fff;
       border:1px solid var(--border);
       min-height:170px;
@@ -427,18 +343,18 @@
       padding:10px;
     }
 
-    .hero__gallery.one .hero__gallery-card { min-height:280px; }
+    .gallery.one .gallery-card { min-height:280px; }
 
-    .hero__gallery-img {
+    .gallery img {
       width:100%;
       height:150px;
       object-fit:contain;
       display:block;
     }
 
-    .hero__gallery.one .hero__gallery-img { height:255px; }
+    .gallery.one img { height:255px; }
 
-    .hero__img-empty {
+    .empty {
       color:var(--ghost);
       font-size:11px;
       text-transform:uppercase;
@@ -450,7 +366,7 @@
       display:flex;
       align-items:baseline;
       gap:8px;
-      margin-bottom:12px;
+      margin:18px 0 12px;
       border-top:1px solid var(--fine);
       padding-top:16px;
     }
@@ -497,14 +413,14 @@
       line-height:1.45;
     }
 
-    .features-pills {
+    .features {
       display:flex;
       flex-wrap:wrap;
       gap:12px;
       margin-top:2px;
     }
 
-    .features-pill {
+    .pill {
       display:inline-flex;
       align-items:center;
       justify-content:center;
@@ -522,121 +438,23 @@
       max-width:100%;
     }
 
-    .doc-table {
-      width:100%;
-      border-collapse:collapse;
-      margin-top:4px;
-    }
-
-    .doc-table th, .doc-table td {
-      padding:10px 8px;
-      border-bottom:1px solid var(--fine);
-      text-align:left;
-      vertical-align:top;
-    }
-
-    .doc-table th {
-      color:var(--ghost);
-      font-size:8px;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-      font-weight:500;
-    }
-
-    .doc-table td {
-      font-size:11px;
-      color:var(--ink);
-    }
-
-    .right { text-align:right !important; }
-
-    .notes {
+    .preview-notes {
       color:var(--soft);
       font-size:11px;
       line-height:1.6;
       white-space:pre-wrap;
     }
 
-    .payment-grid {
-      display:grid;
-      grid-template-columns:1fr 1fr 1fr;
-      gap:10px 18px;
-      margin-top:4px;
-    }
-
-    .payment-block {
-      border-bottom:1px solid var(--fine);
-      padding-bottom:8px;
-    }
-
-    .foot {
-      margin-top:18px;
-      padding-top:14px;
-      border-top:1px solid var(--border);
-      display:grid;
-      grid-template-columns:1fr auto;
-      gap:14px;
-      align-items:end;
-    }
-
-    .foot-brand {
-      font-family:var(--serif);
-      font-size:18px;
-      font-weight:400;
-    }
-
-    .foot-loc {
-      color:var(--soft);
-      font-size:10px;
-      line-height:1.5;
-      letter-spacing:.06em;
-      text-transform:uppercase;
-      margin-top:4px;
-      white-space:pre-line;
-    }
-
-    .foot-ref {
-      text-align:right;
-      color:var(--ghost);
-      font-size:8px;
-      text-transform:uppercase;
-      letter-spacing:.16em;
-    }
-
-    .foot-val {
-      text-align:right;
-      font-size:11px;
-      color:var(--ink);
-      margin-top:3px;
-    }
-
     .hidden { display:none !important; }
 
-    @media print {
-      body { background:#fff; }
-      .editor { display:none !important; }
-      .app { display:block; }
-      .preview { background:#fff; padding:0; }
-      .preview__inner { width:100%; max-width:none; }
-      .inv {
-        border:none;
-        box-shadow:none;
-        width:100%;
-        padding:20px 18px 16px;
-      }
-    }
-
-    @media (max-width: 1050px) {
+    @media (max-width: 1100px) {
       .app { grid-template-columns:1fr; }
       .editor { height:auto; position:static; }
       .preview { padding:16px 8px 32px; }
-      .preview__inner { width:100%; max-width:794px; }
-      .inv { width:100%; }
-      .hd-row, .foot, .buyer-bar, .specs-grid, .payment-grid, .field-row, .inline-5, .inline-4 {
-        grid-template-columns:1fr;
-      }
-      .hd-right, .foot-ref, .foot-val { text-align:left; }
-      .hero__gallery, .hero__gallery.two { grid-template-columns:1fr; }
+      .preview__inner { width:100%; max-width:820px; }
+      .card__head, .field-row, .image-grid, .specs-grid { grid-template-columns:1fr; }
+      .card-kicker { text-align:left; }
+      .gallery, .gallery.two { grid-template-columns:1fr; }
       .editor__footer { grid-template-columns:1fr; }
     }
   </style>
@@ -645,7 +463,7 @@
 <div class="app">
   <aside class="editor">
     <div class="editor__head">
-      <div class="editor__title">Invoice System</div>
+      <div class="editor__title">Bike Editor</div>
       <div class="editor__sub">Rhobust Engineering Limited</div>
     </div>
 
@@ -653,240 +471,178 @@
       <div class="editor__section">
         <div class="editor__section-label">Search / Load</div>
         <div class="field">
-          <label>Search old invoices</label>
-          <input id="f-search" type="text" placeholder="Invoice #, customer, bike...">
+          <label>Search bikes</label>
+          <input id="f-search" type="text" placeholder="Model, slug, category...">
         </div>
-        <div class="list-box" id="invoice-list"></div>
+        <div class="list-box" id="bike-list"></div>
         <div class="row-actions">
           <button class="btn-mini" id="btn-new" type="button">New</button>
           <button class="btn-mini" id="btn-duplicate" type="button">Duplicate</button>
-          <button class="btn-mini" id="btn-mark-paid" type="button">Mark Paid</button>
         </div>
       </div>
 
       <div class="editor__section">
-        <div class="editor__section-label">Document</div>
-        <div class="field-row">
-          <div class="field">
-            <label>Document Type</label>
-            <select id="f-document-type">
-              <option value="DRAFT">DRAFT</option>
-              <option value="QUOTE">QUOTE</option>
-              <option value="PROFORMA">PROFORMA</option>
-              <option value="INVOICE">INVOICE</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Status</label>
-            <select id="f-status">
-              <option value="DRAFT">DRAFT</option>
-              <option value="SENT">SENT</option>
-              <option value="DEPOSIT_PAID">DEPOSIT PAID</option>
-              <option value="PART_PAID">PART PAID</option>
-              <option value="PAID">PAID</option>
-              <option value="CANCELLED">CANCELLED</option>
-            </select>
-          </div>
+        <div class="editor__section-label">Identity</div>
+        <div class="field">
+          <label>Slug</label>
+          <input id="f-slug" type="text" placeholder="800mt-x">
         </div>
+        <div class="field">
+          <label>Model</label>
+          <input id="f-model" type="text">
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <input id="f-category" type="text">
+        </div>
+        <div class="field">
+          <label>Default Unit Price</label>
+          <input id="f-unit-price" type="number" step="0.01" value="0">
+        </div>
+      </div>
 
+      <div class="editor__section">
+        <div class="editor__section-label">Technical Specification</div>
         <div class="field-row">
           <div class="field">
-            <label>Invoice Number</label>
-            <input id="f-invnum" type="text" readonly>
+            <label>Engine</label>
+            <input id="f-engine" type="text">
           </div>
           <div class="field">
-            <label>Version</label>
-            <input id="f-version" type="number" value="1" readonly>
+            <label>Displacement</label>
+            <input id="f-displacement" type="text">
           </div>
         </div>
 
         <div class="field-row">
           <div class="field">
-            <label>Invoice Date</label>
-            <input id="f-date" type="date">
+            <label>Power / HP</label>
+            <input id="f-power-hp" type="text">
           </div>
           <div class="field">
-            <label>Expiry Date</label>
-            <input id="f-expiry" type="date">
+            <label>Torque</label>
+            <input id="f-torque" type="text">
           </div>
         </div>
 
         <div class="field-row">
           <div class="field">
-            <label>Due Date</label>
-            <input id="f-due" type="date">
+            <label>Fuel System</label>
+            <input id="f-fuel-system" type="text">
           </div>
           <div class="field">
-            <label>Balance Due Date</label>
-            <input id="f-balance-due-date" type="date">
+            <label>Transmission</label>
+            <input id="f-transmission" type="text">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Throttle Type</label>
+            <input id="f-throttle-type" type="text">
+          </div>
+          <div class="field">
+            <label>Fuel Capacity</label>
+            <input id="f-fuel-capacity" type="text">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>ABS</label>
+            <input id="f-abs" type="text">
+          </div>
+          <div class="field">
+            <label>Traction Control</label>
+            <input id="f-traction-control" type="text">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Headlight</label>
+            <input id="f-headlight" type="text">
+          </div>
+          <div class="field">
+            <label>Charging Port</label>
+            <input id="f-charging-port" type="text">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Color</label>
+            <input id="f-color" type="text">
+          </div>
+          <div class="field">
+            <label>Suspension</label>
+            <input id="f-suspension" type="text">
           </div>
         </div>
 
         <div class="field">
-          <label>Currency</label>
-          <input id="f-currency" type="text" value="USD">
+          <label>Brake</label>
+          <input id="f-brake" type="text">
         </div>
       </div>
 
       <div class="editor__section">
-        <div class="editor__section-label">Customer</div>
-        <div class="field">
-          <label>Customer Name</label>
-          <input id="f-customer-name" type="text">
-        </div>
-        <div class="field">
-          <label>Contact</label>
-          <input id="f-customer-contact" type="text">
-        </div>
-        <div class="field">
-          <label>Address</label>
-          <textarea id="f-customer-address"></textarea>
-        </div>
-        <div class="field">
-          <label>Customer Internal Ref</label>
-          <input id="f-customer-reference" type="text">
-        </div>
-      </div>
-
-      <div class="editor__section">
-        <div class="editor__section-label">Motorcycle</div>
-        <div class="field">
-          <label>Select Bike</label>
-          <select id="f-bike"></select>
-        </div>
-      </div>
-
-      <div class="editor__section">
-        <div class="editor__section-label">Line Items</div>
-        <div id="line-items" class="line-grid"></div>
+        <div class="editor__section-label">Key Features</div>
+        <div id="features"></div>
         <div class="row-actions">
-          <button class="btn-mini" id="btn-add-bike-line" type="button">Add Bike</button>
-          <button class="btn-mini" id="btn-add-accessory-line" type="button">Add Accessory</button>
-          <button class="btn-mini" id="btn-add-service-line" type="button">Add Service</button>
+          <button class="btn-mini" id="btn-add-feature" type="button">Add Feature</button>
         </div>
       </div>
 
       <div class="editor__section">
-        <div class="editor__section-label">Payment Summary</div>
-        <div class="field-row">
-          <div class="field">
-            <label>Payment Status</label>
-            <select id="f-payment-status">
-              <option value="">Select</option>
-              <option value="UNPAID">UNPAID</option>
-              <option value="DEPOSIT PAID">DEPOSIT PAID</option>
-              <option value="PART PAID">PART PAID</option>
-              <option value="PAID IN FULL">PAID IN FULL</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Payment Method</label>
-            <select id="f-payment-method">
-              <option value="">Select</option>
-              <option value="CASH">CASH</option>
-              <option value="BANK TRANSFER">BANK TRANSFER</option>
-              <option value="MOBILE MONEY">MOBILE MONEY</option>
-              <option value="CARD">CARD</option>
-            </select>
-          </div>
-        </div>
+        <div class="editor__section-label">Images</div>
         <div class="field">
-          <label>Payment Reference</label>
-          <input id="f-payment-reference" type="text">
+          <label>Upload Images</label>
+          <input id="f-image-upload" type="file" accept="image/png,image/jpeg,image/webp" multiple>
         </div>
-        <div class="field">
-          <label>Payment Note</label>
-          <textarea id="f-payment-note"></textarea>
-        </div>
-      </div>
-
-      <div class="editor__section">
-        <div class="editor__section-label">Payment History</div>
-        <div id="payments" class="payment-grid-editor"></div>
+        <div id="images"></div>
         <div class="row-actions">
-          <button class="btn-mini" id="btn-add-payment" type="button">Add Payment</button>
+          <button class="btn-mini" id="btn-add-image-url" type="button">Add Image URL</button>
         </div>
       </div>
 
       <div class="editor__section">
         <div class="editor__section-label">Optional Notes</div>
         <div class="field">
-          <label>Notes</label>
-          <textarea id="f-notes"></textarea>
-        </div>
-        <div class="field">
-          <label>Bank / Payment Instructions</label>
-          <textarea id="f-bank-details"></textarea>
-        </div>
-      </div>
-
-      <div class="editor__section">
-        <div class="editor__section-label">Display</div>
-        <div class="check-row">
-          <input id="f-show-image" type="checkbox" checked>
-          <label for="f-show-image">Include image</label>
-        </div>
-        <div class="check-row">
-          <input id="f-show-specs" type="checkbox" checked>
-          <label for="f-show-specs">Include specs</label>
+          <label>Internal Note</label>
+          <textarea id="f-note"></textarea>
         </div>
       </div>
     </div>
 
     <div class="editor__footer">
-      <button class="btn-main" id="btn-save">Save</button>
-      <button class="btn-alt" id="btn-pdf">Download PDF</button>
+      <button class="btn-main" id="btn-save">Save Bike</button>
+      <button class="btn-alt" id="btn-reset">Reset</button>
     </div>
   </aside>
 
   <main class="preview">
     <div class="preview__inner">
-      <div class="inv" id="invoice">
-        <header class="hd">
-          <div class="hd-row">
-            <div>
-              <div class="hd-brand">Rhobust Engineering Limited</div>
-              <div class="hd-sub">No. 25, Nuumo Ayite Kobla Street
+      <div class="card">
+        <div class="card__head">
+          <div>
+            <div class="brand">Rhobust Engineering Limited</div>
+            <div class="brand-sub">Bike Catalogue Preview
+No. 25, Nuumo Ayite Kobla Street
 Kokomlemle, Accra</div>
-            </div>
-            <div class="hd-right">
-              <div class="hd-doctype" id="o-document-type">INVOICE</div>
-              <div class="hd-docnum" id="o-invnum">—</div>
-              <div class="hd-date" id="o-date">—</div>
-              <div class="status-badge" id="o-status-badge">DRAFT</div>
-            </div>
           </div>
-        </header>
-
-        <div class="buyer-bar">
-          <div>
-            <div class="buyer-item-label">Customer</div>
-            <div class="buyer-item-val" id="o-customer-name">—</div>
-          </div>
-          <div>
-            <div class="buyer-item-label">Contact</div>
-            <div class="buyer-item-val" id="o-customer-contact">—</div>
-          </div>
-          <div>
-            <div class="buyer-item-label">Address</div>
-            <div class="buyer-item-val" id="o-customer-address">—</div>
-          </div>
-          <div>
-            <div class="buyer-item-label">Internal Ref</div>
-            <div class="buyer-item-val" id="o-customer-reference">—</div>
-          </div>
+          <div class="card-kicker">Preview</div>
         </div>
 
         <section class="hero">
-          <div class="hero__copy">
-            <div class="hero__kicker">Selected Vehicle</div>
-            <div class="hero__title" id="o-bike-model">—</div>
-            <div class="hero__desc" id="o-bike-category">—</div>
+          <div>
+            <div class="hero-title" id="o-model">—</div>
+            <div class="hero-cat" id="o-category">—</div>
           </div>
 
           <div>
-            <div class="hero__gallery" id="o-gallery"></div>
-            <div class="hero__img-empty" id="o-gallery-empty">No Image</div>
+            <div class="gallery" id="o-gallery"></div>
+            <div class="empty" id="o-gallery-empty">No Image</div>
           </div>
         </section>
 
@@ -920,130 +676,17 @@ Kokomlemle, Accra</div>
             <div class="sec-num">02</div>
             <div class="sec-name">Key Features</div>
           </div>
-          <div class="features-pills" id="o-features"></div>
+          <div class="features" id="o-features"></div>
         </section>
 
         <section>
           <div class="sec-title">
             <div class="sec-num">03</div>
-            <div class="sec-name">Commercial Summary</div>
+            <div class="sec-name">Commercial Reference</div>
           </div>
-
-          <table class="doc-table">
-            <thead>
-              <tr>
-                <th>Description</th>
-                <th>Type</th>
-                <th>Qty</th>
-                <th class="right">Unit Price</th>
-                <th class="right">Amount</th>
-              </tr>
-            </thead>
-            <tbody id="o-items"></tbody>
-            <tfoot>
-              <tr>
-                <td colspan="4">Subtotal</td>
-                <td class="right" id="o-subtotal">USD 0.00</td>
-              </tr>
-              <tr>
-                <td colspan="4">Discount</td>
-                <td class="right" id="o-discount-total">USD 0.00</td>
-              </tr>
-              <tr>
-                <td colspan="4">Tax / VAT</td>
-                <td class="right" id="o-tax-total">USD 0.00</td>
-              </tr>
-              <tr>
-                <td colspan="4"><strong>Total</strong></td>
-                <td class="right" id="o-grand-total">USD 0.00</td>
-              </tr>
-              <tr>
-                <td colspan="4">Deposit / Payments Received</td>
-                <td class="right" id="o-deposit-total">USD 0.00</td>
-              </tr>
-              <tr>
-                <td colspan="4"><strong>Balance Due</strong></td>
-                <td class="right" id="o-balance-due">USD 0.00</td>
-              </tr>
-            </tfoot>
-          </table>
-
-          <div class="box" style="margin-top:14px;">
-            <div class="spec-name">Dates</div>
-            <div class="notes" id="o-dates-block"></div>
-          </div>
-
-          <div class="box" style="margin-top:14px;">
-            <div class="spec-name">Dealer Warranty</div>
-            <div class="notes">3 years dealer-backed warranty from Rhobust Engineering Limited.</div>
-          </div>
-
-          <div class="box" style="margin-top:14px;">
-            <div class="spec-name">Service Support</div>
-            <div class="notes">Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached first.</div>
-          </div>
-
-          <div class="box" style="margin-top:14px;">
-            <div class="spec-name">Payment Summary</div>
-            <div class="payment-grid">
-              <div class="payment-block">
-                <div class="spec-name">Status</div>
-                <div class="spec-val" id="o-payment-status">—</div>
-              </div>
-              <div class="payment-block">
-                <div class="spec-name">Method</div>
-                <div class="spec-val" id="o-payment-method">—</div>
-              </div>
-              <div class="payment-block">
-                <div class="spec-name">Reference</div>
-                <div class="spec-val" id="o-payment-reference">—</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="box" style="margin-top:14px;" id="payment-history-section">
-            <div class="spec-name">Payment History</div>
-            <table class="doc-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Method</th>
-                  <th>Reference</th>
-                  <th>Note</th>
-                  <th class="right">Amount</th>
-                </tr>
-              </thead>
-              <tbody id="o-payments"></tbody>
-            </table>
-          </div>
-
-          <div class="box" style="margin-top:14px;" id="payment-note-section">
-            <div class="spec-name">Payment Note</div>
-            <div class="notes" id="o-payment-note">—</div>
-          </div>
-
-          <div class="box" style="margin-top:14px;" id="bank-details-section">
-            <div class="spec-name">Bank / Payment Instructions</div>
-            <div class="notes" id="o-bank-details">—</div>
-          </div>
-
-          <div class="box" style="margin-top:14px;" id="notes-section">
-            <div class="spec-name">Notes</div>
-            <div class="notes" id="o-notes">—</div>
-          </div>
+          <div class="preview-notes" id="o-price">—</div>
+          <div class="preview-notes" id="o-note" style="margin-top:10px;"></div>
         </section>
-
-        <footer class="foot">
-          <div>
-            <div class="foot-brand">Rhobust Engineering Limited</div>
-            <div class="foot-loc">No. 25, Nuumo Ayite Kobla Street
-Kokomlemle, Accra</div>
-          </div>
-          <div>
-            <div class="foot-ref">Document Type</div>
-            <div class="foot-val" id="o-foot-doc-type">INVOICE</div>
-          </div>
-        </footer>
       </div>
     </div>
   </main>
@@ -1055,6 +698,8 @@ const client = window.supabase.createClient(
   "sb_publishable_zi5AnOBw_D7pl9WuhcGDug_SK0zgESg"
 );
 
+const BUCKET_NAME = "bike-images";
+
 const SPEC_FIELDS = [
   "engine","displacement","power_hp","torque","fuel_system","transmission",
   "throttle_type","fuel_capacity","abs","traction_control","headlight",
@@ -1062,30 +707,9 @@ const SPEC_FIELDS = [
 ];
 
 let motorcycles = [];
-let currentMotorcycle = null;
-let currentInvoiceId = null;
-let currentParentInvoiceId = null;
+let currentBikeId = null;
 
 const $ = id => document.getElementById(id);
-
-function money(cur, val) {
-  const n = Number(val) || 0;
-  return `${(cur || "USD").trim() || "USD"} ${n.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`;
-}
-
-function todayISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-}
-
-function humanDate(v) {
-  if (!v) return "—";
-  const d = new Date(v + "T00:00:00");
-  return d.toLocaleDateString(undefined, { year:"numeric", month:"long", day:"numeric" });
-}
 
 function esc(v) {
   return String(v ?? "")
@@ -1102,183 +726,223 @@ function splitFeaturePills(rawFeatures) {
     .filter(Boolean);
 }
 
-function statusClass(status) {
-  const s = String(status || "").toUpperCase();
-  if (s === "DRAFT") return "status-draft";
-  if (s === "QUOTE" || s === "PROFORMA" || s === "SENT") return "status-quote";
-  if (s === "INVOICE" || s === "DEPOSIT_PAID" || s === "PART_PAID") return "status-invoice";
-  if (s === "PAID") return "status-paid";
-  if (s === "CANCELLED") return "status-cancelled";
-  return "status-draft";
+function money(val) {
+  const n = Number(val) || 0;
+  return `USD ${n.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
 }
 
-async function loadMotorcycles() {
-  const { data, error } = await client
+async function searchBikes(query = "") {
+  let request = client
     .from("motorcycles")
-    .select("*")
-    .order("model", { ascending: true });
+    .select("id, slug, model, category, unit_price")
+    .order("model", { ascending:true })
+    .limit(50);
 
+  if (query.trim()) {
+    request = request.or(`model.ilike.%${query}%,slug.ilike.%${query}%,category.ilike.%${query}%`);
+  }
+
+  const { data, error } = await request;
   if (error) {
     console.error(error);
-    alert("Failed to load motorcycles");
     return;
   }
 
-  motorcycles = data || [];
-  $("f-bike").innerHTML = motorcycles.map(m => `<option value="${m.slug}">${m.model}</option>`).join("");
-
-  if (motorcycles.length) {
-    await selectMotorcycle(motorcycles[0].slug);
-  }
+  $("bike-list").innerHTML = "";
+  (data || []).forEach(bike => {
+    const div = document.createElement("div");
+    div.className = "list-item";
+    div.innerHTML = `
+      <div class="list-item__title">${esc(bike.model || "Untitled")}</div>
+      <div class="list-item__meta">${esc(bike.slug || "—")} · ${esc(bike.category || "—")}<br>${money(bike.unit_price || 0)}</div>
+    `;
+    div.addEventListener("click", () => loadBike(bike.id));
+    $("bike-list").appendChild(div);
+  });
 }
 
-async function selectMotorcycle(slug) {
+async function loadBike(id) {
   const { data, error } = await client
     .from("motorcycles")
     .select("*")
-    .eq("slug", slug)
+    .eq("id", id)
     .single();
 
   if (error) {
     console.error(error);
+    alert("Failed to load bike");
     return;
   }
 
-  currentMotorcycle = data;
+  currentBikeId = data.id;
+
+  $("f-slug").value = data.slug || "";
+  $("f-model").value = data.model || "";
+  $("f-category").value = data.category || "";
+  $("f-unit-price").value = data.unit_price || 0;
+
+  $("f-engine").value = data.engine || "";
+  $("f-displacement").value = data.displacement || "";
+  $("f-power-hp").value = data.power_hp || "";
+  $("f-torque").value = data.torque || "";
+  $("f-fuel-system").value = data.fuel_system || "";
+  $("f-transmission").value = data.transmission || "";
+  $("f-throttle-type").value = data.throttle_type || "";
+  $("f-fuel-capacity").value = data.fuel_capacity || "";
+  $("f-abs").value = data.abs || "";
+  $("f-traction-control").value = data.traction_control || "";
+  $("f-headlight").value = data.headlight || "";
+  $("f-charging-port").value = data.charging_port || "";
+  $("f-color").value = data.color || "";
+  $("f-suspension").value = data.suspension || "";
+  $("f-brake").value = data.brake || "";
+
+  $("f-note").value = data.internal_note || "";
+
+  $("features").innerHTML = "";
+  (data.features || []).forEach(addFeatureRow);
+
+  $("images").innerHTML = "";
+  (data.image_urls || []).forEach(addImageRow);
+
   updatePreview();
 }
 
-function addLineItem(item = {}) {
+function clearForm() {
+  currentBikeId = null;
+
+  $("f-slug").value = "";
+  $("f-model").value = "";
+  $("f-category").value = "";
+  $("f-unit-price").value = 0;
+
+  $("f-engine").value = "";
+  $("f-displacement").value = "";
+  $("f-power-hp").value = "";
+  $("f-torque").value = "";
+  $("f-fuel-system").value = "";
+  $("f-transmission").value = "";
+  $("f-throttle-type").value = "";
+  $("f-fuel-capacity").value = "";
+  $("f-abs").value = "";
+  $("f-traction-control").value = "";
+  $("f-headlight").value = "";
+  $("f-charging-port").value = "";
+  $("f-color").value = "";
+  $("f-suspension").value = "";
+  $("f-brake").value = "";
+
+  $("f-note").value = "";
+
+  $("features").innerHTML = "";
+  $("images").innerHTML = "";
+
+  addFeatureRow("");
+  updatePreview();
+}
+
+function addFeatureRow(value = "") {
   const row = document.createElement("div");
-  row.className = "line-item-card";
+  row.className = "feature-item";
   row.innerHTML = `
-    <div class="inline-5">
-      <div class="field">
-        <label>Description</label>
-        <input class="li-desc" type="text" value="${esc(item.description || "")}">
-      </div>
-      <div class="field">
-        <label>Type</label>
-        <select class="li-type">
-          <option ${item.item_type==="BIKE"?"selected":""}>BIKE</option>
-          <option ${item.item_type==="ACCESSORY"?"selected":""}>ACCESSORY</option>
-          <option ${item.item_type==="SERVICE"?"selected":""}>SERVICE</option>
-          <option ${item.item_type==="DELIVERY"?"selected":""}>DELIVERY</option>
-          <option ${item.item_type==="REGISTRATION"?"selected":""}>REGISTRATION</option>
-          <option ${item.item_type==="MISC"?"selected":""}>MISC</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Qty</label>
-        <input class="li-qty" type="number" step="0.01" value="${item.qty ?? 1}">
-      </div>
-      <div class="field">
-        <label>Unit Price</label>
-        <input class="li-price" type="number" step="0.01" value="${item.unit_price ?? 0}">
-      </div>
-      <div class="field">
-        <label>Remove</label>
-        <button class="btn-mini li-remove" type="button">X</button>
-      </div>
-    </div>
     <div class="field">
-      <label>Line Note</label>
-      <input class="li-note" type="text" value="${esc(item.notes || "")}">
+      <label>Feature</label>
+      <input class="feature-input" type="text" value="${esc(value)}">
     </div>
+    <button class="btn-danger feature-remove" type="button">Remove</button>
   `;
 
-  row.querySelector(".li-remove").addEventListener("click", () => {
+  row.querySelector(".feature-remove").addEventListener("click", () => {
     row.remove();
     updatePreview();
   });
 
-  row.querySelectorAll("input,select").forEach(el => {
-    el.addEventListener("input", updatePreview);
-    el.addEventListener("change", updatePreview);
-  });
+  row.querySelector(".feature-input").addEventListener("input", updatePreview);
 
-  $("line-items").appendChild(row);
+  $("features").appendChild(row);
 }
 
-function getLineItems() {
-  return [...$("line-items").children].map((row, index) => {
-    const qty = Number(row.querySelector(".li-qty").value) || 0;
-    const unit = Number(row.querySelector(".li-price").value) || 0;
-    return {
-      sort_order: index + 1,
-      item_type: row.querySelector(".li-type").value || "MISC",
-      description: row.querySelector(".li-desc").value || "",
-      qty,
-      unit_price: unit,
-      line_total: qty * unit,
-      notes: row.querySelector(".li-note").value || ""
-    };
-  }).filter(x => x.description || x.line_total || x.notes);
+function getFeatures() {
+  return [...document.querySelectorAll(".feature-input")]
+    .map(x => x.value.trim())
+    .filter(Boolean);
 }
 
-function addPayment(payment = {}) {
+function addImageRow(value = "") {
   const row = document.createElement("div");
-  row.className = "payment-card";
+  row.className = "image-item";
   row.innerHTML = `
-    <div class="inline-4">
+    <div class="image-grid">
       <div class="field">
-        <label>Date</label>
-        <input class="pay-date" type="date" value="${payment.payment_date || ""}">
+        <label>Image URL</label>
+        <input class="image-input" type="text" value="${esc(value)}">
       </div>
-      <div class="field">
-        <label>Method</label>
-        <input class="pay-method" type="text" value="${esc(payment.method || "")}">
-      </div>
-      <div class="field">
-        <label>Reference</label>
-        <input class="pay-ref" type="text" value="${esc(payment.reference || "")}">
-      </div>
-      <div class="field">
-        <label>Remove</label>
-        <button class="btn-mini pay-remove" type="button">X</button>
-      </div>
-    </div>
-    <div class="field-row">
-      <div class="field">
-        <label>Amount</label>
-        <input class="pay-amount" type="number" step="0.01" value="${payment.amount ?? 0}">
-      </div>
-      <div class="field">
-        <label>Note</label>
-        <input class="pay-note" type="text" value="${esc(payment.note || "")}">
-      </div>
+      <button class="btn-danger image-remove" type="button">Remove</button>
     </div>
   `;
 
-  row.querySelector(".pay-remove").addEventListener("click", () => {
+  row.querySelector(".image-remove").addEventListener("click", () => {
     row.remove();
     updatePreview();
   });
 
-  row.querySelectorAll("input").forEach(el => {
-    el.addEventListener("input", updatePreview);
-    el.addEventListener("change", updatePreview);
-  });
+  row.querySelector(".image-input").addEventListener("input", updatePreview);
 
-  $("payments").appendChild(row);
+  $("images").appendChild(row);
 }
 
-function getPayments() {
-  return [...$("payments").children].map(row => ({
-    payment_date: row.querySelector(".pay-date").value || null,
-    method: row.querySelector(".pay-method").value || "",
-    reference: row.querySelector(".pay-ref").value || "",
-    amount: Number(row.querySelector(".pay-amount").value) || 0,
-    note: row.querySelector(".pay-note").value || ""
-  })).filter(x => x.payment_date || x.amount || x.method || x.reference || x.note);
+function getImages() {
+  return [...document.querySelectorAll(".image-input")]
+    .map(x => x.value.trim())
+    .filter(Boolean);
 }
 
-function setSpec(field, value, visible) {
+async function uploadSelectedImages() {
+  const files = [...$("f-image-upload").files];
+  if (!files.length) return;
+
+  const slug = $("f-slug").value.trim().toLowerCase().replace(/\s+/g, "-");
+  if (!slug) {
+    alert("Enter a slug first before uploading images.");
+    $("f-image-upload").value = "";
+    return;
+  }
+
+  for (const file of files) {
+    const ext = (file.name.split(".").pop() || "png").toLowerCase();
+    const fileName = `${slug}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+    const { error } = await client.storage
+      .from(BUCKET_NAME)
+      .upload(fileName, file, {
+        upsert: false,
+        contentType: file.type || undefined
+      });
+
+    if (error) {
+      console.error(error);
+      alert(`Image upload failed: ${error.message || "Unknown error"}`);
+      $("f-image-upload").value = "";
+      return;
+    }
+
+    const { data } = client.storage.from(BUCKET_NAME).getPublicUrl(fileName);
+    addImageRow(data.publicUrl);
+  }
+
+  $("f-image-upload").value = "";
+  updatePreview();
+}
+
+function setSpec(field, value) {
   const card = document.querySelector(`[data-card="${field}"]`);
   const output = $(`o-${field}`);
   if (!card || !output) return;
 
-  if (visible && value && String(value).trim()) {
+  if (value && String(value).trim()) {
     output.textContent = value;
     card.classList.add("show");
   } else {
@@ -1290,7 +954,7 @@ function setSpec(field, value, visible) {
 function renderGallery(imgs) {
   const gallery = $("o-gallery");
   gallery.innerHTML = "";
-  gallery.className = "hero__gallery";
+  gallery.className = "gallery";
 
   if (!imgs.length) {
     $("o-gallery-empty").classList.remove("hidden");
@@ -1302,561 +966,230 @@ function renderGallery(imgs) {
   if (imgs.length === 1) gallery.classList.add("one");
   if (imgs.length === 2) gallery.classList.add("two");
 
-  imgs.forEach(url => {
+  imgs.slice(0, 3).forEach(url => {
     const card = document.createElement("div");
-    card.className = "hero__gallery-card";
+    card.className = "gallery-card";
     const img = document.createElement("img");
-    img.className = "hero__gallery-img";
     img.src = url;
-    img.alt = currentMotorcycle?.model || "Bike image";
+    img.alt = $("f-model").value || "Bike image";
     card.appendChild(img);
     gallery.appendChild(card);
   });
 }
 
-function recalcTotals() {
-  const items = getLineItems();
-  const subtotal = items.reduce((sum, item) => sum + (Number(item.line_total) || 0), 0);
-  const discount = 0;
-  const tax = 0;
-  const payments = getPayments();
-  const depositTotal = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-  const grandTotal = subtotal - discount + tax;
-  const balance = grandTotal - depositTotal;
-  return { subtotal, discount, tax, grandTotal, depositTotal, balance };
-}
-
 function updatePreview() {
-  if (!currentMotorcycle) return;
+  $("o-model").textContent = $("f-model").value || "—";
+  $("o-category").textContent = $("f-category").value || "—";
 
-  $("o-document-type").textContent = $("f-document-type").value || "INVOICE";
-  $("o-foot-doc-type").textContent = $("f-document-type").value || "INVOICE";
-  $("o-invnum").textContent = $("f-invnum").value || "Pending";
-  $("o-date").textContent = humanDate($("f-date").value);
+  SPEC_FIELDS.forEach(field => {
+    const map = {
+      engine:"f-engine",
+      displacement:"f-displacement",
+      power_hp:"f-power-hp",
+      torque:"f-torque",
+      fuel_system:"f-fuel-system",
+      transmission:"f-transmission",
+      throttle_type:"f-throttle-type",
+      fuel_capacity:"f-fuel-capacity",
+      abs:"f-abs",
+      traction_control:"f-traction-control",
+      headlight:"f-headlight",
+      charging_port:"f-charging-port",
+      color:"f-color",
+      suspension:"f-suspension",
+      brake:"f-brake"
+    };
+    setSpec(field, $(map[field]).value);
+  });
 
-  const badge = $("o-status-badge");
-  badge.textContent = $("f-status").value || "DRAFT";
-  badge.className = `status-badge ${statusClass($("f-status").value)}`;
-
-  $("o-customer-name").textContent = $("f-customer-name").value || "—";
-  $("o-customer-contact").textContent = $("f-customer-contact").value || "—";
-  $("o-customer-address").textContent = $("f-customer-address").value || "—";
-  $("o-customer-reference").textContent = $("f-customer-reference").value || "—";
-
-  $("o-bike-model").textContent = currentMotorcycle.model || "—";
-  $("o-bike-category").textContent = currentMotorcycle.category || "";
-
-  const showSpecs = $("f-show-specs").checked;
-  SPEC_FIELDS.forEach(field => setSpec(field, currentMotorcycle[field], showSpecs));
-  const visibleSpecs = SPEC_FIELDS.some(field => showSpecs && currentMotorcycle[field] && String(currentMotorcycle[field]).trim());
+  const visibleSpecs = SPEC_FIELDS.some(field => {
+    const map = {
+      engine:"f-engine",
+      displacement:"f-displacement",
+      power_hp:"f-power-hp",
+      torque:"f-torque",
+      fuel_system:"f-fuel-system",
+      transmission:"f-transmission",
+      throttle_type:"f-throttle-type",
+      fuel_capacity:"f-fuel-capacity",
+      abs:"f-abs",
+      traction_control:"f-traction-control",
+      headlight:"f-headlight",
+      charging_port:"f-charging-port",
+      color:"f-color",
+      suspension:"f-suspension",
+      brake:"f-brake"
+    };
+    return $(map[field]).value.trim();
+  });
   $("specs-section").classList.toggle("hidden", !visibleSpecs);
 
-  const rawFeatures = (currentMotorcycle.features || []).filter(Boolean);
-  const splitFeatures = splitFeaturePills(rawFeatures);
+  const featureList = splitFeaturePills(getFeatures());
   $("o-features").innerHTML = "";
-  splitFeatures.forEach(f => {
+  featureList.forEach(f => {
     const pill = document.createElement("div");
-    pill.className = "features-pill";
+    pill.className = "pill";
     pill.textContent = f.toUpperCase();
     $("o-features").appendChild(pill);
   });
-  $("features-section").classList.toggle("hidden", !splitFeatures.length);
+  $("features-section").classList.toggle("hidden", !featureList.length);
 
-  const imgs = (currentMotorcycle.image_urls || []).filter(Boolean).slice(0, 3);
-  if ($("f-show-image").checked) renderGallery(imgs);
-  else renderGallery([]);
+  renderGallery(getImages());
 
-  const items = getLineItems();
-  $("o-items").innerHTML = "";
-  items.forEach(item => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${esc(item.description)}${item.notes ? `<br><span style="color:#6B6B6B;">${esc(item.notes)}</span>` : ""}</td>
-      <td>${esc(item.item_type)}</td>
-      <td>${item.qty}</td>
-      <td class="right">${money($("f-currency").value, item.unit_price)}</td>
-      <td class="right">${money($("f-currency").value, item.line_total)}</td>
-    `;
-    $("o-items").appendChild(tr);
-  });
-
-  const totals = recalcTotals();
-  $("o-subtotal").textContent = money($("f-currency").value, totals.subtotal);
-  $("o-discount-total").textContent = money($("f-currency").value, totals.discount);
-  $("o-tax-total").textContent = money($("f-currency").value, totals.tax);
-  $("o-grand-total").textContent = money($("f-currency").value, totals.grandTotal);
-  $("o-deposit-total").textContent = money($("f-currency").value, totals.depositTotal);
-  $("o-balance-due").textContent = money($("f-currency").value, totals.balance);
-
-  $("o-dates-block").textContent =
-`Invoice Date: ${humanDate($("f-date").value)}
-Expiry Date: ${humanDate($("f-expiry").value)}
-Due Date: ${humanDate($("f-due").value)}
-Balance Due Date: ${humanDate($("f-balance-due-date").value)}`;
-
-  $("o-payment-status").textContent = $("f-payment-status").value || "—";
-  $("o-payment-method").textContent = $("f-payment-method").value || "—";
-  $("o-payment-reference").textContent = $("f-payment-reference").value || "—";
-  $("o-payment-note").textContent = $("f-payment-note").value || "—";
-  $("payment-note-section").classList.toggle("hidden", !$("f-payment-note").value.trim());
-
-  $("o-notes").textContent = $("f-notes").value || "—";
-  $("notes-section").classList.toggle("hidden", !$("f-notes").value.trim());
-
-  $("o-bank-details").textContent = $("f-bank-details").value || "—";
-  $("bank-details-section").classList.toggle("hidden", !$("f-bank-details").value.trim());
-
-  const payments = getPayments();
-  $("o-payments").innerHTML = "";
-  payments.forEach(p => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${humanDate(p.payment_date)}</td>
-      <td>${esc(p.method || "—")}</td>
-      <td>${esc(p.reference || "—")}</td>
-      <td>${esc(p.note || "—")}</td>
-      <td class="right">${money($("f-currency").value, p.amount)}</td>
-    `;
-    $("o-payments").appendChild(tr);
-  });
-  $("payment-history-section").classList.toggle("hidden", !payments.length);
+  $("o-price").textContent = `Default unit price: ${money($("f-unit-price").value)}`;
+  $("o-note").textContent = $("f-note").value || "";
 }
 
-async function searchInvoices(query = "") {
-  let request = client
-    .from("invoices")
-    .select("id, invoice_number, customer_name, motorcycle_slug, status, invoice_date")
-    .order("id", { ascending:false })
-    .limit(20);
+async function saveBike() {
+  const payload = {
+    slug: $("f-slug").value.trim().toLowerCase().replace(/\s+/g, "-"),
+    model: $("f-model").value.trim(),
+    category: $("f-category").value.trim(),
+    unit_price: Number($("f-unit-price").value) || 0,
 
-  if (query.trim()) {
-    request = request.or(`invoice_number.ilike.%${query}%,customer_name.ilike.%${query}%,motorcycle_slug.ilike.%${query}%`);
-  }
+    engine: $("f-engine").value.trim(),
+    displacement: $("f-displacement").value.trim(),
+    power_hp: $("f-power-hp").value.trim(),
+    torque: $("f-torque").value.trim(),
+    fuel_system: $("f-fuel-system").value.trim(),
+    transmission: $("f-transmission").value.trim(),
+    throttle_type: $("f-throttle-type").value.trim(),
+    fuel_capacity: $("f-fuel-capacity").value.trim(),
+    abs: $("f-abs").value.trim(),
+    traction_control: $("f-traction-control").value.trim(),
+    headlight: $("f-headlight").value.trim(),
+    charging_port: $("f-charging-port").value.trim(),
+    color: $("f-color").value.trim(),
+    suspension: $("f-suspension").value.trim(),
+    brake: $("f-brake").value.trim(),
 
-  const { data, error } = await request;
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  $("invoice-list").innerHTML = "";
-  (data || []).forEach(inv => {
-    const div = document.createElement("div");
-    div.className = "list-item";
-    div.innerHTML = `
-      <div class="list-item__title">${inv.invoice_number || "Pending Number"}</div>
-      <div class="list-item__meta">${inv.customer_name || "No customer"} · ${inv.motorcycle_slug || "No bike"}<br>${inv.status || "—"} · ${inv.invoice_date || "—"}</div>
-    `;
-    div.addEventListener("click", () => loadInvoice(inv.id));
-    $("invoice-list").appendChild(div);
-  });
-}
-
-async function loadInvoice(id) {
-  const { data: inv, error: invErr } = await client
-    .from("invoices")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (invErr) {
-    console.error(invErr);
-    alert("Failed to load invoice");
-    return;
-  }
-
-  const { data: items } = await client
-    .from("invoice_items")
-    .select("*")
-    .eq("invoice_id", id)
-    .order("sort_order", { ascending:true });
-
-  const { data: payments } = await client
-    .from("invoice_payments")
-    .select("*")
-    .eq("invoice_id", id)
-    .order("id", { ascending:true });
-
-  currentInvoiceId = inv.id;
-  currentParentInvoiceId = inv.parent_invoice_id || null;
-
-  $("f-document-type").value = inv.document_type || "DRAFT";
-  $("f-status").value = inv.status || "DRAFT";
-  $("f-invnum").value = inv.invoice_number || "";
-  $("f-version").value = inv.version_no || 1;
-  $("f-date").value = inv.invoice_date || "";
-  $("f-expiry").value = inv.expiry_date || "";
-  $("f-due").value = inv.due_date || "";
-  $("f-balance-due-date").value = inv.balance_due_date || "";
-  $("f-currency").value = inv.currency || "USD";
-  $("f-customer-name").value = inv.customer_name || "";
-  $("f-customer-contact").value = inv.customer_contact || "";
-  $("f-customer-address").value = inv.customer_address || "";
-  $("f-customer-reference").value = inv.customer_reference || "";
-  $("f-payment-status").value = inv.payment_status || "";
-  $("f-payment-method").value = inv.payment_method || "";
-  $("f-payment-reference").value = inv.payment_reference || "";
-  $("f-payment-note").value = inv.payment_note || "";
-  $("f-notes").value = inv.notes || "";
-  $("f-bank-details").value = inv.bank_details || "";
-
-  if (inv.motorcycle_slug) {
-    $("f-bike").value = inv.motorcycle_slug;
-    await selectMotorcycle(inv.motorcycle_slug);
-  }
-
-  $("line-items").innerHTML = "";
-  (items || []).forEach(addLineItem);
-
-  $("payments").innerHTML = "";
-  (payments || []).forEach(addPayment);
-
-  updatePreview();
-}
-
-function clearForm() {
-  currentInvoiceId = null;
-  currentParentInvoiceId = null;
-
-  $("f-document-type").value = "DRAFT";
-  $("f-status").value = "DRAFT";
-  $("f-invnum").value = "";
-  $("f-version").value = 1;
-  $("f-date").value = todayISO();
-  $("f-expiry").value = "";
-  $("f-due").value = "";
-  $("f-balance-due-date").value = "";
-  $("f-currency").value = "USD";
-  $("f-customer-name").value = "";
-  $("f-customer-contact").value = "";
-  $("f-customer-address").value = "";
-  $("f-customer-reference").value = "";
-  $("f-payment-status").value = "";
-  $("f-payment-method").value = "";
-  $("f-payment-reference").value = "";
-  $("f-payment-note").value = "";
-  $("f-notes").value = "";
-  $("f-bank-details").value = "";
-  $("f-show-image").checked = true;
-  $("f-show-specs").checked = true;
-
-  $("line-items").innerHTML = "";
-  $("payments").innerHTML = "";
-
-  if (motorcycles.length) {
-    $("f-bike").value = motorcycles[0].slug;
-    currentMotorcycle = motorcycles[0];
-    addLineItem({
-      item_type:"BIKE",
-      description:motorcycles[0].model,
-      qty:1,
-      unit_price:motorcycles[0].unit_price || 0
-    });
-  }
-
-  updatePreview();
-}
-
-function addDefaultBikeLine() {
-  if (!currentMotorcycle) return;
-  addLineItem({
-    item_type:"BIKE",
-    description:currentMotorcycle.model,
-    qty:1,
-    unit_price:currentMotorcycle.unit_price || 0
-  });
-  updatePreview();
-}
-
-async function saveInvoice() {
-  if (!currentMotorcycle) {
-    alert("Select a bike first");
-    return;
-  }
-
-  const totals = recalcTotals();
-  const payments = getPayments();
-  const items = getLineItems();
-
-  const headerPayload = {
-    document_type: $("f-document-type").value || "DRAFT",
-    status: $("f-status").value || "DRAFT",
-    customer_name: $("f-customer-name").value || "",
-    customer_contact: $("f-customer-contact").value || "",
-    customer_address: $("f-customer-address").value || "",
-    customer_reference: $("f-customer-reference").value || "",
-    motorcycle_slug: $("f-bike").value || "",
-    invoice_date: $("f-date").value || null,
-    expiry_date: $("f-expiry").value || null,
-    due_date: $("f-due").value || null,
-    balance_due_date: $("f-balance-due-date").value || null,
-    currency: $("f-currency").value || "USD",
-    subtotal: totals.subtotal,
-    discount_total: totals.discount,
-    tax_total: totals.tax,
-    grand_total: totals.grandTotal,
-    deposit_total: totals.depositTotal,
-    balance_due: totals.balance,
-    payment_status: $("f-payment-status").value || "",
-    payment_method: $("f-payment-method").value || "",
-    payment_reference: $("f-payment-reference").value || "",
-    payment_note: $("f-payment-note").value || "",
-    notes: $("f-notes").value || "",
-    bank_details: $("f-bank-details").value || "",
-    version_no: Number($("f-version").value) || 1,
-    parent_invoice_id: currentParentInvoiceId
+    features: getFeatures(),
+    image_urls: getImages(),
+    internal_note: $("f-note").value.trim()
   };
 
-  let invoiceId = currentInvoiceId;
+  if (!payload.slug) {
+    alert("Slug is required");
+    return;
+  }
 
-  if (invoiceId) {
+  if (!payload.model) {
+    alert("Model is required");
+    return;
+  }
+
+  if (currentBikeId) {
     const { error } = await client
-      .from("invoices")
-      .update(headerPayload)
-      .eq("id", invoiceId);
+      .from("motorcycles")
+      .update(payload)
+      .eq("id", currentBikeId);
 
     if (error) {
       console.error(error);
-      alert("Failed to update invoice");
+      alert("Failed to update bike");
       return;
     }
-
-    await client.from("invoice_items").delete().eq("invoice_id", invoiceId);
-    await client.from("invoice_payments").delete().eq("invoice_id", invoiceId);
   } else {
     const { data, error } = await client
-      .from("invoices")
-      .insert([headerPayload])
+      .from("motorcycles")
+      .insert([payload])
       .select()
       .single();
 
     if (error) {
       console.error(error);
-      alert("Failed to create invoice");
+      alert("Failed to create bike");
       return;
     }
 
-    invoiceId = data.id;
-    currentInvoiceId = data.id;
-    $("f-invnum").value = data.invoice_number;
-    $("f-version").value = data.version_no || 1;
+    currentBikeId = data.id;
   }
 
-  if (items.length) {
-    const payloadItems = items.map(x => ({ ...x, invoice_id: invoiceId }));
-    const { error } = await client.from("invoice_items").insert(payloadItems);
-    if (error) {
-      console.error(error);
-      alert("Failed to save line items");
-      return;
-    }
-  }
-
-  if (payments.length) {
-    const payloadPayments = payments.map(x => ({ ...x, invoice_id: invoiceId }));
-    const { error } = await client.from("invoice_payments").insert(payloadPayments);
-    if (error) {
-      console.error(error);
-      alert("Failed to save payments");
-      return;
-    }
-  }
-
-  await loadInvoice(invoiceId);
-  await searchInvoices($("f-search").value);
-  alert("Invoice saved");
+  await searchBikes($("f-search").value);
+  alert("Bike saved");
 }
 
-async function duplicateInvoice() {
-  if (!currentInvoiceId) {
-    alert("Load an invoice first");
+async function duplicateBike() {
+  if (!currentBikeId) {
+    alert("Load a bike first");
     return;
   }
 
-  const { data: inv, error } = await client
-    .from("invoices")
-    .select("*")
-    .eq("id", currentInvoiceId)
-    .single();
+  const slug = prompt("Enter new slug for duplicate");
+  if (!slug) return;
 
-  if (error || !inv) {
-    alert("Unable to duplicate invoice");
-    return;
-  }
+  const payload = {
+    slug: slug.trim().toLowerCase().replace(/\s+/g, "-"),
+    model: $("f-model").value.trim(),
+    category: $("f-category").value.trim(),
+    unit_price: Number($("f-unit-price").value) || 0,
 
-  const { data: items } = await client
-    .from("invoice_items")
-    .select("*")
-    .eq("invoice_id", currentInvoiceId)
-    .order("sort_order", { ascending:true });
+    engine: $("f-engine").value.trim(),
+    displacement: $("f-displacement").value.trim(),
+    power_hp: $("f-power-hp").value.trim(),
+    torque: $("f-torque").value.trim(),
+    fuel_system: $("f-fuel-system").value.trim(),
+    transmission: $("f-transmission").value.trim(),
+    throttle_type: $("f-throttle-type").value.trim(),
+    fuel_capacity: $("f-fuel-capacity").value.trim(),
+    abs: $("f-abs").value.trim(),
+    traction_control: $("f-traction-control").value.trim(),
+    headlight: $("f-headlight").value.trim(),
+    charging_port: $("f-charging-port").value.trim(),
+    color: $("f-color").value.trim(),
+    suspension: $("f-suspension").value.trim(),
+    brake: $("f-brake").value.trim(),
 
-  const { data: payments } = await client
-    .from("invoice_payments")
-    .select("*")
-    .eq("invoice_id", currentInvoiceId);
-
-  const newInvoicePayload = {
-    document_type: inv.document_type,
-    status: "DRAFT",
-    customer_name: inv.customer_name,
-    customer_contact: inv.customer_contact,
-    customer_address: inv.customer_address,
-    customer_reference: inv.customer_reference,
-    motorcycle_slug: inv.motorcycle_slug,
-    invoice_date: inv.invoice_date,
-    expiry_date: inv.expiry_date,
-    due_date: inv.due_date,
-    balance_due_date: inv.balance_due_date,
-    currency: inv.currency,
-    subtotal: inv.subtotal,
-    discount_total: inv.discount_total,
-    tax_total: inv.tax_total,
-    grand_total: inv.grand_total,
-    deposit_total: inv.deposit_total,
-    balance_due: inv.balance_due,
-    payment_status: inv.payment_status,
-    payment_method: inv.payment_method,
-    payment_reference: inv.payment_reference,
-    payment_note: inv.payment_note,
-    notes: inv.notes,
-    bank_details: inv.bank_details,
-    version_no: (Number(inv.version_no) || 1) + 1,
-    parent_invoice_id: inv.parent_invoice_id || inv.id
+    features: getFeatures(),
+    image_urls: getImages(),
+    internal_note: $("f-note").value.trim()
   };
 
-  const { data: newInv, error: newErr } = await client
-    .from("invoices")
-    .insert([newInvoicePayload])
+  const { data, error } = await client
+    .from("motorcycles")
+    .insert([payload])
     .select()
     .single();
 
-  if (newErr) {
-    console.error(newErr);
-    alert("Duplicate failed");
-    return;
-  }
-
-  if (items?.length) {
-    await client.from("invoice_items").insert(
-      items.map(i => ({
-        invoice_id:newInv.id,
-        sort_order:i.sort_order,
-        item_type:i.item_type,
-        description:i.description,
-        qty:i.qty,
-        unit_price:i.unit_price,
-        line_total:i.line_total,
-        notes:i.notes
-      }))
-    );
-  }
-
-  if (payments?.length) {
-    await client.from("invoice_payments").insert(
-      payments.map(p => ({
-        invoice_id:newInv.id,
-        payment_date:p.payment_date,
-        amount:p.amount,
-        method:p.method,
-        reference:p.reference,
-        note:p.note
-      }))
-    );
-  }
-
-  await loadInvoice(newInv.id);
-  await searchInvoices($("f-search").value);
-  alert("Invoice duplicated");
-}
-
-async function markPaid() {
-  if (!currentInvoiceId) {
-    alert("Load an invoice first");
-    return;
-  }
-
-  const { error } = await client
-    .from("invoices")
-    .update({
-      status: "PAID",
-      payment_status: "PAID IN FULL"
-    })
-    .eq("id", currentInvoiceId);
-
   if (error) {
     console.error(error);
-    alert("Failed to mark paid");
+    alert("Duplicate failed. Slug may already exist.");
     return;
   }
 
-  await loadInvoice(currentInvoiceId);
-  await searchInvoices($("f-search").value);
-  alert("Marked as paid");
+  currentBikeId = data.id;
+  $("f-slug").value = data.slug;
+  await searchBikes($("f-search").value);
+  alert("Bike duplicated");
 }
 
-function downloadPDF() {
-  const element = $("invoice");
-  const invoiceNumber = $("f-invnum").value || "invoice";
-  const opt = {
-    margin: 0,
-    filename: `${invoiceNumber}.pdf`,
-    image: { type: "jpeg", quality: 1 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-  };
-  html2pdf().set(opt).from(element).save();
-}
-
-$("f-bike").addEventListener("change", async e => {
-  await selectMotorcycle(e.target.value);
-});
-
-$("btn-add-bike-line").addEventListener("click", () => {
-  addLineItem({
-    item_type:"BIKE",
-    description:currentMotorcycle?.model || "",
-    qty:1,
-    unit_price:currentMotorcycle?.unit_price || 0
-  });
-  updatePreview();
-});
-
-$("btn-add-accessory-line").addEventListener("click", () => {
-  addLineItem({ item_type:"ACCESSORY", description:"", qty:1, unit_price:0 });
-  updatePreview();
-});
-
-$("btn-add-service-line").addEventListener("click", () => {
-  addLineItem({ item_type:"SERVICE", description:"", qty:1, unit_price:0 });
-  updatePreview();
-});
-
-$("btn-add-payment").addEventListener("click", () => {
-  addPayment({ payment_date: todayISO(), amount:0 });
-  updatePreview();
-});
-
-$("btn-save").addEventListener("click", saveInvoice);
-$("btn-pdf").addEventListener("click", downloadPDF);
 $("btn-new").addEventListener("click", clearForm);
-$("btn-duplicate").addEventListener("click", duplicateInvoice);
-$("btn-mark-paid").addEventListener("click", markPaid);
-$("f-search").addEventListener("input", e => searchInvoices(e.target.value));
+$("btn-duplicate").addEventListener("click", duplicateBike);
+$("btn-save").addEventListener("click", saveBike);
+$("btn-reset").addEventListener("click", () => {
+  if (currentBikeId) loadBike(currentBikeId);
+  else clearForm();
+});
+
+$("btn-add-feature").addEventListener("click", () => addFeatureRow(""));
+$("btn-add-image-url").addEventListener("click", () => addImageRow(""));
+$("f-image-upload").addEventListener("change", uploadSelectedImages);
+$("f-search").addEventListener("input", e => searchBikes(e.target.value));
 
 [
-  "f-document-type","f-status","f-date","f-expiry","f-due","f-balance-due-date","f-currency",
-  "f-customer-name","f-customer-contact","f-customer-address","f-customer-reference",
-  "f-payment-status","f-payment-method","f-payment-reference","f-payment-note",
-  "f-notes","f-bank-details","f-show-image","f-show-specs"
+  "f-slug","f-model","f-category","f-unit-price",
+  "f-engine","f-displacement","f-power-hp","f-torque",
+  "f-fuel-system","f-transmission","f-throttle-type","f-fuel-capacity",
+  "f-abs","f-traction-control","f-headlight","f-charging-port",
+  "f-color","f-suspension","f-brake","f-note"
 ].forEach(id => {
   $(id).addEventListener("input", updatePreview);
   $(id).addEventListener("change", updatePreview);
 });
 
 (async function init() {
-  await loadMotorcycles();
+  await searchBikes("");
   clearForm();
-  await searchInvoices("");
 })();
 </script>
 </body>
