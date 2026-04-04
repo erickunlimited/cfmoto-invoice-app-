@@ -1,82 +1,101 @@
-import { supabase } from "./supabase.js";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bike Admin</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
 
-const bikeSelect = document.getElementById("bikeSelect");
-const saveBtn = document.getElementById("saveBtn");
+<body style="font-family: Arial; padding: 20px;">
 
-let bikes = [];
-let currentBike = null;
+  <h2>Bike Editor</h2>
 
-async function loadBikes() {
-  const { data, error } = await supabase
-    .from("motorcycles")
-    .select("*")
-    .order("model", { ascending: true });
+  <label>Select Bike:</label><br>
+  <select id="bikeSelect"></select><br><br>
 
-  if (error) {
-    console.error(error);
-    alert("Failed to load bikes");
-    return;
-  }
+  <label>Model:</label><br>
+  <input id="model"><br><br>
 
-  bikes = data;
+  <label>Category:</label><br>
+  <input id="category"><br><br>
 
-  bikeSelect.innerHTML = bikes
-    .map(b => `<option value="${b.slug}">${b.model}</option>`)
-    .join("");
+  <label>Price:</label><br>
+  <input id="unitPrice"><br><br>
 
-  if (bikes.length) {
-    loadBike(bikes[0].slug);
-  }
-}
+  <button id="saveBtn">Save</button>
 
-async function loadBike(slug) {
-  const { data, error } = await supabase
-    .from("motorcycles")
-    .select("*")
-    .eq("slug", slug)
-    .single();
+  <script>
+    const supabase = window.supabase.createClient(
+      "PASTE_YOUR_URL_HERE",
+      "PASTE_YOUR_PUBLISHABLE_KEY_HERE"
+    );
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+    const bikeSelect = document.getElementById("bikeSelect");
+    const saveBtn = document.getElementById("saveBtn");
 
-  currentBike = data;
+    let bikes = [];
+    let currentBike = null;
 
-  document.getElementById("model").value = data.model || "";
-  document.getElementById("category").value = data.category || "";
-  document.getElementById("unitPrice").value = data.unit_price || "";
-}
+    async function loadBikes() {
+      const { data, error } = await supabase
+        .from("motorcycles")
+        .select("*")
+        .order("model", { ascending: true });
 
-async function saveBike() {
-  if (!currentBike) return;
+      if (error) {
+        alert("Error loading bikes");
+        return;
+      }
 
-  const updated = {
-    model: document.getElementById("model").value,
-    category: document.getElementById("category").value,
-    unit_price: document.getElementById("unitPrice").value
-  };
+      bikes = data;
 
-  const { error } = await supabase
-    .from("motorcycles")
-    .update(updated)
-    .eq("slug", currentBike.slug);
+      bikeSelect.innerHTML = bikes
+        .map(b => `<option value="${b.slug}">${b.model}</option>`)
+        .join("");
 
-  if (error) {
-    console.error(error);
-    alert("Failed to save");
-    return;
-  }
+      if (bikes.length) {
+        loadBike(bikes[0].slug);
+      }
+    }
 
-  alert("Saved successfully");
-  loadBikes();
-}
+    async function loadBike(slug) {
+      const { data } = await supabase
+        .from("motorcycles")
+        .select("*")
+        .eq("slug", slug)
+        .single();
 
-bikeSelect.addEventListener("change", (e) => {
-  loadBike(e.target.value);
-});
+      currentBike = data;
 
-saveBtn.addEventListener("click", saveBike);
+      document.getElementById("model").value = data.model || "";
+      document.getElementById("category").value = data.category || "";
+      document.getElementById("unitPrice").value = data.unit_price || "";
+    }
 
-loadBikes();
-<script type="module" src="./admin.js"></script>
+    async function saveBike() {
+      const updated = {
+        model: document.getElementById("model").value,
+        category: document.getElementById("category").value,
+        unit_price: document.getElementById("unitPrice").value
+      };
+
+      await supabase
+        .from("motorcycles")
+        .update(updated)
+        .eq("slug", currentBike.slug);
+
+      alert("Saved!");
+      loadBikes();
+    }
+
+    bikeSelect.addEventListener("change", e => {
+      loadBike(e.target.value);
+    });
+
+    saveBtn.addEventListener("click", saveBike);
+
+    loadBikes();
+  </script>
+
+</body>
+</html>
