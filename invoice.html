@@ -460,7 +460,31 @@
       .totals {
         width: 100%;
       }
+@media print {
+  html, body {
+    background: #fff !important;
+  }
 
+  .page,
+  .sheet,
+  .header,
+  .section,
+  .totals,
+  .customer-grid,
+  .hero-gallery,
+  .spec-grid {
+    break-inside: avoid;
+  }
+
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+}
       .hero-gallery.two,
       .hero-gallery.three {
         grid-template-columns: 1fr;
@@ -920,7 +944,25 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       }
     }
 
-    $("btn-print").addEventListener("click", () => window.print());
+async function waitForImagesToLoad() {
+  const images = [...document.images];
+  await Promise.all(
+    images.map(img => {
+      if (img.complete) return Promise.resolve();
+      return new Promise(resolve => {
+        img.onload = resolve;
+        img.onerror = resolve;
+      });
+    })
+  );
+}
+
+$("btn-print").addEventListener("click", async () => {
+  await waitForImagesToLoad();
+  setTimeout(() => {
+    window.print();
+  }, 300);
+});
 
     init();
   </script>
