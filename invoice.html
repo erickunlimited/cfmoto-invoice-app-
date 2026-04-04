@@ -496,10 +496,6 @@ Kokomlemle, Accra</div>
               <div id="out-invoice-number">—</div>
             </div>
             <div class="meta-row">
-              <div class="meta-label">Invoice Date</div>
-              <div id="out-invoice-date">—</div>
-            </div>
-            <div class="meta-row">
               <div class="meta-label">Order Status</div>
               <div id="out-status">Draft</div>
             </div>
@@ -854,7 +850,6 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
 
       $("out-invoice-number").textContent = inv.invoiceNumber;
       $("out-invoice-date").textContent = niceDate(inv.invoiceDate);
-      $("out-status").textContent = inv.status;
       $("out-payment-status").textContent = inv.paymentStatus;
       $("out-date-paid").textContent = niceDate(inv.datePaid);
       $("out-currency").textContent = inv.currency;
