@@ -682,7 +682,8 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
     return null;
   }
 
-  window.open(`invoice.html?id=${encodeURIComponent(result.id)}`, "_blank");
+ const url = `invoice.html?id=${encodeURIComponent(result.id)}&v=${Date.now()}`;
+window.open(url, "_blank");
 } else {
   alert("Invoice saved");
 }
