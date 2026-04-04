@@ -3,10 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <title>Bike Admin</title>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+  <!-- Supabase CDN -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    input, select {
+      margin-bottom: 10px;
+      padding: 8px;
+      width: 250px;
+    }
+
+    button {
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 
-<body style="font-family: Arial; padding: 20px;">
+<body>
 
   <h2>Bike Editor</h2>
 
@@ -25,45 +46,54 @@
   <button id="saveBtn">Save</button>
 
   <script>
- const supabase = supabase.createClient(
-      "https://apmfnubljrutnnignehh.supabase.co",
-      "sb_publishable_zi5AnOBw_D7pl9WuhcGDug_SK0zgESg"
-    );
+    // 🔑 PASTE YOUR DETAILS HERE
+    const SUPABASE_URL = "PASTE_YOUR_URL_HERE";
+    const SUPABASE_KEY = "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
+
+    // ✅ Create client (NO duplicate names)
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const bikeSelect = document.getElementById("bikeSelect");
     const saveBtn = document.getElementById("saveBtn");
 
-    let bikes = [];
     let currentBike = null;
 
+    // 🚀 Load bikes
     async function loadBikes() {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from("motorcycles")
         .select("*")
         .order("model", { ascending: true });
 
       if (error) {
-        alert("Error loading bikes");
+        console.error(error);
+        alert("Failed to load bikes");
         return;
       }
 
-      bikes = data;
+      console.log("Loaded bikes:", data);
 
-      bikeSelect.innerHTML = bikes
+      bikeSelect.innerHTML = data
         .map(b => `<option value="${b.slug}">${b.model}</option>`)
         .join("");
 
-      if (bikes.length) {
-        loadBike(bikes[0].slug);
+      if (data.length) {
+        loadBike(data[0].slug);
       }
     }
 
+    // 📥 Load single bike
     async function loadBike(slug) {
-      const { data } = await supabase
+      const { data, error } = await client
         .from("motorcycles")
         .select("*")
         .eq("slug", slug)
         .single();
+
+      if (error) {
+        console.error(error);
+        return;
+      }
 
       currentBike = data;
 
@@ -72,28 +102,39 @@
       document.getElementById("unitPrice").value = data.unit_price || "";
     }
 
+    // 💾 Save bike
     async function saveBike() {
+      if (!currentBike) return;
+
       const updated = {
         model: document.getElementById("model").value,
         category: document.getElementById("category").value,
         unit_price: document.getElementById("unitPrice").value
       };
 
-      await supabase
+      const { error } = await client
         .from("motorcycles")
         .update(updated)
         .eq("slug", currentBike.slug);
 
-      alert("Saved!");
+      if (error) {
+        console.error(error);
+        alert("Save failed");
+        return;
+      }
+
+      alert("Saved successfully");
       loadBikes();
     }
 
+    // 🎯 Events
     bikeSelect.addEventListener("change", e => {
       loadBike(e.target.value);
     });
 
     saveBtn.addEventListener("click", saveBike);
 
+    // 🚀 Start app
     loadBikes();
   </script>
 
