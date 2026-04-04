@@ -158,29 +158,7 @@
       width: auto;
       accent-color: var(--teal);
     }
-.hero__gallery {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  width: 100%;
-}
 
-.hero__gallery.hero__gallery--multi {
-  grid-template-columns: 1fr 1fr;
-}
-
-.hero__gallery-img {
-  width: 100%;
-  height: 120px;
-  object-fit: contain;
-  background: var(--white);
-  border: 1px solid var(--border);
-  padding: 6px;
-}
-
-.hero__gallery.hero__gallery--single .hero__gallery-img {
-  height: 226px;
-}
     .check-row label {
       color: var(--e-txt);
       font-size: 11px;
@@ -188,27 +166,7 @@
       letter-spacing: 0;
       margin: 0;
     }
-.features-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 4px;
-}
 
-.features-pill {
-  display: inline-flex;
-  align-items: center;
-  min-height: 34px;
-  padding: 8px 14px;
-  border: 1px solid rgba(0,180,180,0.28);
-  background: rgba(0,180,180,0.08);
-  color: var(--ink);
-  font-size: 11px;
-  line-height: 1.35;
-  letter-spacing: 0.02em;
-  border-radius: 999px;
-  white-space: nowrap;
-}
     .editor__footer {
       padding: 14px 20px;
       border-top: 1px solid var(--e-bdr);
@@ -346,10 +304,15 @@
 
     .hero {
       display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 20px;
-      align-items: start;
+      grid-template-columns: 1fr;
+      gap: 18px;
       margin-bottom: 18px;
+    }
+
+    .hero__copy {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
     }
 
     .hero__kicker {
@@ -357,7 +320,7 @@
       font-size: 9px;
       text-transform: uppercase;
       letter-spacing: 0.18em;
-      margin-bottom: 8px;
+      margin-bottom: 2px;
       font-weight: 600;
     }
 
@@ -366,31 +329,59 @@
       font-size: 42px;
       line-height: 0.96;
       font-weight: 400;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
 
     .hero__desc {
       color: var(--soft);
       font-size: 11px;
       line-height: 1.6;
-      max-width: 92%;
+      max-width: 94%;
     }
 
-    .hero__img-wrap {
+    .hero__gallery-wrap {
+      width: 100%;
+      display: block;
+    }
+
+    .hero__gallery {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+    }
+
+    .hero__gallery.hero__gallery--one {
+      grid-template-columns: 1fr;
+    }
+
+    .hero__gallery.hero__gallery--two {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .hero__gallery-card {
       background: var(--white);
       border: 1px solid var(--border);
-      min-height: 250px;
+      min-height: 170px;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 12px;
+      padding: 10px;
     }
 
-    .hero__img {
+    .hero__gallery.hero__gallery--one .hero__gallery-card {
+      min-height: 280px;
+    }
+
+    .hero__gallery-img {
       width: 100%;
-      max-height: 226px;
+      height: 150px;
       object-fit: contain;
-      display: none;
+      display: block;
+    }
+
+    .hero__gallery.hero__gallery--one .hero__gallery-img {
+      height: 255px;
     }
 
     .hero__img-empty {
@@ -398,6 +389,7 @@
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.12em;
+      padding: 30px 0 10px;
     }
 
     .sec-title {
@@ -453,31 +445,29 @@
       line-height: 1.45;
     }
 
-    .features-list {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px 16px;
-      list-style: none;
+    .features-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
       margin-top: 2px;
     }
 
-    .features-list li {
-      font-size: 11px;
-      line-height: 1.5;
+    .features-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 10px 16px;
+      border: 1px solid rgba(0,180,180,0.32);
+      background: rgba(0,180,180,0.10);
       color: var(--ink);
-      padding-left: 12px;
-      position: relative;
-    }
-
-    .features-list li::before {
-      content: "";
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: var(--teal);
-      position: absolute;
-      left: 0;
-      top: 8px;
+      font-size: 11px;
+      line-height: 1.2;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      font-weight: 500;
+      white-space: nowrap;
     }
 
     .price-table {
@@ -579,9 +569,13 @@
       .preview { padding: 16px 8px 32px; }
       .preview__inner { width: 100%; max-width: 794px; }
       .inv { width: 100%; }
-      .hero, .hd-row, .foot { grid-template-columns: 1fr; }
+      .hd-row, .foot { grid-template-columns: 1fr; }
       .hd-right, .foot-ref, .foot-val { text-align: left; }
-      .buyer-bar, .specs-grid, .features-list { grid-template-columns: 1fr; }
+      .buyer-bar, .specs-grid { grid-template-columns: 1fr; }
+      .hero__gallery,
+      .hero__gallery.hero__gallery--two {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -732,15 +726,16 @@
         </div>
 
         <section class="hero">
-          <div>
+          <div class="hero__copy">
             <div class="hero__kicker">Selected Vehicle</div>
             <div class="hero__title" id="o-model">—</div>
             <div class="hero__desc" id="o-category">—</div>
           </div>
-          <div class="hero__img-wrap">
-  <div class="hero__gallery" id="o-bike-gallery"></div>
-  <div class="hero__img-empty" id="o-bike-empty">No Image</div>
-</div>
+
+          <div class="hero__gallery-wrap">
+            <div class="hero__gallery" id="o-bike-gallery"></div>
+            <div class="hero__img-empty" id="o-bike-empty">No Image</div>
+          </div>
         </section>
 
         <section id="specs-section">
@@ -773,7 +768,7 @@
             <div class="sec-num">02</div>
             <div class="sec-name">Key Features</div>
           </div>
-         <div class="features-pills" id="o-features"></div>
+          <div class="features-pills" id="o-features"></div>
         </section>
 
         <section>
@@ -952,6 +947,38 @@ function setSpec(field, value, visible) {
   }
 }
 
+function renderGallery(imgs) {
+  const gallery = $("o-bike-gallery");
+  gallery.innerHTML = "";
+  gallery.className = "hero__gallery";
+
+  if (!imgs.length) {
+    $("o-bike-empty").style.display = "block";
+    return;
+  }
+
+  $("o-bike-empty").style.display = "none";
+
+  if (imgs.length === 1) {
+    gallery.classList.add("hero__gallery--one");
+  } else if (imgs.length === 2) {
+    gallery.classList.add("hero__gallery--two");
+  }
+
+  imgs.forEach(url => {
+    const card = document.createElement("div");
+    card.className = "hero__gallery-card";
+
+    const img = document.createElement("img");
+    img.className = "hero__gallery-img";
+    img.src = url;
+    img.alt = currentBike?.model || "Bike image";
+
+    card.appendChild(img);
+    gallery.appendChild(card);
+  });
+}
+
 function update() {
   if (!currentBike) return;
 
@@ -982,36 +1009,21 @@ function update() {
   $("specs-section").style.display = visibleSpecs ? "block" : "none";
 
   const feats = (currentBike.features || []).filter(Boolean);
-$("o-features").innerHTML = "";
-feats.forEach(f => {
-  const pill = document.createElement("div");
-  pill.className = "features-pill";
-  pill.textContent = f;
-  $("o-features").appendChild(pill);
-});
-$("features-section").style.display = feats.length ? "block" : "none";
-
-const gallery = $("o-bike-gallery");
-gallery.innerHTML = "";
-gallery.className = "hero__gallery";
-
-const imgs = (currentBike.image_urls || []).filter(Boolean).slice(0, 3);
-
-if ($("f-show-image").checked && imgs.length) {
-  gallery.classList.add(imgs.length === 1 ? "hero__gallery--single" : "hero__gallery--multi");
-
-  imgs.forEach(url => {
-    const img = document.createElement("img");
-    img.className = "hero__gallery-img";
-    img.src = url;
-    img.alt = currentBike.model || "Bike image";
-    gallery.appendChild(img);
+  $("o-features").innerHTML = "";
+  feats.forEach(f => {
+    const pill = document.createElement("div");
+    pill.className = "features-pill";
+    pill.textContent = String(f).toUpperCase();
+    $("o-features").appendChild(pill);
   });
+  $("features-section").style.display = feats.length ? "block" : "none";
 
-  $("o-bike-empty").style.display = "none";
-} else {
-  $("o-bike-empty").style.display = "block";
-}
+  const imgs = (currentBike.image_urls || []).filter(Boolean).slice(0, 3);
+  if ($("f-show-image").checked) {
+    renderGallery(imgs);
+  } else {
+    renderGallery([]);
+  }
 
   $("o-line-desc").textContent = `${currentBike.model} · ${currentBike.category || "CFMOTO motorcycle"}`;
   $("o-qty").textContent = qty;
