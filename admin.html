@@ -186,15 +186,7 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       return `${y}-${m}-${day}`;
     }
 
-    function generateInvoiceNumber() {
-      const d = new Date();
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      const rand = Math.floor(Math.random() * 9000) + 1000;
-      return `RES-${y}${m}${day}-${rand}`;
-    }
-
+   
     function clearBikeForm() {
       currentBike = null;
       [
