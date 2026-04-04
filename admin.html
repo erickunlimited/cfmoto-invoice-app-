@@ -73,7 +73,7 @@
 
   <div class="section">
     <h3>Invoice Details</h3>
-    <input id="invoiceNumber" placeholder="Invoice Number (optional)" />
+    <input id="invoiceNumber" placeholder="Leave blank for auto number" />
     <input id="invoiceDate" type="date" />
     <input id="customerName" placeholder="Customer Name" />
     <input id="customerCompany" placeholder="Customer Company" />
@@ -456,7 +456,7 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       const total = subtotal + additionalCharges;
 
       return {
-        invoice_number: els.invoiceNumber.value.trim() || generateInvoiceNumber(),
+        invoice_number: els.invoiceNumber.value.trim() || null,
         invoice_date: els.invoiceDate.value || todayInputValue(),
         customer_name: els.customerName.value.trim(),
         customer_company: els.customerCompany.value.trim(),
