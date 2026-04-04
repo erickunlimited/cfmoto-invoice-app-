@@ -177,7 +177,11 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
 
     <input id="amountPaid" type="number" step="0.01" value="0" placeholder="Amount Paid" />
     <input id="balanceDue" type="number" step="0.01" value="0" placeholder="Balance Due" readonly />
-    <input id="paymentStatus" value="Unpaid" placeholder="Payment Status" />
+   <select id="paymentStatus">
+  <option value="Unpaid">Unpaid</option>
+  <option value="Part Paid">Part Paid</option>
+  <option value="Paid">Paid</option>
+</select>
     <input id="datePaid" type="date" />
     <textarea id="paymentNote" placeholder="Payment Note"></textarea>
   </div>
@@ -582,81 +586,74 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       };
     }
 
-    function recalculateInvoiceTotals() {
-      const quantity = Number(els.quantity.value) || 1;
-      const unitPrice = Number(els.invoiceUnitPrice.value || els.unitPrice.value) || 0;
-      const additionalCharges = Number(els.additionalCharges.value) || 0;
-      const amountPaid = Number(els.amountPaid.value) || 0;
+function recalculateInvoiceTotals() {
+  const quantity = Number(els.quantity.value) || 1;
+  const unitPrice = Number(els.invoiceUnitPrice.value || els.unitPrice.value) || 0;
+  const additionalCharges = Number(els.additionalCharges.value) || 0;
+  const amountPaid = Number(els.amountPaid.value) || 0;
 
-      const subtotal = quantity * unitPrice;
-      const total = subtotal + additionalCharges;
-      const balanceDue = Math.max(total - amountPaid, 0);
+  const subtotal = quantity * unitPrice;
+  const total = subtotal + additionalCharges;
+  const balanceDue = Math.max(total - amountPaid, 0);
 
-      els.balanceDue.value = balanceDue.toFixed(2);
+  els.balanceDue.value = balanceDue.toFixed(2);
 
-      if (amountPaid <= 0) {
-        els.paymentStatus.value = "Unpaid";
-      } else if (balanceDue <= 0) {
-        els.paymentStatus.value = "Paid";
-      } else {
-        els.paymentStatus.value = "Part Paid";
-      }
-    }
+  if (amountPaid <= 0) {
+    els.paymentStatus.value = "Unpaid";
+  } else if (balanceDue <= 0) {
+    els.paymentStatus.value = "Paid";
+  } else {
+    els.paymentStatus.value = "Part Paid";
+  }
+}
 
-    function getInvoicePayload() {
-      if (!currentBike) throw new Error("Please select a bike first.");
+function getInvoicePayload() {
+  if (!currentBike) throw new Error("Please select a bike first.");
 
-      const quantity = Number(els.quantity.value) || 1;
-      const unitPrice = Number(els.invoiceUnitPrice.value || els.unitPrice.value) || 0;
-      const additionalCharges = Number(els.additionalCharges.value) || 0;
-      const amountPaid = Number(els.amountPaid.value) || 0;
+  const quantity = Number(els.quantity.value) || 1;
+  const unitPrice = Number(els.invoiceUnitPrice.value || els.unitPrice.value) || 0;
+  const additionalCharges = Number(els.additionalCharges.value) || 0;
+  const amountPaid = Number(els.amountPaid.value) || 0;
 
-      const subtotal = quantity * unitPrice;
-      const total = subtotal + additionalCharges;
-      const balanceDue = Math.max(total - amountPaid, 0);
+  const subtotal = quantity * unitPrice;
+  const total = subtotal + additionalCharges;
+  const balanceDue = Math.max(total - amountPaid, 0);
 
-      els.balanceDue.value = balanceDue.toFixed(2);
+  els.balanceDue.value = balanceDue.toFixed(2);
 
-      let paymentStatus = (els.paymentStatus.value || "").trim();
-      if (!paymentStatus) {
-        if (amountPaid <= 0) paymentStatus = "Unpaid";
-        else if (balanceDue <= 0) paymentStatus = "Paid";
-        else paymentStatus = "Part Paid";
-      }
+  return {
+    invoice_number: els.invoiceNumber.value.trim() || null,
+    invoice_date: els.invoiceDate.value || todayInputValue(),
 
-      return {
-        invoice_number: els.invoiceNumber.value.trim() || null,
-        invoice_date: els.invoiceDate.value || todayInputValue(),
+    customer_name: els.customerName.value.trim(),
+    customer_company: els.customerCompany.value.trim(),
+    customer_phone: els.customerPhone.value.trim(),
+    customer_email: els.customerEmail.value.trim(),
+    customer_address: els.customerAddress.value.trim(),
 
-        customer_name: els.customerName.value.trim(),
-        customer_company: els.customerCompany.value.trim(),
-        customer_phone: els.customerPhone.value.trim(),
-        customer_email: els.customerEmail.value.trim(),
-        customer_address: els.customerAddress.value.trim(),
+    bike_slug: currentBike.slug,
+    bike_model: els.model.value.trim(),
+    bike_category: els.category.value.trim(),
 
-        bike_slug: currentBike.slug,
-        bike_model: els.model.value.trim(),
-        bike_category: els.category.value.trim(),
+    quantity,
+    unit_price: unitPrice,
+    subtotal,
+    additional_charges: additionalCharges,
+    total,
+    currency: els.currency.value.trim() || "USD",
+    status: els.status.value.trim() || "Draft",
+    notes: els.invoiceNotes.value.trim(),
+    terms: els.invoiceTerms.value.trim(),
 
-        quantity,
-        unit_price: unitPrice,
-        subtotal,
-        additional_charges: additionalCharges,
-        total,
-        currency: els.currency.value.trim() || "USD",
-        status: els.status.value.trim() || "Draft",
-        notes: els.invoiceNotes.value.trim(),
-        terms: els.invoiceTerms.value.trim(),
+    amount_paid: amountPaid,
+    balance_due: balanceDue,
+    payment_status: els.paymentStatus.value,
+    date_paid: els.datePaid.value || null,
+    payment_note: els.paymentNote.value.trim(),
 
-        amount_paid: amountPaid,
-        balance_due: balanceDue,
-        payment_status: paymentStatus,
-        date_paid: els.datePaid.value || null,
-        payment_note: els.paymentNote.value.trim(),
-
-        bike_snapshot: getBikeSnapshot()
-      };
-    }
+    bike_snapshot: getBikeSnapshot()
+  };
+}
 
     async function saveInvoice({ openPreview = false } = {}) {
       try {
