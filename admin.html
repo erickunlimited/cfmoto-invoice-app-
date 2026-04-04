@@ -449,10 +449,8 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
 
       els.model.value = data.model || "";
       els.category.value = data.category || "";
-      els.unitPrice.value = data.unit_price ?? "";
-
-      if (!els.invoiceUnitPrice.value) {
-        els.invoiceUnitPrice.value = data.unit_price ?? "";
+     els.unitPrice.value = data.unit_price ?? "";
+els.invoiceUnitPrice.value = data.unit_price ?? "";
       }
 
       els.engine.value = data.engine || "";
