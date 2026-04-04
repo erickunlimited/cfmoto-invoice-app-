@@ -5,14 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>RES Invoice Generator</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <style>
     :root {
       --teal:   #00B4B4;
-      --tpale:  rgba(0,180,180,0.10);
       --ink:    #0D0D0D;
-      --mid:    #3A3A3A;
       --soft:   #6B6B6B;
       --ghost:  #9E9E9E;
       --paper:  #F5F7F7;
@@ -248,6 +247,7 @@
       line-height: 1.5;
       letter-spacing: 0.06em;
       text-transform: uppercase;
+      white-space: pre-line;
     }
 
     .hd-right {
@@ -300,6 +300,7 @@
       font-size: 11px;
       color: var(--ink);
       line-height: 1.4;
+      white-space: pre-line;
     }
 
     .hero {
@@ -468,6 +469,7 @@
       border-radius: 999px;
       font-weight: 500;
       white-space: nowrap;
+      max-width: 100%;
     }
 
     .price-table {
@@ -509,6 +511,18 @@
       white-space: pre-wrap;
     }
 
+    .payment-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px 18px;
+      margin-top: 4px;
+    }
+
+    .payment-block {
+      border-bottom: 1px solid var(--fine);
+      padding-bottom: 8px;
+    }
+
     .foot {
       margin-top: 18px;
       padding-top: 14px;
@@ -532,6 +546,7 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
       margin-top: 4px;
+      white-space: pre-line;
     }
 
     .foot-ref {
@@ -569,7 +584,7 @@
       .preview { padding: 16px 8px 32px; }
       .preview__inner { width: 100%; max-width: 794px; }
       .inv { width: 100%; }
-      .hd-row, .foot { grid-template-columns: 1fr; }
+      .hd-row, .foot, .payment-grid { grid-template-columns: 1fr; }
       .hd-right, .foot-ref, .foot-val { text-align: left; }
       .buyer-bar, .specs-grid { grid-template-columns: 1fr; }
       .hero__gallery,
@@ -666,6 +681,34 @@
       </div>
 
       <div class="editor__section">
+        <div class="editor__section-label">Payment</div>
+        <div class="field">
+          <label>Payment Status</label>
+          <select id="f-payment-status">
+            <option value="">Select status</option>
+            <option value="UNPAID">UNPAID</option>
+            <option value="DEPOSIT PAID">DEPOSIT PAID</option>
+            <option value="PART PAID">PART PAID</option>
+            <option value="PAID IN FULL">PAID IN FULL</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Payment Method</label>
+          <select id="f-payment-method">
+            <option value="">Select method</option>
+            <option value="CASH">CASH</option>
+            <option value="BANK TRANSFER">BANK TRANSFER</option>
+            <option value="CARD">CARD</option>
+            <option value="MOBILE MONEY">MOBILE MONEY</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Payment Note</label>
+          <textarea id="f-payment-note"></textarea>
+        </div>
+      </div>
+
+      <div class="editor__section">
         <div class="editor__section-label">Display</div>
         <div class="check-row">
           <input id="f-show-image" type="checkbox" checked>
@@ -688,7 +731,7 @@
 
     <div class="editor__footer">
       <button class="btn-main" id="btn-save">Save Invoice</button>
-      <button class="btn-alt" id="btn-print">Print PDF</button>
+      <button class="btn-alt" id="btn-print">Download PDF</button>
     </div>
   </aside>
 
@@ -700,7 +743,8 @@
           <div class="hd-row">
             <div>
               <div class="hd-brand" id="o-seller-name">Rhobust Engineering Services</div>
-              <div class="hd-sub" id="o-seller-sub">Authorised Distributor · Kokomlemle · Accra, Ghana</div>
+              <div class="hd-sub" id="o-seller-sub">No. 25, Nuumo Ayite Kobla Street
+Kokomlemle, Accra, Ghana</div>
             </div>
             <div class="hd-right">
               <div class="hd-doctype">Proforma Invoice</div>
@@ -815,6 +859,24 @@
           <div class="box" style="margin-top:14px;">
             <div class="spec-name">Warranty</div>
             <div class="notes" id="o-warranty">—</div>
+          </div>
+
+          <div class="box" style="margin-top:14px;">
+            <div class="spec-name">Payment</div>
+            <div class="payment-grid">
+              <div class="payment-block">
+                <div class="spec-name">Status</div>
+                <div class="spec-val" id="o-payment-status">—</div>
+              </div>
+              <div class="payment-block">
+                <div class="spec-name">Method</div>
+                <div class="spec-val" id="o-payment-method">—</div>
+              </div>
+              <div class="payment-block">
+                <div class="spec-name">Payment Note</div>
+                <div class="spec-val" id="o-payment-note">—</div>
+              </div>
+            </div>
           </div>
 
           <div class="box" style="margin-top:14px;">
@@ -979,6 +1041,13 @@ function renderGallery(imgs) {
   });
 }
 
+function splitFeaturePills(rawFeatures) {
+  return rawFeatures
+    .flatMap(f => String(f).split(/[,.]+/))
+    .map(f => f.trim())
+    .filter(Boolean);
+}
+
 function update() {
   if (!currentBike) return;
 
@@ -1009,21 +1078,17 @@ function update() {
   $("specs-section").style.display = visibleSpecs ? "block" : "none";
 
   const rawFeatures = (currentBike.features || []).filter(Boolean);
+  const splitFeatures = splitFeaturePills(rawFeatures);
 
-const splitFeatures = rawFeatures
-  .flatMap(f => String(f).split(/[,.]+/))
-  .map(f => f.trim())
-  .filter(Boolean);
+  $("o-features").innerHTML = "";
+  splitFeatures.forEach(f => {
+    const pill = document.createElement("div");
+    pill.className = "features-pill";
+    pill.textContent = String(f).toUpperCase();
+    $("o-features").appendChild(pill);
+  });
+  $("features-section").style.display = splitFeatures.length ? "block" : "none";
 
-$("o-features").innerHTML = "";
-splitFeatures.forEach(f => {
-  const pill = document.createElement("div");
-  pill.className = "features-pill";
-  pill.textContent = f.toUpperCase();
-  $("o-features").appendChild(pill);
-});
-
-$("features-section").style.display = splitFeatures.length ? "block" : "none";
   const imgs = (currentBike.image_urls || []).filter(Boolean).slice(0, 3);
   if ($("f-show-image").checked) {
     renderGallery(imgs);
@@ -1043,6 +1108,10 @@ $("features-section").style.display = splitFeatures.length ? "block" : "none";
   $("o-warranty").textContent = $("f-warranty").value || "—";
   $("o-notes").textContent = $("f-notes").value || "—";
   $("o-salesperson").textContent = $("f-salesperson").value || "—";
+
+  $("o-payment-status").textContent = $("f-payment-status").value || "—";
+  $("o-payment-method").textContent = $("f-payment-method").value || "—";
+  $("o-payment-note").textContent = $("f-payment-note").value || "—";
 }
 
 async function saveInvoice() {
@@ -1069,7 +1138,7 @@ async function saveInvoice() {
     customer_phone: $("f-buyer-contact").value || "",
     customer_address: $("f-buyer-loc").value || "",
     seller_name: "Rhobust Engineering Services",
-    seller_address: "Kokomlemle, Accra, Ghana",
+    seller_address: "No. 25, Nuumo Ayite Kobla Street, Kokomlemle, Accra, Ghana",
     seller_phone: "",
     seller_email: "",
     seller_website: "",
@@ -1100,6 +1169,22 @@ async function saveInvoice() {
   alert("Invoice saved");
 }
 
+function downloadPDF() {
+  const element = document.getElementById("invoice");
+  const invoiceNumber = $("f-invnum").value || "invoice";
+
+  const opt = {
+    margin: 0,
+    filename: `${invoiceNumber}.pdf`,
+    image: { type: "jpeg", quality: 1 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+    pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+  };
+
+  html2pdf().set(opt).from(element).save();
+}
+
 $("f-bike").addEventListener("change", async (e) => {
   $("f-unit").value = "0";
   await loadBike(e.target.value);
@@ -1120,6 +1205,9 @@ $("f-bike").addEventListener("change", async (e) => {
   "f-warranty",
   "f-salesperson",
   "f-notes",
+  "f-payment-status",
+  "f-payment-method",
+  "f-payment-note",
   "f-show-image",
   "f-show-specs"
 ].forEach(id => {
@@ -1128,7 +1216,7 @@ $("f-bike").addEventListener("change", async (e) => {
 });
 
 $("btn-save").addEventListener("click", saveInvoice);
-$("btn-print").addEventListener("click", () => window.print());
+$("btn-print").addEventListener("click", downloadPDF);
 
 $("f-invnum").value = makeInvoiceNumber();
 $("f-date").value = todayISO();
