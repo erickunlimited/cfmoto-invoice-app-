@@ -1,307 +1,81 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bike Editor</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <script src="./bikes.js"></script>
-  <style>
-    :root {
-      --teal:#00B4B4;
-      --ink:#0D0D0D;
-      --mid:#3A3A3A;
-      --soft:#6B6B6B;
-      --paper:#F5F7F7;
-      --warm:#EDF2F2;
-      --border:#D4DCDC;
-      --white:#FFFFFF;
-      --serif:"Cormorant Garamond", Georgia, serif;
-      --sans:"Outfit", Helvetica Neue, Arial, sans-serif;
-      --e-bg:#0D0D0D;
-      --e-card:#181818;
-      --e-bdr:#2A2A2A;
-      --e-inp:#1E1E1E;
-      --e-txt:rgba(255,255,255,.85);
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:var(--sans);background:#111;color:#fff}
-    .app{display:grid;grid-template-columns:320px 1fr;min-height:100vh}
-    .editor{background:var(--e-bg);border-right:1px solid var(--e-bdr);padding:18px}
-    .preview{background:var(--warm);padding:28px}
-    .paper{max-width:920px;margin:0 auto;background:var(--paper);color:var(--ink);padding:28px;border:1px solid var(--border)}
-    h1{font-family:var(--serif);font-weight:400;margin:0 0 4px}
-    .sub{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin-bottom:18px}
-    .section{margin-bottom:16px;padding:14px;background:var(--e-card);border:1px solid var(--e-bdr)}
-    .section-title{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal);margin:0 0 10px}
-    label{display:block;font-size:12px;margin:0 0 6px;color:var(--e-txt)}
-    input,select,textarea,button{width:100%;font:inherit}
-    input,select,textarea{margin-bottom:10px;padding:10px 12px;background:var(--e-inp);color:#fff;border:1px solid var(--e-bdr)}
-    textarea{min-height:78px;resize:vertical}
-    button{padding:12px 14px;border:none;background:var(--teal);color:#001717;font-weight:600;cursor:pointer}
-    .btn2{background:transparent;border:1px solid var(--e-bdr);color:#fff}
-    .feature-row{display:grid;grid-template-columns:1fr 42px;gap:8px;margin-bottom:8px}
-    .small{padding:10px}
-    .kicker{color:var(--teal);font-size:10px;letter-spacing:.18em;text-transform:uppercase}
-    .title{font-family:var(--serif);font-size:42px;font-weight:400;margin:4px 0 4px}
-    .category{color:var(--soft);margin-bottom:20px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px}
-    .spec-name{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
-    .spec-value{font-size:16px}
-    .block{border-top:1px solid var(--border);padding-top:16px;margin-top:16px}
-    .bike-image{max-width:100%;max-height:280px;object-fit:contain;display:block;margin-left:auto}
-    @media (max-width:980px){.app{grid-template-columns:1fr}.grid{grid-template-columns:1fr}}
-  </style>
-</head>
-<body>
-  <div class="app">
-    <aside class="editor">
-      <h1>Bike Editor</h1>
-      <div class="sub">Rhobust Engineering Services</div>
+import { supabase } from "./supabase.js";
 
-      <div class="section">
-        <div class="section-title">Select Bike</div>
-        <select id="bikeSelect"></select>
-      </div>
+const bikeSelect = document.getElementById("bikeSelect");
+const saveBtn = document.getElementById("saveBtn");
 
-      <div class="section">
-        <div class="section-title">Basic</div>
-        <label>Slug</label><input id="slug" />
-        <label>Model</label><input id="model" />
-        <label>Category</label><input id="category" />
-      </div>
+let bikes = [];
+let currentBike = null;
 
-      <div class="section">
-        <div class="section-title">Specs</div>
-        <label>Engine Type</label><input id="engineType" />
-        <label>Displacement</label><input id="displacement" />
-        <label>Power</label><input id="power" />
-        <label>Torque</label><input id="torque" />
-        <label>Transmission</label><input id="transmission" />
-        <label>Cooling System</label><input id="coolingSystem" />
-        <label>Seat Height</label><input id="seatHeight" />
-        <label>Fuel Tank Capacity</label><input id="fuelTankCapacity" />
-        <label>Weight</label><input id="weight" />
-      </div>
+async function loadBikes() {
+  const { data, error } = await supabase
+    .from("motorcycles")
+    .select("*")
+    .order("model", { ascending: true });
 
-      <div class="section">
-        <div class="section-title">Media & Pricing</div>
-        <label>Image URL</label><input id="imageUrl" />
-        <label>Unit Price</label><input id="unitPrice" />
-        <label>Currency</label><input id="currency" value="USD" />
-        <label>Notes</label><textarea id="notes"></textarea>
-      </div>
+  if (error) {
+    console.error(error);
+    alert("Failed to load bikes");
+    return;
+  }
 
-      <div class="section">
-        <div class="section-title">Features</div>
-        <div id="featuresWrap"></div>
-        <button type="button" class="btn2" id="addFeatureBtn">Add Feature</button>
-      </div>
+  bikes = data;
 
-      <div class="section">
-        <button id="saveBtn">Save To Browser</button>
-      </div>
-    </aside>
+  bikeSelect.innerHTML = bikes
+    .map(b => `<option value="${b.slug}">${b.model}</option>`)
+    .join("");
 
-    <main class="preview">
-      <div class="paper">
-        <div class="kicker">Bike Preview</div>
-        <div class="title" id="pModel">Model</div>
-        <div class="category" id="pCategory"></div>
+  if (bikes.length) {
+    loadBike(bikes[0].slug);
+  }
+}
 
-        <div class="grid">
-          <div>
-            <div class="grid">
-              <div><div class="spec-name">Engine Type</div><div class="spec-value" id="pEngineType">—</div></div>
-              <div><div class="spec-name">Displacement</div><div class="spec-value" id="pDisplacement">—</div></div>
-              <div><div class="spec-name">Power</div><div class="spec-value" id="pPower">—</div></div>
-              <div><div class="spec-name">Torque</div><div class="spec-value" id="pTorque">—</div></div>
-              <div><div class="spec-name">Transmission</div><div class="spec-value" id="pTransmission">—</div></div>
-              <div><div class="spec-name">Cooling System</div><div class="spec-value" id="pCoolingSystem">—</div></div>
-              <div><div class="spec-name">Seat Height</div><div class="spec-value" id="pSeatHeight">—</div></div>
-              <div><div class="spec-name">Fuel Tank Capacity</div><div class="spec-value" id="pFuelTankCapacity">—</div></div>
-              <div><div class="spec-name">Weight</div><div class="spec-value" id="pWeight">—</div></div>
-              <div><div class="spec-name">Price</div><div class="spec-value" id="pPrice">—</div></div>
-            </div>
+async function loadBike(slug) {
+  const { data, error } = await supabase
+    .from("motorcycles")
+    .select("*")
+    .eq("slug", slug)
+    .single();
 
-            <div class="block">
-              <div class="spec-name">Key Features</div>
-              <ul id="pFeatures"></ul>
-            </div>
-          </div>
+  if (error) {
+    console.error(error);
+    return;
+  }
 
-          <div>
-            <img id="pImage" class="bike-image" style="display:none" />
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
+  currentBike = data;
 
-  <script>
-    const STORAGE_KEY = "res_bike_catalogue_v1";
-    const defaultBikes = window.BIKES || [];
-    const saved = localStorage.getItem(STORAGE_KEY);
-    let bikes = saved ? JSON.parse(saved) : defaultBikes;
+  document.getElementById("model").value = data.model || "";
+  document.getElementById("category").value = data.category || "";
+  document.getElementById("unitPrice").value = data.unit_price || "";
+}
 
-    const $ = id => document.getElementById(id);
+async function saveBike() {
+  if (!currentBike) return;
 
-    const refs = {
-      bikeSelect: $("bikeSelect"),
-      slug: $("slug"),
-      model: $("model"),
-      category: $("category"),
-      engineType: $("engineType"),
-      displacement: $("displacement"),
-      power: $("power"),
-      torque: $("torque"),
-      transmission: $("transmission"),
-      coolingSystem: $("coolingSystem"),
-      seatHeight: $("seatHeight"),
-      fuelTankCapacity: $("fuelTankCapacity"),
-      weight: $("weight"),
-      imageUrl: $("imageUrl"),
-      unitPrice: $("unitPrice"),
-      currency: $("currency"),
-      notes: $("notes"),
-      featuresWrap: $("featuresWrap"),
-      addFeatureBtn: $("addFeatureBtn"),
-      saveBtn: $("saveBtn")
-    };
+  const updated = {
+    model: document.getElementById("model").value,
+    category: document.getElementById("category").value,
+    unit_price: document.getElementById("unitPrice").value
+  };
 
-    function renderSelect() {
-      refs.bikeSelect.innerHTML = bikes.map((b, i) =>
-        '<option value="' + i + '">' + b.model + '</option>'
-      ).join("");
-    }
+  const { error } = await supabase
+    .from("motorcycles")
+    .update(updated)
+    .eq("slug", currentBike.slug);
 
-    function addFeatureInput(value = "") {
-      const row = document.createElement("div");
-      row.className = "feature-row";
-      row.innerHTML = '<input type="text" value="' + String(value).replace(/"/g, '&quot;') + '"><button type="button" class="btn2 small">×</button>';
-      row.querySelector("button").onclick = () => {
-        row.remove();
-        updatePreview();
-      };
-      row.querySelector("input").addEventListener("input", updatePreview);
-      refs.featuresWrap.appendChild(row);
-    }
+  if (error) {
+    console.error(error);
+    alert("Failed to save");
+    return;
+  }
 
-    function renderFeatures(features = []) {
-      refs.featuresWrap.innerHTML = "";
-      (features.length ? features : [""]).forEach(addFeatureInput);
-    }
+  alert("Saved successfully");
+  loadBikes();
+}
 
-    function loadBike(index) {
-      const b = bikes[index];
-      refs.slug.value = b.slug || "";
-      refs.model.value = b.model || "";
-      refs.category.value = b.category || "";
-      refs.engineType.value = b.specs?.engineType || "";
-      refs.displacement.value = b.specs?.displacement || "";
-      refs.power.value = b.specs?.power || "";
-      refs.torque.value = b.specs?.torque || "";
-      refs.transmission.value = b.specs?.transmission || "";
-      refs.coolingSystem.value = b.specs?.coolingSystem || "";
-      refs.seatHeight.value = b.specs?.seatHeight || "";
-      refs.fuelTankCapacity.value = b.specs?.fuelTankCapacity || "";
-      refs.weight.value = b.specs?.weight || "";
-      refs.imageUrl.value = b.media?.imageUrl || "";
-      refs.unitPrice.value = b.pricing?.unitPrice || "";
-      refs.currency.value = b.pricing?.currency || "USD";
-      refs.notes.value = b.notes || "";
-      renderFeatures(b.keyFeatures || []);
-      updatePreview();
-    }
+bikeSelect.addEventListener("change", (e) => {
+  loadBike(e.target.value);
+});
 
-    function getFeatures() {
-      return [...refs.featuresWrap.querySelectorAll("input")]
-        .map(i => i.value.trim())
-        .filter(Boolean);
-    }
+saveBtn.addEventListener("click", saveBike);
 
-    function currentBikeObject() {
-      return {
-        slug: refs.slug.value.trim(),
-        model: refs.model.value.trim(),
-        category: refs.category.value.trim(),
-        specs: {
-          engineType: refs.engineType.value.trim(),
-          displacement: refs.displacement.value.trim(),
-          power: refs.power.value.trim(),
-          torque: refs.torque.value.trim(),
-          transmission: refs.transmission.value.trim(),
-          coolingSystem: refs.coolingSystem.value.trim(),
-          seatHeight: refs.seatHeight.value.trim(),
-          fuelTankCapacity: refs.fuelTankCapacity.value.trim(),
-          weight: refs.weight.value.trim()
-        },
-        keyFeatures: getFeatures(),
-        media: {
-          imageUrl: refs.imageUrl.value.trim()
-        },
-        pricing: {
-          unitPrice: refs.unitPrice.value.trim(),
-          currency: refs.currency.value.trim() || "USD"
-        },
-        notes: refs.notes.value.trim()
-      };
-    }
-
-    function updatePreview() {
-      const b = currentBikeObject();
-      $("pModel").textContent = b.model || "Model";
-      $("pCategory").textContent = b.category || "";
-      $("pEngineType").textContent = b.specs.engineType || "—";
-      $("pDisplacement").textContent = b.specs.displacement || "—";
-      $("pPower").textContent = b.specs.power || "—";
-      $("pTorque").textContent = b.specs.torque || "—";
-      $("pTransmission").textContent = b.specs.transmission || "—";
-      $("pCoolingSystem").textContent = b.specs.coolingSystem || "—";
-      $("pSeatHeight").textContent = b.specs.seatHeight || "—";
-      $("pFuelTankCapacity").textContent = b.specs.fuelTankCapacity || "—";
-      $("pWeight").textContent = b.specs.weight || "—";
-      $("pPrice").textContent = (b.pricing.currency || "USD") + " " + (b.pricing.unitPrice || "0");
-
-      const ul = $("pFeatures");
-      ul.innerHTML = "";
-      b.keyFeatures.forEach(f => {
-        const li = document.createElement("li");
-        li.textContent = f;
-        ul.appendChild(li);
-      });
-
-      const img = $("pImage");
-      if (b.media.imageUrl) {
-        img.src = b.media.imageUrl;
-        img.style.display = "block";
-      } else {
-        img.style.display = "none";
-      }
-    }
-
-    function saveCurrentBike() {
-      const index = Number(refs.bikeSelect.value);
-      bikes[index] = currentBikeObject();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(bikes));
-      renderSelect();
-      refs.bikeSelect.value = String(index);
-      alert("Bike saved in browser");
-    }
-
-    refs.bikeSelect.addEventListener("change", e => loadBike(e.target.value));
-    refs.addFeatureBtn.addEventListener("click", () => addFeatureInput(""));
-    refs.saveBtn.addEventListener("click", saveCurrentBike);
-
-    [
-      "slug","model","category","engineType","displacement","power","torque",
-      "transmission","coolingSystem","seatHeight","fuelTankCapacity",
-      "weight","imageUrl","unitPrice","currency","notes"
-    ].forEach(id => $(id).addEventListener("input", updatePreview));
-
-    renderSelect();
-    loadBike(0);
-  </script>
-</body>
-</html>
+loadBikes();
