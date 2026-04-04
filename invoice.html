@@ -696,17 +696,17 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
     }
 
     async function fetchBikeFallback(record) {
-      const bikeId = record.bike_id || record.motorcycle_id || null;
-      if (!bikeId) return null;
+  const bikeSlug = record.bike_slug || null;
+  if (!bikeSlug) return null;
 
-      const { data } = await client
-        .from("motorcycles")
-        .select("*")
-        .eq("id", bikeId)
-        .single();
+  const { data } = await client
+    .from("motorcycles")
+    .select("*")
+    .eq("slug", bikeSlug)
+    .single();
 
-      return data || null;
-    }
+  return data || null;
+}
 
     function normalizeInvoice(record, snapshot, bikeFallback) {
       const src = snapshot || bikeFallback || {};
