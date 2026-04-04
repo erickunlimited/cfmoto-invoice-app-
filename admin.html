@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rhobust Engineering Limited · Bike Admin</title>
+  <title>Rhobust Engineering Limited · Admin</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
     body {
@@ -23,6 +23,11 @@
       padding: 8px;
       width: 340px;
       max-width: 100%;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
     }
 
     button {
@@ -46,7 +51,9 @@
     }
 
     .section {
-      margin-top: 24px;
+      margin-top: 28px;
+      padding-top: 18px;
+      border-top: 1px solid #ddd;
     }
 
     .thumbs {
@@ -74,25 +81,34 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
-      margin-top: 16px;
+      margin-top: 14px;
+    }
+
+    .inline-note {
+      font-size: 13px;
+      color: #666;
+      margin-top: 4px;
+      margin-bottom: 8px;
     }
   </style>
 </head>
 <body>
 
-  <h2>Bike Editor</h2>
+  <h2>Rhobust Engineering Limited · Admin</h2>
 
-  <select id="bikeSelect"></select>
+  <div class="section" style="border-top:none; padding-top:0;">
+    <h3>Bike Editor</h3>
 
-  <div class="actions">
-    <button type="button" id="createBikeBtn">+ Add New Bike</button>
-    <button type="button" id="reloadBtn">Reload Bikes</button>
-  </div>
+    <select id="bikeSelect"></select>
 
-  <div class="section">
+    <div class="actions">
+      <button type="button" id="createBikeBtn">+ Add New Bike</button>
+      <button type="button" id="reloadBtn">Reload Bikes</button>
+    </div>
+
     <input id="model" placeholder="Model" />
     <input id="category" placeholder="Category" />
-    <input id="unitPrice" type="number" step="0.01" placeholder="Price" />
+    <input id="unitPrice" type="number" step="0.01" placeholder="Default Price" />
   </div>
 
   <div class="section">
@@ -131,8 +147,39 @@
     <button type="button" id="addFeatureBtn">+ Add Feature</button>
   </div>
 
-  <div class="actions">
-    <button id="saveBtn" type="button">Save</button>
+  <div class="section">
+    <h3>Invoice Details</h3>
+
+    <input id="invoiceNumber" placeholder="Invoice Number (optional)" />
+    <input id="invoiceDate" type="date" />
+    <input id="customerName" placeholder="Customer Name" />
+    <input id="customerCompany" placeholder="Customer Company" />
+    <input id="customerPhone" placeholder="Customer Phone" />
+    <input id="customerEmail" placeholder="Customer Email" />
+    <textarea id="customerAddress" placeholder="Customer Address"></textarea>
+
+    <input id="quantity" type="number" min="1" step="1" value="1" placeholder="Quantity" />
+    <input id="invoiceUnitPrice" type="number" step="0.01" placeholder="Invoice Unit Price" />
+    <input id="additionalCharges" type="number" step="0.01" value="0" placeholder="Additional Charges" />
+    <input id="currency" value="USD" placeholder="Currency" />
+    <input id="status" value="Draft" placeholder="Status" />
+
+    <textarea id="invoiceNotes" placeholder="Notes"></textarea>
+    <textarea id="invoiceTerms">3 years dealer-backed warranty from Rhobust Engineering Limited.
+Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached first.</textarea>
+
+    <div class="inline-note">Save the bike first if it is brand new, then save the invoice.</div>
+
+    <div class="actions">
+      <button id="saveInvoiceBtn" type="button">Save Invoice</button>
+      <button id="previewInvoiceBtn" type="button">Save & Open Preview</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="actions">
+      <button id="saveBtn" type="button">Save Bike</button>
+    </div>
   </div>
 
   <script>
@@ -143,6 +190,7 @@
 
     const BUCKET_NAME = "bike-images";
     let currentBike = null;
+    let currentInvoiceId = null;
 
     const els = {
       bikeSelect: document.getElementById("bikeSelect"),
@@ -175,7 +223,24 @@
       createBikeBtn: document.getElementById("createBikeBtn"),
       reloadBtn: document.getElementById("reloadBtn"),
       addFeatureBtn: document.getElementById("addFeatureBtn"),
-      addImageUrlBtn: document.getElementById("addImageUrlBtn")
+      addImageUrlBtn: document.getElementById("addImageUrlBtn"),
+
+      invoiceNumber: document.getElementById("invoiceNumber"),
+      invoiceDate: document.getElementById("invoiceDate"),
+      customerName: document.getElementById("customerName"),
+      customerCompany: document.getElementById("customerCompany"),
+      customerPhone: document.getElementById("customerPhone"),
+      customerEmail: document.getElementById("customerEmail"),
+      customerAddress: document.getElementById("customerAddress"),
+      quantity: document.getElementById("quantity"),
+      invoiceUnitPrice: document.getElementById("invoiceUnitPrice"),
+      additionalCharges: document.getElementById("additionalCharges"),
+      currency: document.getElementById("currency"),
+      status: document.getElementById("status"),
+      invoiceNotes: document.getElementById("invoiceNotes"),
+      invoiceTerms: document.getElementById("invoiceTerms"),
+      saveInvoiceBtn: document.getElementById("saveInvoiceBtn"),
+      previewInvoiceBtn: document.getElementById("previewInvoiceBtn")
     };
 
     function escapeHtml(value) {
@@ -192,6 +257,27 @@
         .toLowerCase()
         .replace(/\s+/g, "-")
         .replace(/[^a-z0-9-_]/g, "");
+    }
+
+    function getParam(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
+
+    function todayInputValue() {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function generateInvoiceNumber() {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const rand = Math.floor(Math.random() * 9000) + 1000;
+      return `RES-${year}${month}${day}-${rand}`;
     }
 
     function clearForm() {
@@ -230,9 +316,7 @@
         <button type="button">X</button>
       `;
 
-      const removeBtn = div.querySelector("button");
-      removeBtn.addEventListener("click", () => div.remove());
-
+      div.querySelector("button").addEventListener("click", () => div.remove());
       els.featuresContainer.appendChild(div);
     }
 
@@ -251,10 +335,10 @@
       `;
 
       const input = div.querySelector("input");
-      const removeBtn = div.querySelector("button");
+      const button = div.querySelector("button");
 
       input.addEventListener("input", renderImagePreviews);
-      removeBtn.addEventListener("click", () => {
+      button.addEventListener("click", () => {
         div.remove();
         renderImagePreviews();
       });
@@ -337,14 +421,12 @@
       els.bikeSelect.innerHTML = `
         <option value="">Select a bike</option>
         ${(data || []).map(bike => `
-          <option value="${escapeHtml(bike.slug)}">
-            ${escapeHtml(bike.model || bike.slug)}
-          </option>
+          <option value="${escapeHtml(bike.slug)}">${escapeHtml(bike.model || bike.slug)}</option>
         `).join("")}
       `;
 
       if (currentBike?.slug) {
-        const stillExists = data.some(b => b.slug === currentBike.slug);
+        const stillExists = (data || []).some(b => b.slug === currentBike.slug);
         if (stillExists) {
           els.bikeSelect.value = currentBike.slug;
           await loadBike(currentBike.slug);
@@ -383,6 +465,10 @@
       els.model.value = data.model || "";
       els.category.value = data.category || "";
       els.unitPrice.value = data.unit_price ?? "";
+
+      if (!els.invoiceUnitPrice.value) {
+        els.invoiceUnitPrice.value = data.unit_price ?? "";
+      }
 
       els.engine.value = data.engine || "";
       els.displacement.value = data.displacement || "";
@@ -447,11 +533,11 @@
 
       if (error) {
         console.error(error);
-        alert("Save failed");
+        alert("Save bike failed");
         return;
       }
 
-      alert("Saved");
+      alert("Bike saved");
       await loadBikes();
       els.bikeSelect.value = currentBike.slug;
       await loadBike(currentBike.slug);
@@ -490,6 +576,165 @@
       await loadBike(cleanSlug);
     }
 
+    function getBikeSnapshot() {
+      return {
+        id: currentBike?.id || null,
+        slug: currentBike?.slug || null,
+        model: els.model.value.trim(),
+        category: els.category.value.trim(),
+        unit_price: Number(els.unitPrice.value) || 0,
+
+        engine: els.engine.value.trim(),
+        displacement: els.displacement.value.trim(),
+        power_hp: els.power_hp.value.trim(),
+        torque: els.torque.value.trim(),
+        fuel_system: els.fuel_system.value.trim(),
+        transmission: els.transmission.value.trim(),
+        throttle_type: els.throttle_type.value.trim(),
+        fuel_capacity: els.fuel_capacity.value.trim(),
+        abs: els.abs.value.trim(),
+        traction_control: els.traction_control.value.trim(),
+        headlight: els.headlight.value.trim(),
+        charging_port: els.charging_port.value.trim(),
+        color: els.color.value.trim(),
+        suspension: els.suspension.value.trim(),
+        brake: els.brake.value.trim(),
+
+        features: getFeatures(),
+        image_urls: getImageUrls()
+      };
+    }
+
+    function getInvoicePayload() {
+      if (!currentBike) {
+        throw new Error("Please select a bike first.");
+      }
+
+      const quantity = Number(els.quantity.value) || 1;
+      const unitPrice = Number(els.invoiceUnitPrice.value || els.unitPrice.value) || 0;
+      const additionalCharges = Number(els.additionalCharges.value) || 0;
+      const subtotal = quantity * unitPrice;
+      const total = subtotal + additionalCharges;
+
+      return {
+        invoice_number: els.invoiceNumber.value.trim() || generateInvoiceNumber(),
+        invoice_date: els.invoiceDate.value || todayInputValue(),
+
+        customer_name: els.customerName.value.trim(),
+        customer_company: els.customerCompany.value.trim(),
+        customer_phone: els.customerPhone.value.trim(),
+        customer_email: els.customerEmail.value.trim(),
+        customer_address: els.customerAddress.value.trim(),
+
+        bike_id: currentBike.id,
+        bike_model: els.model.value.trim(),
+        bike_category: els.category.value.trim(),
+
+        quantity,
+        unit_price: unitPrice,
+        subtotal,
+        additional_charges: additionalCharges,
+        total,
+        currency: els.currency.value.trim() || "USD",
+        status: els.status.value.trim() || "Draft",
+        notes: els.invoiceNotes.value.trim(),
+        terms: els.invoiceTerms.value.trim(),
+
+        bike_snapshot: getBikeSnapshot()
+      };
+    }
+
+    async function saveInvoice({ openPreview = false } = {}) {
+      try {
+        const payload = getInvoicePayload();
+
+        let result;
+
+        if (currentInvoiceId) {
+          const { data, error } = await client
+            .from("invoices")
+            .update(payload)
+            .eq("id", currentInvoiceId)
+            .select()
+            .single();
+
+          if (error) throw error;
+          result = data;
+        } else {
+          const { data, error } = await client
+            .from("invoices")
+            .insert([payload])
+            .select()
+            .single();
+
+          if (error) throw error;
+          result = data;
+          currentInvoiceId = data.id;
+        }
+
+        els.invoiceNumber.value = result.invoice_number || payload.invoice_number;
+
+        if (openPreview) {
+          window.open(`invoice.html?id=${encodeURIComponent(result.id)}`, "_blank");
+        } else {
+          alert("Invoice saved");
+        }
+
+        return result;
+      } catch (err) {
+        console.error(err);
+        alert(err.message || "Failed to save invoice");
+        return null;
+      }
+    }
+
+    async function loadInvoiceIntoAdmin(invoiceId) {
+      const { data, error } = await client
+        .from("invoices")
+        .select("*")
+        .eq("id", invoiceId)
+        .single();
+
+      if (error) {
+        console.error(error);
+        alert("Failed to load invoice");
+        return;
+      }
+
+      currentInvoiceId = data.id;
+
+      els.invoiceNumber.value = data.invoice_number || "";
+      els.invoiceDate.value = data.invoice_date || todayInputValue();
+      els.customerName.value = data.customer_name || "";
+      els.customerCompany.value = data.customer_company || "";
+      els.customerPhone.value = data.customer_phone || "";
+      els.customerEmail.value = data.customer_email || "";
+      els.customerAddress.value = data.customer_address || "";
+      els.quantity.value = data.quantity ?? 1;
+      els.invoiceUnitPrice.value = data.unit_price ?? "";
+      els.additionalCharges.value = data.additional_charges ?? 0;
+      els.currency.value = data.currency || "USD";
+      els.status.value = data.status || "Draft";
+      els.invoiceNotes.value = data.notes || "";
+      els.invoiceTerms.value = data.terms || "";
+
+      if (data.bike_snapshot?.slug) {
+        els.bikeSelect.value = data.bike_snapshot.slug;
+        await loadBike(data.bike_snapshot.slug);
+      } else if (data.bike_id) {
+        const { data: bike, error: bikeError } = await client
+          .from("motorcycles")
+          .select("*")
+          .eq("id", data.bike_id)
+          .single();
+
+        if (!bikeError && bike?.slug) {
+          els.bikeSelect.value = bike.slug;
+          await loadBike(bike.slug);
+        }
+      }
+    }
+
     els.bikeSelect.addEventListener("change", e => loadBike(e.target.value));
     els.saveBtn.addEventListener("click", saveBike);
     els.createBikeBtn.addEventListener("click", createBike);
@@ -497,8 +742,21 @@
     els.addFeatureBtn.addEventListener("click", () => addFeature(""));
     els.addImageUrlBtn.addEventListener("click", () => addImageUrl(""));
     els.imageUpload.addEventListener("change", uploadSelectedImages);
+    els.saveInvoiceBtn.addEventListener("click", () => saveInvoice({ openPreview: false }));
+    els.previewInvoiceBtn.addEventListener("click", () => saveInvoice({ openPreview: true }));
 
-    loadBikes();
+    (async function initAdmin() {
+      if (els.invoiceDate && !els.invoiceDate.value) {
+        els.invoiceDate.value = todayInputValue();
+      }
+
+      await loadBikes();
+
+      const invoiceId = getParam("invoice_id") || getParam("id");
+      if (invoiceId) {
+        await loadInvoiceIntoAdmin(invoiceId);
+      }
+    })();
   </script>
 </body>
 </html>
