@@ -234,13 +234,59 @@
       white-space: pre-wrap;
     }
 
-    .hero {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 18px;
-      align-items: start;
-    }
+    .vehicle-head {
+  margin-bottom: 18px;
+}
 
+.hero-title {
+  font-family: var(--serif);
+  font-size: 42px;
+  line-height: 0.94;
+  font-weight: 400;
+  margin-bottom: 6px;
+}
+
+.hero-sub {
+  color: var(--soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.hero-gallery {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  align-items: stretch;
+}
+
+.hero-gallery.one {
+  grid-template-columns: 1fr;
+}
+
+.hero-gallery.two {
+  grid-template-columns: 1fr 1fr;
+}
+
+.hero-gallery.three {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.hero-gallery-card {
+  border: 1px solid var(--line);
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  min-height: 240px;
+}
+
+.hero-gallery-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: contain;
+  display: block;
+}
     .hero-title {
       font-family: var(--serif);
       font-size: 42px;
@@ -449,12 +495,11 @@
         width: 100%;
       }
 
-      .header,
-      .customer-grid,
-      .hero,
-      .spec-grid {
-        grid-template-columns: 1fr;
-      }
+     .header,
+.customer-grid,
+.spec-grid {
+  grid-template-columns: 1fr;
+}
 
       .meta-kicker {
         text-align: left;
@@ -536,21 +581,19 @@ Kokomlemle, Accra</div>
         </div>
       </section>
 
-      <section class="section">
-        <div class="section-head">
-          <div class="section-num">02</div>
-          <div class="section-name">Vehicle</div>
-        </div>
+     <section class="section">
+  <div class="section-head">
+    <div class="section-num">02</div>
+    <div class="section-name">Vehicle</div>
+  </div>
 
-        <div class="hero">
-          <div>
-            <div class="hero-title" id="out-bike-model">—</div>
-            <div class="hero-sub" id="out-bike-category">—</div>
-          </div>
+  <div class="vehicle-head">
+    <div class="hero-title" id="out-bike-model">—</div>
+    <div class="hero-sub" id="out-bike-category">—</div>
+  </div>
 
-          <div id="out-bike-gallery" class="hero-gallery hidden"></div>
-        </div>
-      </section>
+  <div id="out-bike-gallery" class="hero-gallery hidden"></div>
+</section>
 
       <section class="section" id="specs-section">
         <div class="section-head">
