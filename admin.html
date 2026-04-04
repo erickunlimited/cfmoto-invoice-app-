@@ -1,333 +1,504 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Bike Admin</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rhobust Engineering Limited · Bike Admin</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
-    input, select, textarea { display:block; margin-bottom:10px; padding:8px; width:340px; }
-    button { padding:10px 14px; margin-top:10px; cursor:pointer; }
-    .feature-row, .image-row { display:flex; gap:10px; margin-bottom:8px; align-items:center; }
-    .feature-row input, .image-row input { margin-bottom:0; width:340px; }
-    .section { margin-top:24px; }
-    .thumbs { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-    .thumbs img { width:120px; height:90px; object-fit:cover; border:1px solid #ccc; background:#fff; }
-    .muted { color:#666; font-size:13px; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #111;
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    input, select, textarea {
+      display: block;
+      margin-bottom: 10px;
+      padding: 8px;
+      width: 340px;
+      max-width: 100%;
+    }
+
+    button {
+      padding: 10px 14px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    .feature-row,
+    .image-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    .feature-row input,
+    .image-row input {
+      margin-bottom: 0;
+      width: 340px;
+    }
+
+    .section {
+      margin-top: 24px;
+    }
+
+    .thumbs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .thumbs img {
+      width: 120px;
+      height: 90px;
+      object-fit: cover;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+
+    .muted {
+      color: #666;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
   </style>
 </head>
 <body>
 
-<h2>Bike Editor</h2>
+  <h2>Bike Editor</h2>
 
-<select id="bikeSelect"></select>
-<button type="button" onclick="createBike()">+ Add New Bike</button>
+  <select id="bikeSelect"></select>
 
-<input id="model" placeholder="Model">
-<input id="category" placeholder="Category">
-<input id="unitPrice" placeholder="Price">
+  <div class="actions">
+    <button type="button" id="createBikeBtn">+ Add New Bike</button>
+    <button type="button" id="reloadBtn">Reload Bikes</button>
+  </div>
 
-<div class="section">
-  <h3>Specs</h3>
+  <div class="section">
+    <input id="model" placeholder="Model" />
+    <input id="category" placeholder="Category" />
+    <input id="unitPrice" type="number" step="0.01" placeholder="Price" />
+  </div>
 
-  <input id="engine" placeholder="Engine">
-  <input id="displacement" placeholder="Displacement">
-  <input id="power_hp" placeholder="Power / HP">
-  <input id="torque" placeholder="Torque">
-  <input id="fuel_system" placeholder="Fuel System">
-  <input id="transmission" placeholder="Transmission">
-  <input id="throttle_type" placeholder="Throttle Type">
-  <input id="fuel_capacity" placeholder="Fuel Capacity">
-  <input id="abs" placeholder="ABS">
-  <input id="traction_control" placeholder="Traction Control">
-  <input id="headlight" placeholder="Headlight">
-  <input id="charging_port" placeholder="Charging Port">
-  <input id="color" placeholder="Color">
-  <input id="suspension" placeholder="Suspension">
-  <input id="brake" placeholder="Brake">
-</div>
+  <div class="section">
+    <h3>Specs</h3>
+    <input id="engine" placeholder="Engine" />
+    <input id="displacement" placeholder="Displacement" />
+    <input id="power_hp" placeholder="Power / HP" />
+    <input id="torque" placeholder="Torque" />
+    <input id="fuel_system" placeholder="Fuel System" />
+    <input id="transmission" placeholder="Transmission" />
+    <input id="throttle_type" placeholder="Throttle Type" />
+    <input id="fuel_capacity" placeholder="Fuel Capacity" />
+    <input id="abs" placeholder="ABS" />
+    <input id="traction_control" placeholder="Traction Control" />
+    <input id="headlight" placeholder="Headlight" />
+    <input id="charging_port" placeholder="Charging Port" />
+    <input id="color" placeholder="Color" />
+    <input id="suspension" placeholder="Suspension" />
+    <input id="brake" placeholder="Brake" />
+  </div>
 
-<div class="section">
-  <h3>Images</h3>
+  <div class="section">
+    <h3>Images</h3>
+    <div class="muted">Upload PNG/JPG/WebP to Supabase Storage. The database will save the image URLs.</div>
+    <input id="imageUpload" type="file" accept="image/png,image/jpeg,image/webp" multiple />
 
-  <div class="muted">Upload PNG/JPG/WebP to Supabase Storage. The database will save the image URLs.</div>
-  <input id="imageUpload" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+    <div id="imageUrlsContainer"></div>
+    <button type="button" id="addImageUrlBtn">+ Add Image URL Manually</button>
 
-  <div id="imageUrlsContainer"></div>
-  <button type="button" onclick="addImageUrl()">+ Add Image URL Manually</button>
+    <div class="thumbs" id="imagePreviewContainer"></div>
+  </div>
 
-  <div class="thumbs" id="imagePreviewContainer"></div>
-</div>
+  <div class="section">
+    <h3>Features</h3>
+    <div id="featuresContainer"></div>
+    <button type="button" id="addFeatureBtn">+ Add Feature</button>
+  </div>
 
-<h3>Features</h3>
-<div id="featuresContainer"></div>
-<button type="button" onclick="addFeature()">+ Add Feature</button>
+  <div class="actions">
+    <button id="saveBtn" type="button">Save</button>
+  </div>
 
-<br><br>
-<button id="saveBtn">Save</button>
+  <script>
+    const client = window.supabase.createClient(
+      "https://apmfnubljrutnnignehh.supabase.co",
+      "sb_publishable_zi5AnOBw_D7pl9WuhcGDug_SK0zgESg"
+    );
 
-<script>
-const client = window.supabase.createClient(
-  "https://apmfnubljrutnnignehh.supabase.co",
-  "sb_publishable_zi5AnOBw_D7pl9WuhcGDug_SK0zgESg"
-);
+    const BUCKET_NAME = "bike-images";
+    let currentBike = null;
 
-const BUCKET_NAME = "bike-images";
-let currentBike = null;
+    const els = {
+      bikeSelect: document.getElementById("bikeSelect"),
+      model: document.getElementById("model"),
+      category: document.getElementById("category"),
+      unitPrice: document.getElementById("unitPrice"),
 
-// ---------- FEATURES ----------
-function addFeature(value = "") {
-  const div = document.createElement("div");
-  div.className = "feature-row";
-  div.innerHTML = `
-    <input value="${escapeHtml(value)}" />
-    <button type="button" onclick="this.parentElement.remove()">X</button>
-  `;
-  document.getElementById("featuresContainer").appendChild(div);
-}
+      engine: document.getElementById("engine"),
+      displacement: document.getElementById("displacement"),
+      power_hp: document.getElementById("power_hp"),
+      torque: document.getElementById("torque"),
+      fuel_system: document.getElementById("fuel_system"),
+      transmission: document.getElementById("transmission"),
+      throttle_type: document.getElementById("throttle_type"),
+      fuel_capacity: document.getElementById("fuel_capacity"),
+      abs: document.getElementById("abs"),
+      traction_control: document.getElementById("traction_control"),
+      headlight: document.getElementById("headlight"),
+      charging_port: document.getElementById("charging_port"),
+      color: document.getElementById("color"),
+      suspension: document.getElementById("suspension"),
+      brake: document.getElementById("brake"),
 
-function getFeatures() {
-  return [...document.querySelectorAll("#featuresContainer input")]
-    .map(i => i.value.trim())
-    .filter(Boolean);
-}
+      featuresContainer: document.getElementById("featuresContainer"),
+      imageUrlsContainer: document.getElementById("imageUrlsContainer"),
+      imagePreviewContainer: document.getElementById("imagePreviewContainer"),
+      imageUpload: document.getElementById("imageUpload"),
 
-// ---------- IMAGES ----------
-function escapeHtml(value) {
-  return String(value || "")
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
+      saveBtn: document.getElementById("saveBtn"),
+      createBikeBtn: document.getElementById("createBikeBtn"),
+      reloadBtn: document.getElementById("reloadBtn"),
+      addFeatureBtn: document.getElementById("addFeatureBtn"),
+      addImageUrlBtn: document.getElementById("addImageUrlBtn")
+    };
 
-function addImageUrl(value = "") {
-  const div = document.createElement("div");
-  div.className = "image-row";
-  div.innerHTML = `
-    <input value="${escapeHtml(value)}" placeholder="Image URL" />
-    <button type="button" onclick="this.parentElement.remove(); renderImagePreviews();">X</button>
-  `;
-  div.querySelector("input").addEventListener("input", renderImagePreviews);
-  document.getElementById("imageUrlsContainer").appendChild(div);
-  renderImagePreviews();
-}
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
 
-function getImageUrls() {
-  return [...document.querySelectorAll("#imageUrlsContainer input")]
-    .map(i => i.value.trim())
-    .filter(Boolean);
-}
+    function slugify(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-_]/g, "");
+    }
 
-function renderImagePreviews() {
-  const wrap = document.getElementById("imagePreviewContainer");
-  wrap.innerHTML = "";
-  getImageUrls().forEach(url => {
-    const img = document.createElement("img");
-    img.src = url;
-    img.onerror = () => { img.style.display = "none"; };
-    wrap.appendChild(img);
-  });
-}
+    function clearForm() {
+      currentBike = null;
 
-<script>
-async function uploadSelectedImages() {
-  const fileInput = document.getElementById("imageUpload");
-  const files = [...fileInput.files];
+      els.model.value = "";
+      els.category.value = "";
+      els.unitPrice.value = "";
 
-  if (!files.length) return;
+      els.engine.value = "";
+      els.displacement.value = "";
+      els.power_hp.value = "";
+      els.torque.value = "";
+      els.fuel_system.value = "";
+      els.transmission.value = "";
+      els.throttle_type.value = "";
+      els.fuel_capacity.value = "";
+      els.abs.value = "";
+      els.traction_control.value = "";
+      els.headlight.value = "";
+      els.charging_port.value = "";
+      els.color.value = "";
+      els.suspension.value = "";
+      els.brake.value = "";
 
-  if (!currentBike) {
-    alert("Please select or create a bike first.");
-    return;
-  }
+      els.featuresContainer.innerHTML = "";
+      els.imageUrlsContainer.innerHTML = "";
+      els.imagePreviewContainer.innerHTML = "";
+    }
 
-  for (const file of files) {
-    const ext = (file.name.split(".").pop() || "png").toLowerCase();
-    const safeSlug = currentBike.slug;
-    const fileName = `${safeSlug}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    function addFeature(value = "") {
+      const div = document.createElement("div");
+      div.className = "feature-row";
+      div.innerHTML = `
+        <input type="text" value="${escapeHtml(value)}" />
+        <button type="button">X</button>
+      `;
 
-    console.log("Uploading to bucket:", BUCKET_NAME);
-    console.log("Uploading file path:", fileName);
-    console.log("File info:", {
-      name: file.name,
-      size: file.size,
-      type: file.type
-    });
+      const removeBtn = div.querySelector("button");
+      removeBtn.addEventListener("click", () => div.remove());
 
-    const { data: uploadData, error: uploadError } = await client.storage
-      .from(BUCKET_NAME)
-      .upload(fileName, file, {
-        upsert: false,
-        contentType: file.type || undefined
+      els.featuresContainer.appendChild(div);
+    }
+
+    function getFeatures() {
+      return [...els.featuresContainer.querySelectorAll("input")]
+        .map(input => input.value.trim())
+        .filter(Boolean);
+    }
+
+    function addImageUrl(value = "") {
+      const div = document.createElement("div");
+      div.className = "image-row";
+      div.innerHTML = `
+        <input type="text" value="${escapeHtml(value)}" placeholder="Image URL" />
+        <button type="button">X</button>
+      `;
+
+      const input = div.querySelector("input");
+      const removeBtn = div.querySelector("button");
+
+      input.addEventListener("input", renderImagePreviews);
+      removeBtn.addEventListener("click", () => {
+        div.remove();
+        renderImagePreviews();
       });
 
-    if (uploadError) {
-      console.error("UPLOAD ERROR:", uploadError);
-      alert(`Image upload failed: ${uploadError.message || JSON.stringify(uploadError)}`);
-      return;
+      els.imageUrlsContainer.appendChild(div);
+      renderImagePreviews();
     }
 
-    console.log("UPLOAD SUCCESS:", uploadData);
-
-    const { data: publicUrlData } = client.storage
-      .from(BUCKET_NAME)
-      .getPublicUrl(fileName);
-
-    console.log("PUBLIC URL:", publicUrlData.publicUrl);
-
-    addImageUrl(publicUrlData.publicUrl);
-  }
-
-  fileInput.value = "";
-}
-</script>
-// ---------- BIKES ----------
-async function loadBikes() {
-  const { data, error } = await client
-    .from("motorcycles")
-    .select("*")
-    .order("model", { ascending: true });
-
-  if (error) {
-    console.error(error);
-    alert("Error loading bikes");
-    return;
-  }
-
-  const select = document.getElementById("bikeSelect");
-  select.innerHTML = data.map(b => `<option value="${b.slug}">${b.model}</option>`).join("");
-
-  if (data.length) loadBike(data[0].slug);
-}
-
-async function loadBike(slug) {
-  const { data, error } = await client
-    .from("motorcycles")
-    .select("*")
-    .eq("slug", slug)
-    .single();
-
-  if (error) {
-    console.error(error);
-    alert("Error loading bike");
-    return;
-  }
-
-  currentBike = data;
-
-  model.value = data.model || "";
-  category.value = data.category || "";
-  unitPrice.value = data.unit_price || "";
-
-  engine.value = data.engine || "";
-  displacement.value = data.displacement || "";
-  power_hp.value = data.power_hp || "";
-  torque.value = data.torque || "";
-  fuel_system.value = data.fuel_system || "";
-  transmission.value = data.transmission || "";
-  throttle_type.value = data.throttle_type || "";
-  fuel_capacity.value = data.fuel_capacity || "";
-  abs.value = data.abs || "";
-  traction_control.value = data.traction_control || "";
-  headlight.value = data.headlight || "";
-  charging_port.value = data.charging_port || "";
-  color.value = data.color || "";
-  suspension.value = data.suspension || "";
-  brake.value = data.brake || "";
-
-  featuresContainer.innerHTML = "";
-  (data.features || []).forEach(f => addFeature(f));
-
-  imageUrlsContainer.innerHTML = "";
-  (data.image_urls || []).forEach(url => addImageUrl(url));
-  renderImagePreviews();
-}
-
-async function saveBike() {
-  if (!currentBike) {
-    alert("No bike selected");
-    return;
-  }
-
-  const updated = {
-    model: model.value.trim(),
-    category: category.value.trim(),
-    unit_price: unitPrice.value || 0,
-
-    engine: engine.value.trim(),
-    displacement: displacement.value.trim(),
-    power_hp: power_hp.value.trim(),
-    torque: torque.value.trim(),
-    fuel_system: fuel_system.value.trim(),
-    transmission: transmission.value.trim(),
-    throttle_type: throttle_type.value.trim(),
-    fuel_capacity: fuel_capacity.value.trim(),
-    abs: abs.value.trim(),
-    traction_control: traction_control.value.trim(),
-    headlight: headlight.value.trim(),
-    charging_port: charging_port.value.trim(),
-    color: color.value.trim(),
-    suspension: suspension.value.trim(),
-    brake: brake.value.trim(),
-
-    features: getFeatures(),
-    image_urls: getImageUrls()
-  };
-
-  const { error } = await client
-    .from("motorcycles")
-    .update(updated)
-    .eq("slug", currentBike.slug);
-
-  if (error) {
-    console.error(error);
-    alert("Save failed");
-    return;
-  }
-
-  alert("Saved");
-  await loadBikes();
-  document.getElementById("bikeSelect").value = currentBike.slug;
-  await loadBike(currentBike.slug);
-}
-
-async function createBike() {
-  const slug = prompt("Enter bike slug, e.g. 800nk");
-
-  if (!slug) return;
-
-  const cleanSlug = slug.trim().toLowerCase().replace(/\s+/g, "-");
-
-  const { error } = await client.from("motorcycles").insert([
-    {
-      slug: cleanSlug,
-      model: "New Bike",
-      category: "",
-      unit_price: 0,
-      features: [],
-      image_urls: []
+    function getImageUrls() {
+      return [...els.imageUrlsContainer.querySelectorAll("input")]
+        .map(input => input.value.trim())
+        .filter(Boolean);
     }
-  ]);
 
-  if (error) {
-    console.error(error);
-    alert("Error creating bike. Slug may already exist.");
-    return;
-  }
+    function renderImagePreviews() {
+      els.imagePreviewContainer.innerHTML = "";
 
-  alert("Bike created");
-  await loadBikes();
-  document.getElementById("bikeSelect").value = cleanSlug;
-  await loadBike(cleanSlug);
-}
+      getImageUrls().forEach(url => {
+        const img = document.createElement("img");
+        img.src = url;
+        img.alt = "Bike image";
+        img.onerror = () => {
+          img.style.display = "none";
+        };
+        els.imagePreviewContainer.appendChild(img);
+      });
+    }
 
-bikeSelect.onchange = (e) => loadBike(e.target.value);
-saveBtn.onclick = saveBike;
-document.getElementById("imageUpload").addEventListener("change", uploadSelectedImages);
+    async function uploadSelectedImages() {
+      const files = [...els.imageUpload.files];
+      if (!files.length) return;
 
-loadBikes();
-</script>
+      if (!currentBike) {
+        alert("Please select or create a bike first.");
+        els.imageUpload.value = "";
+        return;
+      }
 
+      for (const file of files) {
+        const ext = (file.name.split(".").pop() || "png").toLowerCase();
+        const safeSlug = currentBike.slug;
+        const fileName = `${safeSlug}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+        const { error: uploadError } = await client.storage
+          .from(BUCKET_NAME)
+          .upload(fileName, file, {
+            upsert: false,
+            contentType: file.type || undefined
+          });
+
+        if (uploadError) {
+          console.error("UPLOAD ERROR:", uploadError);
+          alert(`Image upload failed: ${uploadError.message || "Unknown error"}`);
+          els.imageUpload.value = "";
+          return;
+        }
+
+        const { data: publicUrlData } = client.storage
+          .from(BUCKET_NAME)
+          .getPublicUrl(fileName);
+
+        addImageUrl(publicUrlData.publicUrl);
+      }
+
+      els.imageUpload.value = "";
+    }
+
+    async function loadBikes() {
+      const { data, error } = await client
+        .from("motorcycles")
+        .select("*")
+        .order("model", { ascending: true });
+
+      if (error) {
+        console.error(error);
+        alert("Error loading bikes");
+        return;
+      }
+
+      els.bikeSelect.innerHTML = `
+        <option value="">Select a bike</option>
+        ${(data || []).map(bike => `
+          <option value="${escapeHtml(bike.slug)}">
+            ${escapeHtml(bike.model || bike.slug)}
+          </option>
+        `).join("")}
+      `;
+
+      if (currentBike?.slug) {
+        const stillExists = data.some(b => b.slug === currentBike.slug);
+        if (stillExists) {
+          els.bikeSelect.value = currentBike.slug;
+          await loadBike(currentBike.slug);
+          return;
+        }
+      }
+
+      if (data && data.length) {
+        els.bikeSelect.value = data[0].slug;
+        await loadBike(data[0].slug);
+      } else {
+        clearForm();
+      }
+    }
+
+    async function loadBike(slug) {
+      if (!slug) {
+        clearForm();
+        return;
+      }
+
+      const { data, error } = await client
+        .from("motorcycles")
+        .select("*")
+        .eq("slug", slug)
+        .single();
+
+      if (error) {
+        console.error(error);
+        alert("Error loading bike");
+        return;
+      }
+
+      currentBike = data;
+
+      els.model.value = data.model || "";
+      els.category.value = data.category || "";
+      els.unitPrice.value = data.unit_price ?? "";
+
+      els.engine.value = data.engine || "";
+      els.displacement.value = data.displacement || "";
+      els.power_hp.value = data.power_hp || "";
+      els.torque.value = data.torque || "";
+      els.fuel_system.value = data.fuel_system || "";
+      els.transmission.value = data.transmission || "";
+      els.throttle_type.value = data.throttle_type || "";
+      els.fuel_capacity.value = data.fuel_capacity || "";
+      els.abs.value = data.abs || "";
+      els.traction_control.value = data.traction_control || "";
+      els.headlight.value = data.headlight || "";
+      els.charging_port.value = data.charging_port || "";
+      els.color.value = data.color || "";
+      els.suspension.value = data.suspension || "";
+      els.brake.value = data.brake || "";
+
+      els.featuresContainer.innerHTML = "";
+      (data.features || []).forEach(feature => addFeature(feature));
+
+      els.imageUrlsContainer.innerHTML = "";
+      (data.image_urls || []).forEach(url => addImageUrl(url));
+
+      renderImagePreviews();
+    }
+
+    async function saveBike() {
+      if (!currentBike) {
+        alert("No bike selected");
+        return;
+      }
+
+      const updated = {
+        model: els.model.value.trim(),
+        category: els.category.value.trim(),
+        unit_price: Number(els.unitPrice.value) || 0,
+
+        engine: els.engine.value.trim(),
+        displacement: els.displacement.value.trim(),
+        power_hp: els.power_hp.value.trim(),
+        torque: els.torque.value.trim(),
+        fuel_system: els.fuel_system.value.trim(),
+        transmission: els.transmission.value.trim(),
+        throttle_type: els.throttle_type.value.trim(),
+        fuel_capacity: els.fuel_capacity.value.trim(),
+        abs: els.abs.value.trim(),
+        traction_control: els.traction_control.value.trim(),
+        headlight: els.headlight.value.trim(),
+        charging_port: els.charging_port.value.trim(),
+        color: els.color.value.trim(),
+        suspension: els.suspension.value.trim(),
+        brake: els.brake.value.trim(),
+
+        features: getFeatures(),
+        image_urls: getImageUrls()
+      };
+
+      const { error } = await client
+        .from("motorcycles")
+        .update(updated)
+        .eq("slug", currentBike.slug);
+
+      if (error) {
+        console.error(error);
+        alert("Save failed");
+        return;
+      }
+
+      alert("Saved");
+      await loadBikes();
+      els.bikeSelect.value = currentBike.slug;
+      await loadBike(currentBike.slug);
+    }
+
+    async function createBike() {
+      const slugInput = prompt("Enter bike slug, e.g. 800nk");
+      if (!slugInput) return;
+
+      const cleanSlug = slugify(slugInput);
+      if (!cleanSlug) {
+        alert("Invalid slug");
+        return;
+      }
+
+      const { error } = await client
+        .from("motorcycles")
+        .insert([{
+          slug: cleanSlug,
+          model: "New Bike",
+          category: "",
+          unit_price: 0,
+          features: [],
+          image_urls: []
+        }]);
+
+      if (error) {
+        console.error(error);
+        alert("Error creating bike. Slug may already exist.");
+        return;
+      }
+
+      alert("Bike created");
+      await loadBikes();
+      els.bikeSelect.value = cleanSlug;
+      await loadBike(cleanSlug);
+    }
+
+    els.bikeSelect.addEventListener("change", e => loadBike(e.target.value));
+    els.saveBtn.addEventListener("click", saveBike);
+    els.createBikeBtn.addEventListener("click", createBike);
+    els.reloadBtn.addEventListener("click", loadBikes);
+    els.addFeatureBtn.addEventListener("click", () => addFeature(""));
+    els.addImageUrlBtn.addEventListener("click", () => addImageUrl(""));
+    els.imageUpload.addEventListener("change", uploadSelectedImages);
+
+    loadBikes();
+  </script>
 </body>
 </html>
