@@ -688,52 +688,44 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       }
     }
 
-    async function loadInvoiceIntoAdmin(invoiceId) {
-      const { data, error } = await client
-        .from("invoices")
-        .select("*")
-        .eq("id", invoiceId)
-        .single();
+async function loadInvoiceIntoAdmin(invoiceId) {
+  const { data, error } = await client
+    .from("invoices")
+    .select("*")
+    .eq("id", invoiceId)
+    .single();
 
-      if (error) {
-        console.error(error);
-        alert("Failed to load invoice");
-        return;
-      }
+  if (error) {
+    console.error(error);
+    alert("Failed to load invoice");
+    return;
+  }
 
-      currentInvoiceId = data.id;
+  currentInvoiceId = data.id;
 
-      els.invoiceNumber.value = data.invoice_number || "";
-      els.invoiceDate.value = data.invoice_date || todayInputValue();
-      els.customerName.value = data.customer_name || "";
-      els.customerCompany.value = data.customer_company || "";
-      els.customerPhone.value = data.customer_phone || "";
-      els.customerEmail.value = data.customer_email || "";
-      els.customerAddress.value = data.customer_address || "";
-      els.quantity.value = data.quantity ?? 1;
-      els.invoiceUnitPrice.value = data.unit_price ?? "";
-      els.additionalCharges.value = data.additional_charges ?? 0;
-      els.currency.value = data.currency || "USD";
-      els.status.value = data.status || "Draft";
-      els.invoiceNotes.value = data.notes || "";
-      els.invoiceTerms.value = data.terms || "";
+  els.invoiceNumber.value = data.invoice_number || "";
+  els.invoiceDate.value = data.invoice_date || todayInputValue();
+  els.customerName.value = data.customer_name || "";
+  els.customerCompany.value = data.customer_company || "";
+  els.customerPhone.value = data.customer_phone || "";
+  els.customerEmail.value = data.customer_email || "";
+  els.customerAddress.value = data.customer_address || "";
+  els.quantity.value = data.quantity ?? 1;
+  els.invoiceUnitPrice.value = data.unit_price ?? "";
+  els.additionalCharges.value = data.additional_charges ?? 0;
+  els.currency.value = data.currency || "USD";
+  els.status.value = data.status || "Draft";
+  els.invoiceNotes.value = data.notes || "";
+  els.invoiceTerms.value = data.terms || "";
 
-      if (data.bike_snapshot?.slug) {
-        els.bikeSelect.value = data.bike_snapshot.slug;
-        await loadBike(data.bike_snapshot.slug);
-      } else if (data.bike_id) {
-        const { data: bike, error: bikeError } = await client
-          .from("motorcycles")
-          .select("*")
-          .eq("id", data.bike_id)
-          .single();
-
-        if (!bikeError && bike?.slug) {
-          els.bikeSelect.value = bike.slug;
-          await loadBike(bike.slug);
-        }
-      }
-    }
+  if (data.bike_snapshot?.slug) {
+    els.bikeSelect.value = data.bike_snapshot.slug;
+    await loadBike(data.bike_snapshot.slug);
+  } else if (data.bike_slug) {
+    els.bikeSelect.value = data.bike_slug;
+    await loadBike(data.bike_slug);
+  }
+}
 
     els.bikeSelect.addEventListener("change", e => loadBike(e.target.value));
     els.saveBtn.addEventListener("click", saveBike);
