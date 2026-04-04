@@ -687,12 +687,11 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
   alert("Invoice saved");
 }
         return result;
-      } catch (err) {
+    } catch (err) {
   console.error("SAVE INVOICE ERROR:", err);
   alert(err?.message || JSON.stringify(err) || "Failed to save invoice");
   return null;
 }
-    }
 
 async function loadInvoiceIntoAdmin(invoiceId) {
   const { data, error } = await client
