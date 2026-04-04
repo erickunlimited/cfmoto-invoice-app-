@@ -2,1195 +2,903 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Rhobust Engineering Limited · Bike Editor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rhobust Engineering Limited · Invoice</title>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --teal:#00B4B4;
-      --ink:#0D0D0D;
-      --soft:#6B6B6B;
-      --ghost:#9E9E9E;
-      --paper:#F5F7F7;
-      --warm:#EDF2F2;
-      --border:#D4DCDC;
-      --fine:#E0E8E8;
-      --white:#FFFFFF;
-      --serif:"Cormorant Garamond", Georgia, serif;
-      --sans:"Outfit", Helvetica Neue, Arial, sans-serif;
-      --e-bg:#0D0D0D;
-      --e-card:#181818;
-      --e-bdr:#2A2A2A;
-      --e-inp:#1E1E1E;
-      --e-txt:rgba(255,255,255,0.88);
-      --e-gst:rgba(255,255,255,0.34);
-      --ok:#16a34a;
-      --danger:#dc2626;
+      --teal: #00B4B4;
+      --ink: #111111;
+      --soft: #666666;
+      --ghost: #999999;
+      --line: #D7DFDF;
+      --paper: #F7F8F8;
+      --white: #FFFFFF;
+      --serif: "Cormorant Garamond", Georgia, serif;
+      --sans: "Outfit", Arial, sans-serif;
     }
 
-    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-    body {
-      font-family:var(--sans);
-      background:#111;
-      color:var(--ink);
-      min-height:100vh;
-      -webkit-font-smoothing:antialiased;
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #e9eeee;
+      color: var(--ink);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
     }
 
-    .app {
-      display:grid;
-      grid-template-columns:380px 1fr;
-      min-height:100vh;
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: rgba(17,17,17,0.95);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(8px);
     }
 
-    .editor {
-      background:var(--e-bg);
-      border-right:1px solid var(--e-bdr);
-      display:flex;
-      flex-direction:column;
-      height:100vh;
-      position:sticky;
-      top:0;
+    .topbar-left {
+      color: rgba(255,255,255,0.88);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
-    .editor__head {
-      padding:18px 20px 14px;
-      border-bottom:1px solid var(--e-bdr);
+    .topbar-right {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
-    .editor__title {
-      font-family:var(--serif);
-      font-size:20px;
-      color:#fff;
-      font-weight:400;
+    button, .link-btn {
+      border: none;
+      border-radius: 4px;
+      padding: 11px 14px;
+      font-family: var(--sans);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
-
-    .editor__sub {
-      margin-top:4px;
-      font-size:9px;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-      color:var(--teal);
-    }
-
-    .editor__body {
-      flex:1;
-      overflow-y:auto;
-      padding:16px 20px 22px;
-    }
-
-    .editor__footer {
-      border-top:1px solid var(--e-bdr);
-      padding:14px 20px;
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
-    }
-
-    .editor__section {
-      margin-bottom:22px;
-    }
-
-    .editor__section-label {
-      font-size:8.5px;
-      font-weight:600;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      color:var(--teal);
-      padding-bottom:8px;
-      border-bottom:1px solid var(--e-bdr);
-      margin-bottom:12px;
-    }
-
-    .field { margin-bottom:10px; }
-    .field label {
-      display:block;
-      font-size:9px;
-      letter-spacing:.1em;
-      text-transform:uppercase;
-      color:var(--e-gst);
-      margin-bottom:4px;
-    }
-
-    .field input,
-    .field textarea,
-    .field select {
-      width:100%;
-      background:var(--e-inp);
-      border:1px solid var(--e-bdr);
-      color:var(--e-txt);
-      border-radius:3px;
-      padding:8px 10px;
-      font-family:var(--sans);
-      font-size:12px;
-      outline:none;
-      appearance:none;
-    }
-
-    .field textarea {
-      resize:vertical;
-      min-height:62px;
-      line-height:1.5;
-    }
-
-    .field input:focus,
-    .field textarea:focus,
-    .field select:focus {
-      border-color:var(--teal);
-    }
-
-    .field-row {
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
-    }
-
-    .btn-main, .btn-alt, .btn-mini, .btn-danger {
-      border:none;
-      cursor:pointer;
-      border-radius:3px;
-      font-family:var(--sans);
-      transition:opacity .15s;
-    }
-
-    .btn-main:hover, .btn-alt:hover, .btn-mini:hover, .btn-danger:hover { opacity:.88; }
 
     .btn-main {
-      background:var(--teal);
-      color:#000;
-      padding:11px 10px;
-      font-size:11px;
-      font-weight:600;
-      letter-spacing:.08em;
-      text-transform:uppercase;
+      background: var(--teal);
+      color: #000;
     }
 
     .btn-alt {
-      background:var(--e-inp);
-      color:var(--e-txt);
-      border:1px solid var(--e-bdr);
-      padding:11px 10px;
-      font-size:11px;
-      font-weight:600;
-      letter-spacing:.08em;
-      text-transform:uppercase;
+      background: #1e1e1e;
+      color: rgba(255,255,255,0.92);
+      border: 1px solid rgba(255,255,255,0.12);
     }
 
-    .btn-mini {
-      background:var(--e-inp);
-      color:var(--e-txt);
-      border:1px solid var(--e-bdr);
-      padding:8px 10px;
-      font-size:10px;
-      font-weight:600;
-      letter-spacing:.08em;
-      text-transform:uppercase;
+    .page {
+      padding: 28px 12px 50px;
     }
 
-    .btn-danger {
-      background:#2a1111;
-      color:#ffb4b4;
-      border:1px solid #5b2121;
-      padding:8px 10px;
-      font-size:10px;
-      font-weight:600;
-      letter-spacing:.08em;
-      text-transform:uppercase;
+    .sheet {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      background: var(--white);
+      box-shadow: 0 12px 38px rgba(0,0,0,0.10);
+      padding: 18mm 16mm 18mm;
+      position: relative;
     }
 
-    .list-box {
-      border:1px solid var(--e-bdr);
-      background:var(--e-card);
-      max-height:240px;
-      overflow:auto;
+    .loading, .error {
+      width: 210mm;
+      margin: 40px auto;
+      background: #fff;
+      padding: 30px;
+      box-shadow: 0 12px 38px rgba(0,0,0,0.08);
+      font-size: 15px;
+      line-height: 1.6;
     }
 
-    .list-item {
-      padding:10px;
-      border-bottom:1px solid var(--e-bdr);
-      cursor:pointer;
-    }
+    .error { color: #8a1f1f; }
 
-    .list-item:last-child { border-bottom:none; }
-    .list-item:hover { background:#202020; }
-
-    .list-item__title {
-      color:#fff;
-      font-size:11px;
-      font-weight:600;
-    }
-
-    .list-item__meta {
-      color:var(--e-gst);
-      font-size:10px;
-      margin-top:3px;
-      line-height:1.4;
-    }
-
-    .row-actions {
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-top:8px;
-    }
-
-    .feature-item, .image-item {
-      border:1px solid var(--e-bdr);
-      background:var(--e-card);
-      padding:10px;
-      margin-bottom:8px;
-    }
-
-    .image-grid {
-      display:grid;
-      grid-template-columns:1fr auto;
-      gap:8px;
-      align-items:end;
-    }
-
-    .preview {
-      background:var(--warm);
-      padding:22px 14px 40px;
-    }
-
-    .preview__inner {
-      width:820px;
-      margin:0 auto;
-    }
-
-    .card {
-      background:var(--paper);
-      border:1px solid var(--border);
-      box-shadow:0 8px 28px rgba(0,0,0,.10);
-      padding:28px;
-    }
-
-    .card__head {
-      border-bottom:1px solid var(--border);
-      padding-bottom:18px;
-      margin-bottom:18px;
-      display:grid;
-      grid-template-columns:1fr auto;
-      gap:18px;
-      align-items:start;
+    .header {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 24px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 16px;
+      margin-bottom: 18px;
     }
 
     .brand {
-      font-family:var(--serif);
-      font-size:26px;
-      line-height:1;
-      font-weight:400;
-      color:var(--ink);
+      font-family: var(--serif);
+      font-size: 34px;
+      line-height: 0.95;
+      font-weight: 400;
     }
 
     .brand-sub {
-      margin-top:6px;
-      color:var(--soft);
-      font-size:10px;
-      line-height:1.5;
-      letter-spacing:.06em;
-      text-transform:uppercase;
-      white-space:pre-line;
+      margin-top: 8px;
+      color: var(--soft);
+      font-size: 10px;
+      line-height: 1.6;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      white-space: pre-line;
     }
 
-    .card-kicker {
-      color:var(--teal);
-      font-size:10px;
-      text-transform:uppercase;
-      letter-spacing:.18em;
-      font-weight:600;
-      text-align:right;
+    .invoice-meta {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .meta-kicker {
+      color: var(--teal);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .meta-box {
+      border: 1px solid var(--line);
+      padding: 12px 14px;
+    }
+
+    .meta-row {
+      display: grid;
+      grid-template-columns: 96px 1fr;
+      gap: 10px;
+      padding: 5px 0;
+      border-bottom: 1px solid #edf1f1;
+      font-size: 12px;
+    }
+
+    .meta-row:last-child {
+      border-bottom: none;
+    }
+
+    .meta-label {
+      color: var(--ghost);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 9px;
+      padding-top: 2px;
+    }
+
+    .section {
+      margin-top: 18px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      border-top: 1px solid #edf1f1;
+      padding-top: 14px;
+      margin-bottom: 12px;
+    }
+
+    .section-num {
+      color: var(--teal);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .section-name {
+      font-family: var(--serif);
+      font-size: 24px;
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    .customer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .box {
+      border: 1px solid var(--line);
+      padding: 14px;
+      min-height: 110px;
+    }
+
+    .box-label {
+      color: var(--ghost);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 9px;
+      margin-bottom: 8px;
+    }
+
+    .box-body {
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-wrap;
     }
 
     .hero {
-      display:grid;
-      grid-template-columns:1fr;
-      gap:18px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+      align-items: start;
     }
 
     .hero-title {
-      font-family:var(--serif);
-      font-size:42px;
-      line-height:.96;
-      font-weight:400;
+      font-family: var(--serif);
+      font-size: 42px;
+      line-height: 0.94;
+      font-weight: 400;
+      margin-bottom: 6px;
     }
 
-    .hero-cat {
-      color:var(--soft);
-      font-size:12px;
-      margin-top:6px;
+    .hero-sub {
+      color: var(--soft);
+      font-size: 13px;
+      line-height: 1.5;
     }
 
-    .gallery {
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:10px;
-      margin-top:10px;
+    .hero-image-wrap {
+      border: 1px solid var(--line);
+      background: #fafafa;
+      min-height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
     }
 
-    .gallery.one { grid-template-columns:1fr; }
-    .gallery.two { grid-template-columns:1fr 1fr; }
-
-    .gallery-card {
-      background:#fff;
-      border:1px solid var(--border);
-      min-height:170px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:10px;
+    .hero-image {
+      width: 100%;
+      max-height: 230px;
+      object-fit: contain;
+      display: block;
     }
 
-    .gallery.one .gallery-card { min-height:280px; }
-
-    .gallery img {
-      width:100%;
-      height:150px;
-      object-fit:contain;
-      display:block;
+    .hero-image-empty {
+      color: var(--ghost);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
     }
 
-    .gallery.one img { height:255px; }
-
-    .empty {
-      color:var(--ghost);
-      font-size:11px;
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      padding:18px 0 10px;
+    .spec-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 20px;
     }
 
-    .sec-title {
-      display:flex;
-      align-items:baseline;
-      gap:8px;
-      margin:18px 0 12px;
-      border-top:1px solid var(--fine);
-      padding-top:16px;
+    .spec-item {
+      border-bottom: 1px solid #edf1f1;
+      padding-bottom: 8px;
     }
-
-    .sec-num {
-      color:var(--teal);
-      font-size:9px;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      font-weight:600;
-    }
-
-    .sec-name {
-      font-family:var(--serif);
-      font-size:20px;
-      font-weight:400;
-    }
-
-    .specs-grid {
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px 18px;
-    }
-
-    .spec-card {
-      display:none;
-      border-bottom:1px solid var(--fine);
-      padding-bottom:8px;
-    }
-
-    .spec-card.show { display:block; }
 
     .spec-name {
-      color:var(--ghost);
-      font-size:8px;
-      text-transform:uppercase;
-      letter-spacing:.16em;
-      margin-bottom:4px;
+      color: var(--ghost);
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      margin-bottom: 4px;
     }
 
-    .spec-val {
-      color:var(--ink);
-      font-size:12px;
-      line-height:1.45;
+    .spec-value {
+      font-size: 12px;
+      line-height: 1.5;
     }
 
     .features {
-      display:flex;
-      flex-wrap:wrap;
-      gap:12px;
-      margin-top:2px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .pill {
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-height:40px;
-      padding:10px 16px;
-      border:1px solid rgba(0,180,180,.32);
-      background:rgba(0,180,180,.10);
-      color:var(--ink);
-      font-size:11px;
-      line-height:1.2;
-      letter-spacing:.10em;
-      text-transform:uppercase;
-      border-radius:999px;
-      font-weight:500;
-      max-width:100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 10px 14px;
+      border: 1px solid rgba(0,180,180,0.28);
+      background: rgba(0,180,180,0.10);
+      border-radius: 999px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.10em;
+      line-height: 1.2;
     }
 
-    .preview-notes {
-      color:var(--soft);
-      font-size:11px;
-      line-height:1.6;
-      white-space:pre-wrap;
+    .table {
+      width: 100%;
+      border-collapse: collapse;
     }
 
-    .hidden { display:none !important; }
+    .table th {
+      text-align: left;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--ghost);
+      font-weight: 600;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
 
-    @media (max-width: 1100px) {
-      .app { grid-template-columns:1fr; }
-      .editor { height:auto; position:static; }
-      .preview { padding:16px 8px 32px; }
-      .preview__inner { width:100%; max-width:820px; }
-      .card__head, .field-row, .image-grid, .specs-grid { grid-template-columns:1fr; }
-      .card-kicker { text-align:left; }
-      .gallery, .gallery.two { grid-template-columns:1fr; }
-      .editor__footer { grid-template-columns:1fr; }
+    .table td {
+      font-size: 13px;
+      padding: 12px 0;
+      border-bottom: 1px solid #edf1f1;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    .table .num {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .totals {
+      margin-top: 14px;
+      margin-left: auto;
+      width: 320px;
+    }
+
+    .totals-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      padding: 7px 0;
+      border-bottom: 1px solid #edf1f1;
+      font-size: 13px;
+    }
+
+    .totals-row.final {
+      border-bottom: 1px solid var(--line);
+      padding-top: 10px;
+      padding-bottom: 10px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .terms, .notes {
+      font-size: 12px;
+      line-height: 1.8;
+      color: #333;
+      white-space: pre-wrap;
+    }
+
+    .footer {
+      margin-top: 28px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      color: var(--ghost);
+      font-size: 10px;
+      line-height: 1.7;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @page {
+      size: A4;
+      margin: 12mm;
+    }
+
+    @media print {
+      html, body {
+        background: #fff;
+      }
+
+      .topbar {
+        display: none !important;
+      }
+
+      .page {
+        padding: 0;
+      }
+
+      .sheet {
+        width: auto;
+        min-height: auto;
+        margin: 0;
+        box-shadow: none;
+        padding: 0;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .sheet, .loading, .error {
+        width: 100%;
+      }
+
+      .header,
+      .customer-grid,
+      .hero,
+      .spec-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .meta-kicker {
+        text-align: left;
+      }
+
+      .totals {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-<div class="app">
-  <aside class="editor">
-    <div class="editor__head">
-      <div class="editor__title">Bike Editor</div>
-      <div class="editor__sub">Rhobust Engineering Limited</div>
+  <div class="topbar">
+    <div class="topbar-left">Invoice Preview</div>
+    <div class="topbar-right">
+      <button class="btn-main" id="btn-print" type="button">Print / Save PDF</button>
+      <a class="link-btn btn-alt" id="btn-edit" href="admin.html">Edit Invoice</a>
     </div>
+  </div>
 
-    <div class="editor__body">
-      <div class="editor__section">
-        <div class="editor__section-label">Search / Load</div>
-        <div class="field">
-          <label>Search bikes</label>
-          <input id="f-search" type="text" placeholder="Model, slug, category...">
-        </div>
-        <div class="list-box" id="bike-list"></div>
-        <div class="row-actions">
-          <button class="btn-mini" id="btn-new" type="button">New</button>
-          <button class="btn-mini" id="btn-duplicate" type="button">Duplicate</button>
-        </div>
-      </div>
+  <div id="loading" class="loading">Loading invoice…</div>
+  <div id="error" class="error hidden"></div>
 
-      <div class="editor__section">
-        <div class="editor__section-label">Identity</div>
-        <div class="field">
-          <label>Slug</label>
-          <input id="f-slug" type="text" placeholder="800mt-x">
+  <div class="page hidden" id="page">
+    <div class="sheet">
+      <header class="header">
+        <div>
+          <div class="brand">Rhobust Engineering Limited</div>
+          <div class="brand-sub">No. 25, Nuumo Ayite Kobla Street
+Kokomlemle, Accra</div>
         </div>
-        <div class="field">
-          <label>Model</label>
-          <input id="f-model" type="text">
-        </div>
-        <div class="field">
-          <label>Category</label>
-          <input id="f-category" type="text">
-        </div>
-        <div class="field">
-          <label>Default Unit Price</label>
-          <input id="f-unit-price" type="number" step="0.01" value="0">
-        </div>
-      </div>
 
-      <div class="editor__section">
-        <div class="editor__section-label">Technical Specification</div>
-        <div class="field-row">
-          <div class="field">
-            <label>Engine</label>
-            <input id="f-engine" type="text">
-          </div>
-          <div class="field">
-            <label>Displacement</label>
-            <input id="f-displacement" type="text">
+        <div class="invoice-meta">
+          <div class="meta-kicker">Commercial Invoice</div>
+          <div class="meta-box">
+            <div class="meta-row">
+              <div class="meta-label">Invoice No.</div>
+              <div id="out-invoice-number">—</div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-label">Date</div>
+              <div id="out-invoice-date">—</div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-label">Status</div>
+              <div id="out-status">Draft</div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-label">Currency</div>
+              <div id="out-currency">USD</div>
+            </div>
           </div>
         </div>
+      </header>
 
-        <div class="field-row">
-          <div class="field">
-            <label>Power / HP</label>
-            <input id="f-power-hp" type="text">
-          </div>
-          <div class="field">
-            <label>Torque</label>
-            <input id="f-torque" type="text">
-          </div>
+      <section class="section">
+        <div class="section-head">
+          <div class="section-num">01</div>
+          <div class="section-name">Customer</div>
         </div>
 
-        <div class="field-row">
-          <div class="field">
-            <label>Fuel System</label>
-            <input id="f-fuel-system" type="text">
+        <div class="customer-grid">
+          <div class="box">
+            <div class="box-label">Bill To</div>
+            <div class="box-body" id="out-customer-block">—</div>
           </div>
-          <div class="field">
-            <label>Transmission</label>
-            <input id="f-transmission" type="text">
-          </div>
-        </div>
 
-        <div class="field-row">
-          <div class="field">
-            <label>Throttle Type</label>
-            <input id="f-throttle-type" type="text">
-          </div>
-          <div class="field">
-            <label>Fuel Capacity</label>
-            <input id="f-fuel-capacity" type="text">
-          </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label>ABS</label>
-            <input id="f-abs" type="text">
-          </div>
-          <div class="field">
-            <label>Traction Control</label>
-            <input id="f-traction-control" type="text">
-          </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label>Headlight</label>
-            <input id="f-headlight" type="text">
-          </div>
-          <div class="field">
-            <label>Charging Port</label>
-            <input id="f-charging-port" type="text">
-          </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label>Color</label>
-            <input id="f-color" type="text">
-          </div>
-          <div class="field">
-            <label>Suspension</label>
-            <input id="f-suspension" type="text">
-          </div>
-        </div>
-
-        <div class="field">
-          <label>Brake</label>
-          <input id="f-brake" type="text">
-        </div>
-      </div>
-
-      <div class="editor__section">
-        <div class="editor__section-label">Key Features</div>
-        <div id="features"></div>
-        <div class="row-actions">
-          <button class="btn-mini" id="btn-add-feature" type="button">Add Feature</button>
-        </div>
-      </div>
-
-      <div class="editor__section">
-        <div class="editor__section-label">Images</div>
-        <div class="field">
-          <label>Upload Images</label>
-          <input id="f-image-upload" type="file" accept="image/png,image/jpeg,image/webp" multiple>
-        </div>
-        <div id="images"></div>
-        <div class="row-actions">
-          <button class="btn-mini" id="btn-add-image-url" type="button">Add Image URL</button>
-        </div>
-      </div>
-
-      <div class="editor__section">
-        <div class="editor__section-label">Optional Notes</div>
-        <div class="field">
-          <label>Internal Note</label>
-          <textarea id="f-note"></textarea>
-        </div>
-      </div>
-    </div>
-
-    <div class="editor__footer">
-      <button class="btn-main" id="btn-save">Save Bike</button>
-      <button class="btn-alt" id="btn-reset">Reset</button>
-    </div>
-  </aside>
-
-  <main class="preview">
-    <div class="preview__inner">
-      <div class="card">
-        <div class="card__head">
-          <div>
-            <div class="brand">Rhobust Engineering Limited</div>
-            <div class="brand-sub">Bike Catalogue Preview
+          <div class="box">
+            <div class="box-label">Seller</div>
+            <div class="box-body">Rhobust Engineering Limited
 No. 25, Nuumo Ayite Kobla Street
 Kokomlemle, Accra</div>
           </div>
-          <div class="card-kicker">Preview</div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <div class="section-num">02</div>
+          <div class="section-name">Vehicle</div>
         </div>
 
-        <section class="hero">
+        <div class="hero">
           <div>
-            <div class="hero-title" id="o-model">—</div>
-            <div class="hero-cat" id="o-category">—</div>
+            <div class="hero-title" id="out-bike-model">—</div>
+            <div class="hero-sub" id="out-bike-category">—</div>
           </div>
 
-          <div>
-            <div class="gallery" id="o-gallery"></div>
-            <div class="empty" id="o-gallery-empty">No Image</div>
+          <div class="hero-image-wrap">
+            <img id="out-bike-image" class="hero-image hidden" alt="Bike image" />
+            <div id="out-bike-image-empty" class="hero-image-empty">No Image</div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="specs-section">
-          <div class="sec-title">
-            <div class="sec-num">01</div>
-            <div class="sec-name">Technical Specification</div>
-          </div>
+      <section class="section" id="specs-section">
+        <div class="section-head">
+          <div class="section-num">03</div>
+          <div class="section-name">Technical Specification</div>
+        </div>
+        <div class="spec-grid" id="out-spec-grid"></div>
+      </section>
 
-          <div class="specs-grid">
-            <div class="spec-card" data-card="engine"><div class="spec-name">Engine</div><div class="spec-val" id="o-engine"></div></div>
-            <div class="spec-card" data-card="displacement"><div class="spec-name">Displacement</div><div class="spec-val" id="o-displacement"></div></div>
-            <div class="spec-card" data-card="power_hp"><div class="spec-name">Power / HP</div><div class="spec-val" id="o-power_hp"></div></div>
-            <div class="spec-card" data-card="torque"><div class="spec-name">Torque</div><div class="spec-val" id="o-torque"></div></div>
-            <div class="spec-card" data-card="fuel_system"><div class="spec-name">Fuel System</div><div class="spec-val" id="o-fuel_system"></div></div>
-            <div class="spec-card" data-card="transmission"><div class="spec-name">Transmission</div><div class="spec-val" id="o-transmission"></div></div>
-            <div class="spec-card" data-card="throttle_type"><div class="spec-name">Throttle Type</div><div class="spec-val" id="o-throttle_type"></div></div>
-            <div class="spec-card" data-card="fuel_capacity"><div class="spec-name">Fuel Capacity</div><div class="spec-val" id="o-fuel_capacity"></div></div>
-            <div class="spec-card" data-card="abs"><div class="spec-name">ABS</div><div class="spec-val" id="o-abs"></div></div>
-            <div class="spec-card" data-card="traction_control"><div class="spec-name">Traction Control</div><div class="spec-val" id="o-traction_control"></div></div>
-            <div class="spec-card" data-card="headlight"><div class="spec-name">Headlight</div><div class="spec-val" id="o-headlight"></div></div>
-            <div class="spec-card" data-card="charging_port"><div class="spec-name">Charging Port</div><div class="spec-val" id="o-charging_port"></div></div>
-            <div class="spec-card" data-card="color"><div class="spec-name">Color</div><div class="spec-val" id="o-color"></div></div>
-            <div class="spec-card" data-card="suspension"><div class="spec-name">Suspension</div><div class="spec-val" id="o-suspension"></div></div>
-            <div class="spec-card" data-card="brake"><div class="spec-name">Brake</div><div class="spec-val" id="o-brake"></div></div>
-          </div>
-        </section>
+      <section class="section" id="features-section">
+        <div class="section-head">
+          <div class="section-num">04</div>
+          <div class="section-name">Key Features</div>
+        </div>
+        <div class="features" id="out-features"></div>
+      </section>
 
-        <section id="features-section">
-          <div class="sec-title">
-            <div class="sec-num">02</div>
-            <div class="sec-name">Key Features</div>
-          </div>
-          <div class="features" id="o-features"></div>
-        </section>
+      <section class="section">
+        <div class="section-head">
+          <div class="section-num">05</div>
+          <div class="section-name">Commercial Breakdown</div>
+        </div>
 
-        <section>
-          <div class="sec-title">
-            <div class="sec-num">03</div>
-            <div class="sec-name">Commercial Reference</div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th class="num">Qty</th>
+              <th class="num">Unit Price</th>
+              <th class="num">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="out-line-description">—</td>
+              <td class="num" id="out-qty">1</td>
+              <td class="num" id="out-unit-price">USD 0.00</td>
+              <td class="num" id="out-line-total">USD 0.00</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="totals">
+          <div class="totals-row">
+            <div>Subtotal</div>
+            <div id="out-subtotal">USD 0.00</div>
           </div>
-          <div class="preview-notes" id="o-price">—</div>
-          <div class="preview-notes" id="o-note" style="margin-top:10px;"></div>
-        </section>
-      </div>
+          <div class="totals-row">
+            <div>Additional Charges</div>
+            <div id="out-extra">USD 0.00</div>
+          </div>
+          <div class="totals-row final">
+            <div>Total</div>
+            <div id="out-total">USD 0.00</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="notes-section">
+        <div class="section-head">
+          <div class="section-num">06</div>
+          <div class="section-name">Notes</div>
+        </div>
+        <div class="notes" id="out-notes"></div>
+      </section>
+
+      <section class="section">
+        <div class="section-head">
+          <div class="section-num">07</div>
+          <div class="section-name">Terms</div>
+        </div>
+        <div class="terms" id="out-terms">3 years dealer-backed warranty from Rhobust Engineering Limited.
+Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached first.</div>
+      </section>
+
+      <footer class="footer">
+        <div id="out-footer-left">Prepared by Rhobust Engineering Limited</div>
+        <div id="out-footer-right">Invoice preview</div>
+      </footer>
     </div>
-  </main>
-</div>
+  </div>
 
-<script>
-const client = window.supabase.createClient(
-  "https://apmfnubljrutnnignehh.supabase.co",
-  "sb_publishable_zi5AnOBw_D7pl9WuhcGDug_SK0zgESg"
-);
+  <script>
+    const client = window.supabase.createClient(
+      "https://apmfnubljrutnnignehh.supabase.co",
+      "sb_publishable_zi5AnOBw_D7pl9WuhcGDug_SK0zgESg"
+    );
 
-const BUCKET_NAME = "bike-images";
+    const SPEC_KEYS = [
+      ["engine", "Engine"],
+      ["displacement", "Displacement"],
+      ["power_hp", "Power / HP"],
+      ["torque", "Torque"],
+      ["fuel_system", "Fuel System"],
+      ["transmission", "Transmission"],
+      ["throttle_type", "Throttle Type"],
+      ["fuel_capacity", "Fuel Capacity"],
+      ["abs", "ABS"],
+      ["traction_control", "Traction Control"],
+      ["headlight", "Headlight"],
+      ["charging_port", "Charging Port"],
+      ["color", "Color"],
+      ["suspension", "Suspension"],
+      ["brake", "Brake"]
+    ];
 
-const SPEC_FIELDS = [
-  "engine","displacement","power_hp","torque","fuel_system","transmission",
-  "throttle_type","fuel_capacity","abs","traction_control","headlight",
-  "charging_port","color","suspension","brake"
-];
+    const $ = (id) => document.getElementById(id);
 
-let motorcycles = [];
-let currentBikeId = null;
+    function getParam(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
 
-const $ = id => document.getElementById(id);
+    function money(value, currency = "USD") {
+      const n = Number(value) || 0;
+      return `${currency} ${n.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })}`;
+    }
 
-function esc(v) {
-  return String(v ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
+    function niceDate(value) {
+      if (!value) return "—";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return String(value);
+      return d.toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+      });
+    }
 
-function splitFeaturePills(rawFeatures) {
-  return rawFeatures
-    .flatMap(f => String(f).split(/[,.]+/))
-    .map(f => f.trim())
-    .filter(Boolean);
-}
+    function splitFeaturePills(rawFeatures) {
+      return (rawFeatures || [])
+        .flatMap(f => String(f).split(/[,.]+/))
+        .map(f => f.trim())
+        .filter(Boolean);
+    }
 
-function money(val) {
-  const n = Number(val) || 0;
-  return `USD ${n.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`;
-}
+    function buildCustomerBlock(record) {
+      const lines = [
+        record.customer_name || record.client_name || "",
+        record.customer_company || record.client_company || "",
+        record.customer_phone || record.client_phone || "",
+        record.customer_email || record.client_email || "",
+        record.customer_address || record.client_address || ""
+      ].filter(Boolean);
 
-async function searchBikes(query = "") {
-  let request = client
-    .from("motorcycles")
-    .select("id, slug, model, category, unit_price")
-    .order("model", { ascending:true })
-    .limit(50);
+      return lines.length ? lines.join("\n") : "—";
+    }
 
-  if (query.trim()) {
-    request = request.or(`model.ilike.%${query}%,slug.ilike.%${query}%,category.ilike.%${query}%`);
-  }
+    function pickSnapshot(record) {
+      return (
+        record.bike_snapshot ||
+        record.snapshot_json ||
+        record.snapshot ||
+        record.item_snapshot ||
+        null
+      );
+    }
 
-  const { data, error } = await request;
-  if (error) {
-    console.error(error);
-    return;
-  }
+    async function fetchBikeFallback(record) {
+      const bikeId = record.bike_id || record.motorcycle_id || null;
+      if (!bikeId) return null;
 
-  $("bike-list").innerHTML = "";
-  (data || []).forEach(bike => {
-    const div = document.createElement("div");
-    div.className = "list-item";
-    div.innerHTML = `
-      <div class="list-item__title">${esc(bike.model || "Untitled")}</div>
-      <div class="list-item__meta">${esc(bike.slug || "—")} · ${esc(bike.category || "—")}<br>${money(bike.unit_price || 0)}</div>
-    `;
-    div.addEventListener("click", () => loadBike(bike.id));
-    $("bike-list").appendChild(div);
-  });
-}
+      const { data } = await client
+        .from("motorcycles")
+        .select("*")
+        .eq("id", bikeId)
+        .single();
 
-async function loadBike(id) {
-  const { data, error } = await client
-    .from("motorcycles")
-    .select("*")
-    .eq("id", id)
-    .single();
+      return data || null;
+    }
 
-  if (error) {
-    console.error(error);
-    alert("Failed to load bike");
-    return;
-  }
+    function normalizeInvoice(record, snapshot, bikeFallback) {
+      const src = snapshot || bikeFallback || {};
 
-  currentBikeId = data.id;
+      const quantity = Number(record.quantity ?? record.qty ?? 1) || 1;
+      const unitPrice = Number(
+        record.unit_price ??
+        record.price ??
+        src.unit_price ??
+        0
+      ) || 0;
 
-  $("f-slug").value = data.slug || "";
-  $("f-model").value = data.model || "";
-  $("f-category").value = data.category || "";
-  $("f-unit-price").value = data.unit_price || 0;
+      const extra = Number(
+        record.additional_charges ??
+        record.extra_charges ??
+        record.extra ??
+        0
+      ) || 0;
 
-  $("f-engine").value = data.engine || "";
-  $("f-displacement").value = data.displacement || "";
-  $("f-power-hp").value = data.power_hp || "";
-  $("f-torque").value = data.torque || "";
-  $("f-fuel-system").value = data.fuel_system || "";
-  $("f-transmission").value = data.transmission || "";
-  $("f-throttle-type").value = data.throttle_type || "";
-  $("f-fuel-capacity").value = data.fuel_capacity || "";
-  $("f-abs").value = data.abs || "";
-  $("f-traction-control").value = data.traction_control || "";
-  $("f-headlight").value = data.headlight || "";
-  $("f-charging-port").value = data.charging_port || "";
-  $("f-color").value = data.color || "";
-  $("f-suspension").value = data.suspension || "";
-  $("f-brake").value = data.brake || "";
+      const subtotal = Number(
+        record.subtotal ??
+        (quantity * unitPrice)
+      ) || 0;
 
-  $("f-note").value = data.internal_note || "";
+      const total = Number(
+        record.total ??
+        record.grand_total ??
+        (subtotal + extra)
+      ) || 0;
 
-  $("features").innerHTML = "";
-  (data.features || []).forEach(addFeatureRow);
+      const currency = record.currency || "USD";
+      const images = src.image_urls || src.images || [];
+      const features = src.features || [];
+      const bikeModel = record.bike_model || src.model || src.name || "—";
+      const bikeCategory = record.bike_category || src.category || "";
 
-  $("images").innerHTML = "";
-  (data.image_urls || []).forEach(addImageRow);
+      return {
+        id: record.id,
+        invoiceNumber: record.invoice_number || record.number || `INV-${record.id}`,
+        invoiceDate: record.invoice_date || record.created_at || record.date || null,
+        status: record.status || "Draft",
+        currency,
+        customerBlock: buildCustomerBlock(record),
+        bikeModel,
+        bikeCategory,
+        imageUrl: Array.isArray(images) && images.length ? images[0] : "",
+        specs: src,
+        features,
+        quantity,
+        unitPrice,
+        subtotal,
+        extra,
+        total,
+        description: record.line_description || `${bikeModel}${bikeCategory ? " · " + bikeCategory : ""}`,
+        notes: record.notes || record.internal_note || "",
+        terms: record.terms || "3 years dealer-backed warranty from Rhobust Engineering Limited.\nComplimentary scheduled servicing for 2 years or 20,000 km, whichever is reached first."
+      };
+    }
 
-  updatePreview();
-}
+    function renderSpecs(specs) {
+      const grid = $("out-spec-grid");
+      grid.innerHTML = "";
 
-function clearForm() {
-  currentBikeId = null;
+      let visibleCount = 0;
 
-  $("f-slug").value = "";
-  $("f-model").value = "";
-  $("f-category").value = "";
-  $("f-unit-price").value = 0;
+      SPEC_KEYS.forEach(([key, label]) => {
+        const value = specs?.[key];
+        if (!value || !String(value).trim()) return;
 
-  $("f-engine").value = "";
-  $("f-displacement").value = "";
-  $("f-power-hp").value = "";
-  $("f-torque").value = "";
-  $("f-fuel-system").value = "";
-  $("f-transmission").value = "";
-  $("f-throttle-type").value = "";
-  $("f-fuel-capacity").value = "";
-  $("f-abs").value = "";
-  $("f-traction-control").value = "";
-  $("f-headlight").value = "";
-  $("f-charging-port").value = "";
-  $("f-color").value = "";
-  $("f-suspension").value = "";
-  $("f-brake").value = "";
+        visibleCount += 1;
 
-  $("f-note").value = "";
-
-  $("features").innerHTML = "";
-  $("images").innerHTML = "";
-
-  addFeatureRow("");
-  updatePreview();
-}
-
-function addFeatureRow(value = "") {
-  const row = document.createElement("div");
-  row.className = "feature-item";
-  row.innerHTML = `
-    <div class="field">
-      <label>Feature</label>
-      <input class="feature-input" type="text" value="${esc(value)}">
-    </div>
-    <button class="btn-danger feature-remove" type="button">Remove</button>
-  `;
-
-  row.querySelector(".feature-remove").addEventListener("click", () => {
-    row.remove();
-    updatePreview();
-  });
-
-  row.querySelector(".feature-input").addEventListener("input", updatePreview);
-
-  $("features").appendChild(row);
-}
-
-function getFeatures() {
-  return [...document.querySelectorAll(".feature-input")]
-    .map(x => x.value.trim())
-    .filter(Boolean);
-}
-
-function addImageRow(value = "") {
-  const row = document.createElement("div");
-  row.className = "image-item";
-  row.innerHTML = `
-    <div class="image-grid">
-      <div class="field">
-        <label>Image URL</label>
-        <input class="image-input" type="text" value="${esc(value)}">
-      </div>
-      <button class="btn-danger image-remove" type="button">Remove</button>
-    </div>
-  `;
-
-  row.querySelector(".image-remove").addEventListener("click", () => {
-    row.remove();
-    updatePreview();
-  });
-
-  row.querySelector(".image-input").addEventListener("input", updatePreview);
-
-  $("images").appendChild(row);
-}
-
-function getImages() {
-  return [...document.querySelectorAll(".image-input")]
-    .map(x => x.value.trim())
-    .filter(Boolean);
-}
-
-async function uploadSelectedImages() {
-  const files = [...$("f-image-upload").files];
-  if (!files.length) return;
-
-  const slug = $("f-slug").value.trim().toLowerCase().replace(/\s+/g, "-");
-  if (!slug) {
-    alert("Enter a slug first before uploading images.");
-    $("f-image-upload").value = "";
-    return;
-  }
-
-  for (const file of files) {
-    const ext = (file.name.split(".").pop() || "png").toLowerCase();
-    const fileName = `${slug}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-
-    const { error } = await client.storage
-      .from(BUCKET_NAME)
-      .upload(fileName, file, {
-        upsert: false,
-        contentType: file.type || undefined
+        const div = document.createElement("div");
+        div.className = "spec-item";
+        div.innerHTML = `
+          <div class="spec-name">${label}</div>
+          <div class="spec-value"></div>
+        `;
+        div.querySelector(".spec-value").textContent = value;
+        grid.appendChild(div);
       });
 
-    if (error) {
-      console.error(error);
-      alert(`Image upload failed: ${error.message || "Unknown error"}`);
-      $("f-image-upload").value = "";
-      return;
+      $("specs-section").classList.toggle("hidden", visibleCount === 0);
     }
 
-    const { data } = client.storage.from(BUCKET_NAME).getPublicUrl(fileName);
-    addImageRow(data.publicUrl);
-  }
+    function renderFeatures(features) {
+      const list = $("out-features");
+      list.innerHTML = "";
 
-  $("f-image-upload").value = "";
-  updatePreview();
-}
+      const pills = splitFeaturePills(features);
 
-function setSpec(field, value) {
-  const card = document.querySelector(`[data-card="${field}"]`);
-  const output = $(`o-${field}`);
-  if (!card || !output) return;
+      pills.forEach(text => {
+        const div = document.createElement("div");
+        div.className = "pill";
+        div.textContent = text.toUpperCase();
+        list.appendChild(div);
+      });
 
-  if (value && String(value).trim()) {
-    output.textContent = value;
-    card.classList.add("show");
-  } else {
-    output.textContent = "";
-    card.classList.remove("show");
-  }
-}
-
-function renderGallery(imgs) {
-  const gallery = $("o-gallery");
-  gallery.innerHTML = "";
-  gallery.className = "gallery";
-
-  if (!imgs.length) {
-    $("o-gallery-empty").classList.remove("hidden");
-    return;
-  }
-
-  $("o-gallery-empty").classList.add("hidden");
-
-  if (imgs.length === 1) gallery.classList.add("one");
-  if (imgs.length === 2) gallery.classList.add("two");
-
-  imgs.slice(0, 3).forEach(url => {
-    const card = document.createElement("div");
-    card.className = "gallery-card";
-    const img = document.createElement("img");
-    img.src = url;
-    img.alt = $("f-model").value || "Bike image";
-    card.appendChild(img);
-    gallery.appendChild(card);
-  });
-}
-
-function updatePreview() {
-  $("o-model").textContent = $("f-model").value || "—";
-  $("o-category").textContent = $("f-category").value || "—";
-
-  SPEC_FIELDS.forEach(field => {
-    const map = {
-      engine:"f-engine",
-      displacement:"f-displacement",
-      power_hp:"f-power-hp",
-      torque:"f-torque",
-      fuel_system:"f-fuel-system",
-      transmission:"f-transmission",
-      throttle_type:"f-throttle-type",
-      fuel_capacity:"f-fuel-capacity",
-      abs:"f-abs",
-      traction_control:"f-traction-control",
-      headlight:"f-headlight",
-      charging_port:"f-charging-port",
-      color:"f-color",
-      suspension:"f-suspension",
-      brake:"f-brake"
-    };
-    setSpec(field, $(map[field]).value);
-  });
-
-  const visibleSpecs = SPEC_FIELDS.some(field => {
-    const map = {
-      engine:"f-engine",
-      displacement:"f-displacement",
-      power_hp:"f-power-hp",
-      torque:"f-torque",
-      fuel_system:"f-fuel-system",
-      transmission:"f-transmission",
-      throttle_type:"f-throttle-type",
-      fuel_capacity:"f-fuel-capacity",
-      abs:"f-abs",
-      traction_control:"f-traction-control",
-      headlight:"f-headlight",
-      charging_port:"f-charging-port",
-      color:"f-color",
-      suspension:"f-suspension",
-      brake:"f-brake"
-    };
-    return $(map[field]).value.trim();
-  });
-  $("specs-section").classList.toggle("hidden", !visibleSpecs);
-
-  const featureList = splitFeaturePills(getFeatures());
-  $("o-features").innerHTML = "";
-  featureList.forEach(f => {
-    const pill = document.createElement("div");
-    pill.className = "pill";
-    pill.textContent = f.toUpperCase();
-    $("o-features").appendChild(pill);
-  });
-  $("features-section").classList.toggle("hidden", !featureList.length);
-
-  renderGallery(getImages());
-
-  $("o-price").textContent = `Default unit price: ${money($("f-unit-price").value)}`;
-  $("o-note").textContent = $("f-note").value || "";
-}
-
-async function saveBike() {
-  const payload = {
-    slug: $("f-slug").value.trim().toLowerCase().replace(/\s+/g, "-"),
-    model: $("f-model").value.trim(),
-    category: $("f-category").value.trim(),
-    unit_price: Number($("f-unit-price").value) || 0,
-
-    engine: $("f-engine").value.trim(),
-    displacement: $("f-displacement").value.trim(),
-    power_hp: $("f-power-hp").value.trim(),
-    torque: $("f-torque").value.trim(),
-    fuel_system: $("f-fuel-system").value.trim(),
-    transmission: $("f-transmission").value.trim(),
-    throttle_type: $("f-throttle-type").value.trim(),
-    fuel_capacity: $("f-fuel-capacity").value.trim(),
-    abs: $("f-abs").value.trim(),
-    traction_control: $("f-traction-control").value.trim(),
-    headlight: $("f-headlight").value.trim(),
-    charging_port: $("f-charging-port").value.trim(),
-    color: $("f-color").value.trim(),
-    suspension: $("f-suspension").value.trim(),
-    brake: $("f-brake").value.trim(),
-
-    features: getFeatures(),
-    image_urls: getImages(),
-    internal_note: $("f-note").value.trim()
-  };
-
-  if (!payload.slug) {
-    alert("Slug is required");
-    return;
-  }
-
-  if (!payload.model) {
-    alert("Model is required");
-    return;
-  }
-
-  if (currentBikeId) {
-    const { error } = await client
-      .from("motorcycles")
-      .update(payload)
-      .eq("id", currentBikeId);
-
-    if (error) {
-      console.error(error);
-      alert("Failed to update bike");
-      return;
-    }
-  } else {
-    const { data, error } = await client
-      .from("motorcycles")
-      .insert([payload])
-      .select()
-      .single();
-
-    if (error) {
-      console.error(error);
-      alert("Failed to create bike");
-      return;
+      $("features-section").classList.toggle("hidden", pills.length === 0);
     }
 
-    currentBikeId = data.id;
-  }
+    function renderImage(url, alt) {
+      const img = $("out-bike-image");
+      const empty = $("out-bike-image-empty");
 
-  await searchBikes($("f-search").value);
-  alert("Bike saved");
-}
+      if (url) {
+        img.src = url;
+        img.alt = alt || "Bike image";
+        img.classList.remove("hidden");
+        empty.classList.add("hidden");
+      } else {
+        img.src = "";
+        img.classList.add("hidden");
+        empty.classList.remove("hidden");
+      }
+    }
 
-async function duplicateBike() {
-  if (!currentBikeId) {
-    alert("Load a bike first");
-    return;
-  }
+    function renderInvoice(inv) {
+      document.title = `${inv.invoiceNumber} · Rhobust Engineering Limited`;
 
-  const slug = prompt("Enter new slug for duplicate");
-  if (!slug) return;
+      $("out-invoice-number").textContent = inv.invoiceNumber;
+      $("out-invoice-date").textContent = niceDate(inv.invoiceDate);
+      $("out-status").textContent = inv.status;
+      $("out-currency").textContent = inv.currency;
 
-  const payload = {
-    slug: slug.trim().toLowerCase().replace(/\s+/g, "-"),
-    model: $("f-model").value.trim(),
-    category: $("f-category").value.trim(),
-    unit_price: Number($("f-unit-price").value) || 0,
+      $("out-customer-block").textContent = inv.customerBlock;
 
-    engine: $("f-engine").value.trim(),
-    displacement: $("f-displacement").value.trim(),
-    power_hp: $("f-power-hp").value.trim(),
-    torque: $("f-torque").value.trim(),
-    fuel_system: $("f-fuel-system").value.trim(),
-    transmission: $("f-transmission").value.trim(),
-    throttle_type: $("f-throttle-type").value.trim(),
-    fuel_capacity: $("f-fuel-capacity").value.trim(),
-    abs: $("f-abs").value.trim(),
-    traction_control: $("f-traction-control").value.trim(),
-    headlight: $("f-headlight").value.trim(),
-    charging_port: $("f-charging-port").value.trim(),
-    color: $("f-color").value.trim(),
-    suspension: $("f-suspension").value.trim(),
-    brake: $("f-brake").value.trim(),
+      $("out-bike-model").textContent = inv.bikeModel || "—";
+      $("out-bike-category").textContent = inv.bikeCategory || "—";
 
-    features: getFeatures(),
-    image_urls: getImages(),
-    internal_note: $("f-note").value.trim()
-  };
+      renderImage(inv.imageUrl, inv.bikeModel);
+      renderSpecs(inv.specs);
+      renderFeatures(inv.features);
 
-  const { data, error } = await client
-    .from("motorcycles")
-    .insert([payload])
-    .select()
-    .single();
+      $("out-line-description").textContent = inv.description;
+      $("out-qty").textContent = String(inv.quantity);
+      $("out-unit-price").textContent = money(inv.unitPrice, inv.currency);
+      $("out-line-total").textContent = money(inv.subtotal, inv.currency);
 
-  if (error) {
-    console.error(error);
-    alert("Duplicate failed. Slug may already exist.");
-    return;
-  }
+      $("out-subtotal").textContent = money(inv.subtotal, inv.currency);
+      $("out-extra").textContent = money(inv.extra, inv.currency);
+      $("out-total").textContent = money(inv.total, inv.currency);
 
-  currentBikeId = data.id;
-  $("f-slug").value = data.slug;
-  await searchBikes($("f-search").value);
-  alert("Bike duplicated");
-}
+      $("out-notes").textContent = inv.notes || "—";
+      $("notes-section").classList.toggle("hidden", !inv.notes);
 
-$("btn-new").addEventListener("click", clearForm);
-$("btn-duplicate").addEventListener("click", duplicateBike);
-$("btn-save").addEventListener("click", saveBike);
-$("btn-reset").addEventListener("click", () => {
-  if (currentBikeId) loadBike(currentBikeId);
-  else clearForm();
-});
+      $("out-terms").textContent = inv.terms;
+      $("out-footer-right").textContent = `Invoice ${inv.invoiceNumber}`;
 
-$("btn-add-feature").addEventListener("click", () => addFeatureRow(""));
-$("btn-add-image-url").addEventListener("click", () => addImageRow(""));
-$("f-image-upload").addEventListener("change", uploadSelectedImages);
-$("f-search").addEventListener("input", e => searchBikes(e.target.value));
+      const editHref = `admin.html?invoice_id=${encodeURIComponent(inv.id)}`;
+      $("btn-edit").setAttribute("href", editHref);
+    }
 
-[
-  "f-slug","f-model","f-category","f-unit-price",
-  "f-engine","f-displacement","f-power-hp","f-torque",
-  "f-fuel-system","f-transmission","f-throttle-type","f-fuel-capacity",
-  "f-abs","f-traction-control","f-headlight","f-charging-port",
-  "f-color","f-suspension","f-brake","f-note"
-].forEach(id => {
-  $(id).addEventListener("input", updatePreview);
-  $(id).addEventListener("change", updatePreview);
-});
+    async function loadInvoice() {
+      const id = getParam("id") || getParam("invoice_id");
 
-(async function init() {
-  await searchBikes("");
-  clearForm();
-})();
-</script>
+      if (!id) {
+        throw new Error("Missing invoice id in URL. Use invoice.html?id=123");
+      }
+
+      const { data: record, error } = await client
+        .from("invoices")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error || !record) {
+        throw new Error(error?.message || "Invoice not found");
+      }
+
+      const snapshot = pickSnapshot(record);
+      const bikeFallback = snapshot ? null : await fetchBikeFallback(record);
+      return normalizeInvoice(record, snapshot, bikeFallback);
+    }
+
+    async function init() {
+      try {
+        const invoice = await loadInvoice();
+        renderInvoice(invoice);
+
+        $("loading").classList.add("hidden");
+        $("page").classList.remove("hidden");
+      } catch (err) {
+        console.error(err);
+        $("loading").classList.add("hidden");
+        $("error").classList.remove("hidden");
+        $("error").textContent = err.message || "Failed to load invoice.";
+      }
+    }
+
+    $("btn-print").addEventListener("click", () => window.print());
+
+    init();
+  </script>
 </body>
 </html>
