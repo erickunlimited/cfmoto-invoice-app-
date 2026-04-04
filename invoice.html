@@ -1008,16 +1008,22 @@ function update() {
   const visibleSpecs = SPEC_FIELDS.some(field => showSpecs && currentBike[field] && String(currentBike[field]).trim());
   $("specs-section").style.display = visibleSpecs ? "block" : "none";
 
-  const feats = (currentBike.features || []).filter(Boolean);
-  $("o-features").innerHTML = "";
-  feats.forEach(f => {
-    const pill = document.createElement("div");
-    pill.className = "features-pill";
-    pill.textContent = String(f).toUpperCase();
-    $("o-features").appendChild(pill);
-  });
-  $("features-section").style.display = feats.length ? "block" : "none";
+  const rawFeatures = (currentBike.features || []).filter(Boolean);
 
+const splitFeatures = rawFeatures
+  .flatMap(f => String(f).split(/[,.]+/))
+  .map(f => f.trim())
+  .filter(Boolean);
+
+$("o-features").innerHTML = "";
+splitFeatures.forEach(f => {
+  const pill = document.createElement("div");
+  pill.className = "features-pill";
+  pill.textContent = f.toUpperCase();
+  $("o-features").appendChild(pill);
+});
+
+$("features-section").style.display = splitFeatures.length ? "block" : "none";
   const imgs = (currentBike.image_urls || []).filter(Boolean).slice(0, 3);
   if ($("f-show-image").checked) {
     renderGallery(imgs);
