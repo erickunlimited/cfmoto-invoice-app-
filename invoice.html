@@ -633,10 +633,10 @@ Kokomlemle, Accra</div>
               <div class="meta-label">Payment Status</div>
               <div id="out-payment-status">Unpaid</div>
             </div>
-            <div class="meta-row">
-              <div class="meta-label">Date Paid</div>
-              <div id="out-date-paid">—</div>
-            </div>
+           <div class="meta-row" id="date-paid-row">
+  <div class="meta-label">Date Paid</div>
+  <div id="out-date-paid">—</div>
+</div>
             <div class="meta-row">
               <div class="meta-label">Currency</div>
               <div id="out-currency">USD</div>
@@ -963,11 +963,17 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
 
     function renderInvoice(inv) {
       document.title = `${inv.invoiceNumber} · Rhobust Engineering Limited`;
-      $("out-invoice-number").textContent = inv.invoiceNumber;
-      $("out-invoice-date").textContent = niceDate(inv.invoiceDate);
-      $("out-payment-status").textContent = inv.paymentStatus;
-      $("out-date-paid").textContent = niceDate(inv.datePaid);
-      $("out-currency").textContent = inv.currency;
+  $("out-invoice-number").textContent = inv.invoiceNumber;
+$("out-invoice-date").textContent = niceDate(inv.invoiceDate);
+$("out-payment-status").textContent = inv.paymentStatus;
+$("out-currency").textContent = inv.currency;
+
+if (inv.paymentStatus === "Unpaid" || !inv.datePaid) {
+  $("date-paid-row").classList.add("hidden");
+} else {
+  $("date-paid-row").classList.remove("hidden");
+  $("out-date-paid").textContent = niceDate(inv.datePaid);
+}
       $("out-customer-block").textContent = inv.customerBlock;
       $("out-bike-model").textContent = inv.bikeModel || "—";
       $("out-bike-category").textContent = inv.bikeCategory || "—";
