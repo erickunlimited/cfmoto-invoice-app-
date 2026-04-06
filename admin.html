@@ -325,7 +325,28 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       const day = String(d.getDate()).padStart(2, "0");
       return `${y}-${m}-${day}`;
     }
+function resetInvoiceFormForNewInvoice() {
+  currentInvoiceId = null;
 
+  els.invoiceNumber.value = "";
+  els.invoiceDate.value = todayInputValue();
+  els.quantity.value = 1;
+  els.invoiceUnitPrice.value = Number(els.unitPrice.value) || 0;
+  els.additionalCharges.value = 0;
+  els.currency.value = "USD";
+  els.status.value = "Open";
+  els.invoiceNotes.value = "";
+  els.invoiceTerms.value = `3 years dealer-backed warranty from Rhobust Engineering Limited.
+Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached first.`;
+
+  els.amountPaid.value = 0;
+  els.balanceDue.value = 0;
+  els.paymentStatus.value = "Unpaid";
+  els.datePaid.value = "";
+  els.paymentNote.value = "";
+
+  recalculateInvoiceTotals();
+}
     function clearBikeForm() {
       currentBike = null;
 
@@ -1066,21 +1087,21 @@ Total outstanding balance: USD ${totalOutstanding.toLocaleString(undefined, { mi
       els[key].addEventListener("change", recalculateInvoiceTotals);
     });
 
-    (async function initAdmin() {
-      if (!els.invoiceDate.value) els.invoiceDate.value = todayInputValue();
+  (async function initAdmin() {
+  await loadBikes();
+  await loadCustomers();
 
-      await loadBikes();
-      await loadCustomers();
+  const invoiceId = getParam("invoice_id") || getParam("id");
 
-      const invoiceId = getParam("invoice_id") || getParam("id");
-      if (invoiceId) {
-        await loadInvoiceIntoAdmin(invoiceId);
-      } else {
-        clearCustomerForm();
-      }
+  if (invoiceId) {
+    await loadInvoiceIntoAdmin(invoiceId);
+  } else {
+    clearCustomerForm();
+    resetInvoiceFormForNewInvoice();
+  }
 
-      recalculateInvoiceTotals();
-    })();
+  recalculateInvoiceTotals();
+})();
   </script>
 </body>
 </html>
