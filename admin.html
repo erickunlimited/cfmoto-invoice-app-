@@ -937,56 +937,66 @@ Total outstanding balance: USD ${totalOutstanding.toLocaleString(undefined, { mi
       };
     }
 
-    async function saveInvoice({ openPreview = false } = {}) {
-      try {
-        const customerId = await ensureCustomer();
-        const payload = getInvoicePayload(customerId);
+ async function saveInvoice({ openPreview = false } = {}) {
+  try {
+    const customerId = await ensureCustomer();
+    const payload = getInvoicePayload(customerId);
 
-        let result;
+    let result;
 
-        if (currentInvoiceId) {
-          const { data, error } = await client
-            .from("invoices")
-            .update(payload)
-            .eq("id", currentInvoiceId)
-            .select()
-            .single();
+    if (currentInvoiceId) {
+      if (!payload.invoice_number) {
+        delete payload.invoice_number;
+      }
 
-          if (error) throw error;
-          result = data;
-        } else {
-          const { data, error } = await client
-            .from("invoices")
-            .insert([payload])
-            .select()
-            .single();
+      const { data, error } = await client
+        .from("invoices")
+        .update(payload)
+        .eq("id", currentInvoiceId)
+        .select()
+        .single();
 
-          if (error) throw error;
-          result = data;
-          currentInvoiceId = data.id;
-        }
+      if (error) throw error;
+      result = data;
+    } else {
+      if (!payload.invoice_number) {
+        delete payload.invoice_number;
+      }
 
-        els.invoiceNumber.value = result.invoice_number || payload.invoice_number;
-        await renderCustomerSummary(customerId);
+      const { data, error } = await client
+        .from("invoices")
+        .insert([payload])
+        .select()
+        .single();
 
-        if (openPreview) {
-          if (!result || !result.id) {
-            alert("Invoice saved but no invoice id was returned.");
-            return null;
-          }
-          const url = `invoice.html?id=${encodeURIComponent(result.id)}&v=${Date.now()}`;
-          window.open(url, "_blank");
-        } else {
-          alert("Invoice saved");
-        }
+      if (error) throw error;
+      result = data;
+      currentInvoiceId = data.id;
+    }
 
-        return result;
-      } catch (err) {
-        console.error("SAVE INVOICE ERROR:", err);
-        alert(err?.message || JSON.stringify(err) || "Failed to save invoice");
+    els.invoiceNumber.value = result.invoice_number || "";
+
+    await renderCustomerSummary(customerId);
+
+    if (openPreview) {
+      if (!result || !result.id) {
+        alert("Invoice saved but no invoice id was returned.");
         return null;
       }
+
+      const url = `invoice.html?id=${encodeURIComponent(result.id)}&v=${Date.now()}`;
+      window.open(url, "_blank");
+    } else {
+      alert("Invoice saved");
     }
+
+    return result;
+  } catch (err) {
+    console.error("SAVE INVOICE ERROR:", err);
+    alert(err?.message || JSON.stringify(err) || "Failed to save invoice");
+    return null;
+  }
+}
 
     async function loadInvoiceIntoAdmin(invoiceId) {
       const { data, error } = await client
