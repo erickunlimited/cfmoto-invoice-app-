@@ -4,19 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rhobust Engineering Limited · Invoice</title>
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --teal: #00B4B4;
-      --ink: #111111;
-      --soft: #666666;
-      --ghost: #999999;
-      --line: #D7DFDF;
-      --white: #FFFFFF;
-      --serif: "Cormorant Garamond", Georgia, serif;
-      --sans: "Outfit", Arial, sans-serif;
+      --teal:      #00B4B4;
+      --teal-dim:  rgba(0,180,180,0.15);
+      --teal-line: rgba(0,180,180,0.25);
+      --ink:       #0D0D0D;
+      --ink-soft:  #3A3A3A;
+      --soft:      #7A7A7A;
+      --ghost:     #A0A0A0;
+      --line:      #E2E8E8;
+      --line-soft: #EEF2F2;
+      --paper:     #FAFCFC;
+      --white:     #FFFFFF;
+      --serif:     "Cormorant Garamond", Georgia, serif;
+      --sans:      "Outfit", Arial, sans-serif;
     }
 
     * { box-sizing: border-box; }
@@ -24,54 +29,70 @@
     html, body {
       margin: 0;
       padding: 0;
-      background: #e9eeee;
+      background: #0D0D0D;
       color: var(--ink);
       font-family: var(--sans);
       -webkit-font-smoothing: antialiased;
     }
 
+    /* ── TOPBAR ─────────────────────────────────────────── */
     .topbar {
       position: sticky;
       top: 0;
       z-index: 10;
       display: flex;
-      gap: 10px;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 18px;
-      background: rgba(17,17,17,0.95);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      backdrop-filter: blur(8px);
+      padding: 0 28px;
+      height: 56px;
+      background: #0D0D0D;
+      border-bottom: 1px solid rgba(0,180,180,0.18);
     }
 
     .topbar-left {
-      color: rgba(255,255,255,0.88);
-      font-size: 13px;
-      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topbar-logo-mark {
+      width: 6px;
+      height: 28px;
+      background: var(--teal);
+    }
+
+    .topbar-label {
+      font-family: var(--sans);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
     }
 
     .topbar-right {
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+      gap: 8px;
     }
 
     button, .link-btn {
       border: none;
-      border-radius: 4px;
-      padding: 11px 14px;
+      border-radius: 2px;
+      padding: 9px 18px;
       font-family: var(--sans);
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 600;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       cursor: pointer;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      transition: opacity 0.15s;
     }
+
+    button:hover, .link-btn:hover { opacity: 0.82; }
 
     .btn-main {
       background: var(--teal);
@@ -79,205 +100,249 @@
     }
 
     .btn-alt {
-      background: #1e1e1e;
-      color: rgba(255,255,255,0.92);
-      border: 1px solid rgba(255,255,255,0.12);
+      background: transparent;
+      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.14);
     }
 
+    /* ── PAGE WRAPPER ───────────────────────────────────── */
     .page {
-      padding: 28px 12px 50px;
+      padding: 36px 16px 60px;
     }
 
+    .loading, .error {
+      width: 210mm;
+      margin: 60px auto;
+      background: #141414;
+      padding: 40px;
+      border: 1px solid rgba(0,180,180,0.15);
+      font-size: 14px;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.6);
+      font-family: var(--sans);
+    }
+
+    .error { color: #e07070; }
+
+    /* ── A4 SHEET ───────────────────────────────────────── */
     .sheet {
       width: 210mm;
       min-height: 297mm;
       margin: 0 auto;
       background: var(--white);
-      box-shadow: 0 12px 38px rgba(0,0,0,0.10);
-      padding: 18mm 16mm 18mm;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.55);
+      padding: 16mm 15mm 18mm;
       position: relative;
     }
 
-    .loading, .error {
-      width: 210mm;
-      margin: 40px auto;
-      background: #fff;
-      padding: 30px;
-      box-shadow: 0 12px 38px rgba(0,0,0,0.08);
-      font-size: 15px;
-      line-height: 1.6;
+    /* teal accent bar at top of sheet */
+    .sheet::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: var(--teal);
     }
 
-    .error {
-      color: #8a1f1f;
-    }
-
+    /* ── HEADER ─────────────────────────────────────────── */
     .header {
       display: grid;
-      grid-template-columns: 1.3fr 1fr;
+      grid-template-columns: 1.4fr 1fr;
       gap: 24px;
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 16px;
-      margin-bottom: 18px;
+      padding-bottom: 18px;
+      margin-bottom: 0;
+      border-bottom: 1.5px solid var(--ink);
+    }
+
+    .brand-lockup {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
     }
 
     .brand {
       font-family: var(--serif);
-      font-size: 34px;
-      line-height: 0.95;
+      font-size: 28px;
       font-weight: 400;
+      line-height: 1;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+
+    .brand-divider {
+      width: 32px;
+      height: 2px;
+      background: var(--teal);
+      margin: 8px 0;
     }
 
     .brand-sub {
-      margin-top: 8px;
       color: var(--soft);
-      font-size: 10px;
-      line-height: 1.6;
+      font-size: 9.5px;
+      line-height: 1.7;
       text-transform: uppercase;
-      letter-spacing: 0.09em;
-      white-space: pre-line;
+      letter-spacing: 0.12em;
     }
 
+    /* ── INVOICE META ───────────────────────────────────── */
     .invoice-meta {
-      display: grid;
-      gap: 8px;
-      align-content: start;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
     .meta-kicker {
       color: var(--teal);
-      font-size: 10px;
+      font-size: 9px;
       text-transform: uppercase;
-      letter-spacing: 0.18em;
-      font-weight: 600;
+      letter-spacing: 0.26em;
+      font-weight: 700;
       text-align: right;
+      padding-bottom: 4px;
     }
 
     .meta-box {
       border: 1px solid var(--line);
-      padding: 12px 14px;
+      background: var(--paper);
     }
 
     .meta-row {
       display: grid;
-      grid-template-columns: 110px 1fr;
+      grid-template-columns: 108px 1fr;
       gap: 10px;
-      padding: 5px 0;
-      border-bottom: 1px solid #edf1f1;
-      font-size: 12px;
+      padding: 6px 12px;
+      border-bottom: 1px solid var(--line-soft);
+      font-size: 11.5px;
+      align-items: baseline;
     }
 
-    .meta-row:last-child {
-      border-bottom: none;
-    }
+    .meta-row:last-child { border-bottom: none; }
 
     .meta-label {
       color: var(--ghost);
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      font-size: 9px;
-      padding-top: 2px;
+      letter-spacing: 0.14em;
+      font-size: 8.5px;
+      padding-top: 1px;
     }
 
+    /* ── SECTION STRUCTURE ──────────────────────────────── */
     .section {
-      margin-top: 18px;
+      margin-top: 22px;
     }
 
     .section-head {
       display: flex;
-      align-items: baseline;
-      gap: 8px;
-      border-top: 1px solid #edf1f1;
-      padding-top: 14px;
-      margin-bottom: 12px;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0 8px;
+      border-top: 1px solid var(--line);
+      margin-bottom: 14px;
     }
 
     .section-num {
+      font-family: var(--sans);
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
       color: var(--teal);
-      font-size: 9px;
-      font-weight: 600;
-      letter-spacing: 0.18em;
       text-transform: uppercase;
+      padding: 3px 7px;
+      border: 1px solid var(--teal-line);
+      background: var(--teal-dim);
     }
 
     .section-name {
       font-family: var(--serif);
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 400;
       line-height: 1;
+      color: var(--ink);
     }
 
+    /* ── CUSTOMER ───────────────────────────────────────── */
     .customer-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 14px;
     }
 
     .box {
       border: 1px solid var(--line);
-      padding: 14px;
-      min-height: 110px;
+      padding: 14px 16px;
+      min-height: 100px;
+      background: var(--paper);
     }
 
     .box-label {
-      color: var(--ghost);
+      color: var(--teal);
       text-transform: uppercase;
-      letter-spacing: 0.14em;
-      font-size: 9px;
-      margin-bottom: 8px;
+      letter-spacing: 0.18em;
+      font-size: 8px;
+      font-weight: 700;
+      margin-bottom: 9px;
     }
 
     .box-body {
-      font-size: 13px;
-      line-height: 1.7;
+      font-size: 12.5px;
+      line-height: 1.75;
+      color: var(--ink-soft);
       white-space: pre-wrap;
     }
 
+    /* ── VEHICLE ────────────────────────────────────────── */
     .vehicle-head {
       margin-bottom: 18px;
     }
 
     .hero-title {
       font-family: var(--serif);
-      font-size: 42px;
-      line-height: 0.94;
-      font-weight: 400;
+      font-size: 46px;
+      line-height: 0.92;
+      font-weight: 300;
+      letter-spacing: -0.01em;
+      color: var(--ink);
       margin-bottom: 6px;
     }
 
     .hero-sub {
       color: var(--soft);
-      font-size: 13px;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
       line-height: 1.5;
     }
 
     .hero-gallery {
       display: grid;
-      gap: 16px;
+      gap: 12px;
       width: 100%;
-      align-items: stretch;
     }
 
-    .hero-gallery.one {
-      grid-template-columns: 1fr;
-    }
-
-    .hero-gallery.two {
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .hero-gallery.three {
-      grid-template-columns: 1fr 1fr 1fr;
-    }
+    .hero-gallery.one  { grid-template-columns: 1fr; }
+    .hero-gallery.two  { grid-template-columns: 1fr 1fr; }
+    .hero-gallery.three { grid-template-columns: 1fr 1fr 1fr; }
 
     .hero-gallery-card {
       border: 1px solid var(--line);
-      background: #fafafa;
+      background: var(--paper);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 18px;
-      min-height: 240px;
+      padding: 20px;
+      min-height: 230px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* subtle teal corner accent on gallery cards */
+    .hero-gallery-card::after {
+      content: "";
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 28px; height: 28px;
+      background: var(--teal);
+      clip-path: polygon(100% 0, 100% 100%, 0 100%);
     }
 
     .hero-gallery-card img {
@@ -287,33 +352,41 @@
       display: block;
     }
 
+    /* ── SPECS ──────────────────────────────────────────── */
     .spec-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px 20px;
+      gap: 0;
+      border: 1px solid var(--line);
     }
 
     .spec-item {
-      border-bottom: 1px solid #edf1f1;
-      padding-bottom: 8px;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--line-soft);
+      border-right: 1px solid var(--line-soft);
     }
+
+    .spec-item:nth-child(even) { border-right: none; }
 
     .spec-name {
       color: var(--ghost);
       font-size: 8px;
       text-transform: uppercase;
-      letter-spacing: 0.16em;
-      margin-bottom: 4px;
+      letter-spacing: 0.18em;
+      margin-bottom: 3px;
+      font-weight: 600;
     }
 
     .spec-value {
-      font-size: 12px;
+      font-size: 11.5px;
       line-height: 1.5;
+      color: var(--ink-soft);
     }
 
+    /* ── FEATURES ───────────────────────────────────────── */
     .features {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
@@ -321,39 +394,46 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 38px;
-      padding: 10px 14px;
-      border: 1px solid rgba(0,180,180,0.28);
-      background: rgba(0,180,180,0.10);
-      border-radius: 999px;
-      font-size: 10px;
+      min-height: 32px;
+      padding: 7px 13px;
+      border: 1px solid var(--teal-line);
+      background: var(--teal-dim);
+      font-size: 9px;
       text-transform: uppercase;
-      letter-spacing: 0.10em;
-      line-height: 1.2;
+      letter-spacing: 0.14em;
+      line-height: 1.3;
+      color: var(--ink);
     }
 
+    /* ── COMMERCIAL TABLE ───────────────────────────────── */
     .table {
       width: 100%;
       border-collapse: collapse;
     }
 
-    .table th {
-      text-align: left;
-      font-size: 9px;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      color: var(--ghost);
-      font-weight: 600;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--line);
+    .table thead tr {
+      background: var(--ink);
     }
 
+    .table th {
+      text-align: left;
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: rgba(255,255,255,0.55);
+      font-weight: 600;
+      padding: 10px 12px;
+    }
+
+    .table th.num { text-align: right; }
+
     .table td {
-      font-size: 13px;
-      padding: 12px 0;
-      border-bottom: 1px solid #edf1f1;
+      font-size: 12.5px;
+      padding: 13px 12px;
+      border-bottom: 1px solid var(--line-soft);
       vertical-align: top;
       line-height: 1.5;
+      color: var(--ink-soft);
     }
 
     .table .num {
@@ -361,72 +441,106 @@
       white-space: nowrap;
     }
 
+    /* ── TOTALS ─────────────────────────────────────────── */
     .totals {
-      margin-top: 14px;
+      margin-top: 0;
       margin-left: auto;
-      width: 340px;
+      width: 320px;
+      border: 1px solid var(--line);
+      border-top: none;
     }
 
     .totals-row {
       display: grid;
       grid-template-columns: 1fr auto;
-      gap: 16px;
-      padding: 7px 0;
-      border-bottom: 1px solid #edf1f1;
-      font-size: 13px;
+      gap: 20px;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--line-soft);
+      font-size: 12px;
+      color: var(--ink-soft);
     }
 
     .totals-row.final {
-      border-bottom: 1px solid var(--line);
-      padding-top: 12px;
-      padding-bottom: 12px;
-      font-weight: 600;
-      font-size: 18px;
-      color: #000;
+      background: var(--ink);
+      color: var(--white);
+      border-bottom: none;
+      padding: 13px 14px;
     }
 
-    .terms, .notes {
-      font-size: 12px;
-      line-height: 1.8;
-      color: #333;
+    .totals-row.final > div:first-child {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--teal);
+      align-self: center;
+    }
+
+    .totals-row.final > div:last-child {
+      font-family: var(--serif);
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--white);
+    }
+
+    /* ── NOTES / TERMS ──────────────────────────────────── */
+    .notes, .terms {
+      font-size: 11.5px;
+      line-height: 1.85;
+      color: var(--ink-soft);
       white-space: pre-wrap;
     }
 
+    /* ── FOOTER ─────────────────────────────────────────── */
     .footer {
       margin-top: 28px;
       padding-top: 14px;
-      border-top: 1px solid var(--line);
+      border-top: 1.5px solid var(--ink);
       display: flex;
       justify-content: space-between;
+      align-items: flex-end;
       gap: 20px;
+    }
+
+    .footer-left {
       color: var(--ghost);
-      font-size: 10px;
+      font-size: 9.5px;
       line-height: 1.7;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.10em;
     }
 
-    .hidden {
-      display: none !important;
+    .footer-right {
+      color: var(--ghost);
+      font-size: 9.5px;
+      line-height: 1.7;
+      text-transform: uppercase;
+      letter-spacing: 0.10em;
+      text-align: right;
     }
 
+    .footer-teal-mark {
+      width: 24px;
+      height: 3px;
+      background: var(--teal);
+      margin-top: 6px;
+    }
+
+    /* ── UTILITIES ──────────────────────────────────────── */
+    .hidden { display: none !important; }
+
+    /* ── PRINT ──────────────────────────────────────────── */
     @page {
       size: A4;
       margin: 12mm;
     }
 
     @media print {
-      html, body {
-        background: #fff;
-      }
+      html, body { background: #fff; }
 
-      .topbar {
-        display: none !important;
-      }
+      .topbar { display: none !important; }
 
-      .page {
-        padding: 0;
-      }
+      .page { padding: 0; }
 
       .sheet {
         width: auto;
@@ -436,65 +550,53 @@
         padding: 0;
       }
 
-      a {
-        color: inherit;
-        text-decoration: none;
+      .sheet::before { display: none; }
+
+      a { color: inherit; text-decoration: none; }
+
+      .page,
+      .sheet,
+      .header,
+      .section,
+      .totals,
+      .customer-grid,
+      .hero-gallery,
+      .spec-grid { break-inside: avoid; }
+
+      img {
+        max-width: 100% !important;
+        page-break-inside: avoid;
       }
+
+      .hidden { display: none !important; }
     }
 
+    /* ── RESPONSIVE ─────────────────────────────────────── */
     @media (max-width: 980px) {
-      .sheet, .loading, .error {
-        width: 100%;
-      }
+      .sheet, .loading, .error { width: 100%; }
 
       .header,
-      .customer-grid,
-      .spec-grid {
-        grid-template-columns: 1fr;
-      }
+      .customer-grid { grid-template-columns: 1fr; }
 
-      .meta-kicker {
-        text-align: left;
-      }
+      .spec-grid { grid-template-columns: 1fr; }
+      .spec-item { border-right: none; }
 
-      .totals {
-        width: 100%;
-      }
-@media print {
-  html, body {
-    background: #fff !important;
-  }
+      .meta-kicker { text-align: left; }
+      .totals { width: 100%; }
 
-  .page,
-  .sheet,
-  .header,
-  .section,
-  .totals,
-  .customer-grid,
-  .hero-gallery,
-  .spec-grid {
-    break-inside: avoid;
-  }
-
-  img {
-    max-width: 100% !important;
-    page-break-inside: avoid;
-  }
-
-  .hidden {
-    display: none !important;
-  }
-}
       .hero-gallery.two,
-      .hero-gallery.three {
-        grid-template-columns: 1fr;
-      }
+      .hero-gallery.three { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
+
+  <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-left">Invoice Preview</div>
+    <div class="topbar-left">
+      <div class="topbar-logo-mark"></div>
+      <span class="topbar-label">Invoice Preview</span>
+    </div>
     <div class="topbar-right">
       <button class="btn-main" id="btn-print" type="button">Print / Save PDF</button>
       <a class="link-btn btn-alt" id="btn-edit" href="admin.html">Edit Invoice</a>
@@ -506,9 +608,12 @@
 
   <div class="page hidden" id="page">
     <div class="sheet">
+
+      <!-- HEADER -->
       <header class="header">
-        <div>
+        <div class="brand-lockup">
           <div class="brand">Rhobust Engineering Limited</div>
+          <div class="brand-divider"></div>
           <div class="brand-sub">No. 25, Nuumo Ayite Kobla Street
 Kokomlemle, Accra</div>
         </div>
@@ -540,18 +645,17 @@ Kokomlemle, Accra</div>
         </div>
       </header>
 
+      <!-- 01 · CUSTOMER -->
       <section class="section">
         <div class="section-head">
           <div class="section-num">01</div>
           <div class="section-name">Customer</div>
         </div>
-
         <div class="customer-grid">
           <div class="box">
             <div class="box-label">Bill To</div>
             <div class="box-body" id="out-customer-block">—</div>
           </div>
-
           <div class="box">
             <div class="box-label">Seller</div>
             <div class="box-body">Rhobust Engineering Limited
@@ -561,20 +665,20 @@ Kokomlemle, Accra</div>
         </div>
       </section>
 
+      <!-- 02 · VEHICLE -->
       <section class="section">
         <div class="section-head">
           <div class="section-num">02</div>
           <div class="section-name">Vehicle</div>
         </div>
-
         <div class="vehicle-head">
           <div class="hero-title" id="out-bike-model">—</div>
           <div class="hero-sub" id="out-bike-category">—</div>
         </div>
-
         <div id="out-bike-gallery" class="hero-gallery hidden"></div>
       </section>
 
+      <!-- 03 · SPECS -->
       <section class="section" id="specs-section">
         <div class="section-head">
           <div class="section-num">03</div>
@@ -583,6 +687,7 @@ Kokomlemle, Accra</div>
         <div class="spec-grid" id="out-spec-grid"></div>
       </section>
 
+      <!-- 04 · FEATURES -->
       <section class="section" id="features-section">
         <div class="section-head">
           <div class="section-num">04</div>
@@ -591,12 +696,12 @@ Kokomlemle, Accra</div>
         <div class="features" id="out-features"></div>
       </section>
 
+      <!-- 05 · COMMERCIAL -->
       <section class="section">
         <div class="section-head">
           <div class="section-num">05</div>
           <div class="section-name">Commercial Breakdown</div>
         </div>
-
         <table class="table">
           <thead>
             <tr>
@@ -615,7 +720,6 @@ Kokomlemle, Accra</div>
             </tr>
           </tbody>
         </table>
-
         <div class="totals">
           <div class="totals-row">
             <div>Original Total</div>
@@ -632,6 +736,7 @@ Kokomlemle, Accra</div>
         </div>
       </section>
 
+      <!-- 06 · NOTES -->
       <section class="section" id="notes-section">
         <div class="section-head">
           <div class="section-num">06</div>
@@ -640,6 +745,7 @@ Kokomlemle, Accra</div>
         <div class="notes" id="out-notes"></div>
       </section>
 
+      <!-- 07 · PAYMENT NOTE -->
       <section class="section" id="payment-note-section">
         <div class="section-head">
           <div class="section-num">07</div>
@@ -648,6 +754,7 @@ Kokomlemle, Accra</div>
         <div class="notes" id="out-payment-note"></div>
       </section>
 
+      <!-- 08 · TERMS -->
       <section class="section">
         <div class="section-head">
           <div class="section-num">08</div>
@@ -657,14 +764,23 @@ Kokomlemle, Accra</div>
 Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached first.</div>
       </section>
 
+      <!-- FOOTER -->
       <footer class="footer">
-        <div id="out-footer-left">Prepared by Rhobust Engineering Limited</div>
-        <div id="out-footer-right">Invoice preview</div>
+        <div>
+          <div class="footer-left" id="out-footer-left">Prepared by Rhobust Engineering Limited</div>
+          <div class="footer-teal-mark"></div>
+        </div>
+        <div class="footer-right" id="out-footer-right">Invoice preview</div>
       </footer>
-    </div>
-  </div>
 
+    </div><!-- /sheet -->
+  </div><!-- /page -->
+
+  <!-- ── ALL ORIGINAL LOGIC UNCHANGED ── -->
   <script>
+    if (!window.supabase?.createClient) {
+      throw new Error("Supabase library failed to load. Check your connection and refresh.");
+    }
     const client = window.supabase.createClient(
       "https://apmfnubljrutnnignehh.supabase.co",
       "sb_publishable_zi5AnOBw_D7pl9WuhcGDug_SK0zgESg"
@@ -728,7 +844,6 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         record.customer_email || "",
         record.customer_address || ""
       ].filter(Boolean);
-
       return lines.length ? lines.join("\n") : "—";
     }
 
@@ -745,31 +860,26 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
     async function fetchBikeFallback(record) {
       const bikeSlug = record.bike_slug || null;
       if (!bikeSlug) return null;
-
       const { data } = await client
         .from("motorcycles")
         .select("*")
         .eq("slug", bikeSlug)
         .single();
-
       return data || null;
     }
 
     function normalizeInvoice(record, snapshot, bikeFallback) {
       const src = snapshot || bikeFallback || {};
-
       const quantity = Number(record.quantity ?? 1) || 1;
       const unitPrice = Number(record.unit_price ?? src.unit_price ?? 0) || 0;
       const extra = Number(record.additional_charges ?? 0) || 0;
       const subtotal = Number(record.subtotal ?? (quantity * unitPrice)) || 0;
       const total = Number(record.total ?? (subtotal + extra)) || 0;
-
       const currency = record.currency || "USD";
       const images = src.image_urls || src.images || [];
       const features = src.features || [];
       const bikeModel = record.bike_model || src.model || "—";
       const bikeCategory = record.bike_category || src.category || "";
-
       return {
         id: record.id,
         invoiceNumber: record.invoice_number || `INV-${record.id}`,
@@ -800,41 +910,30 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
     function renderSpecs(specs) {
       const grid = $("out-spec-grid");
       grid.innerHTML = "";
-
       let visibleCount = 0;
-
       SPEC_KEYS.forEach(([key, label]) => {
         const value = specs?.[key];
         if (!value || !String(value).trim()) return;
-
         visibleCount += 1;
-
         const div = document.createElement("div");
         div.className = "spec-item";
-        div.innerHTML = `
-          <div class="spec-name">${label}</div>
-          <div class="spec-value"></div>
-        `;
+        div.innerHTML = `<div class="spec-name">${label}</div><div class="spec-value"></div>`;
         div.querySelector(".spec-value").textContent = value;
         grid.appendChild(div);
       });
-
       $("specs-section").classList.toggle("hidden", visibleCount === 0);
     }
 
     function renderFeatures(features) {
       const list = $("out-features");
       list.innerHTML = "";
-
       const pills = splitFeaturePills(features);
-
       pills.forEach(text => {
         const div = document.createElement("div");
         div.className = "pill";
         div.textContent = text.toUpperCase();
         list.appendChild(div);
       });
-
       $("features-section").classList.toggle("hidden", pills.length === 0);
     }
 
@@ -842,28 +941,21 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       const gallery = $("out-bike-gallery");
       gallery.innerHTML = "";
       gallery.className = "hero-gallery";
-
       if (!urls || urls.length === 0) {
         gallery.classList.add("hidden");
         return;
       }
-
       gallery.classList.remove("hidden");
-
       if (urls.length === 1) gallery.classList.add("one");
       if (urls.length === 2) gallery.classList.add("two");
       if (urls.length === 3) gallery.classList.add("three");
-
       urls.forEach(url => {
         if (!url) return;
-
         const card = document.createElement("div");
         card.className = "hero-gallery-card";
-
         const img = document.createElement("img");
         img.src = url;
         img.alt = alt || "Bike image";
-
         card.appendChild(img);
         gallery.appendChild(card);
       });
@@ -871,59 +963,42 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
 
     function renderInvoice(inv) {
       document.title = `${inv.invoiceNumber} · Rhobust Engineering Limited`;
-
       $("out-invoice-number").textContent = inv.invoiceNumber;
       $("out-invoice-date").textContent = niceDate(inv.invoiceDate);
       $("out-payment-status").textContent = inv.paymentStatus;
       $("out-date-paid").textContent = niceDate(inv.datePaid);
       $("out-currency").textContent = inv.currency;
-
       $("out-customer-block").textContent = inv.customerBlock;
       $("out-bike-model").textContent = inv.bikeModel || "—";
       $("out-bike-category").textContent = inv.bikeCategory || "—";
-
       renderImages(inv.imageUrls, inv.bikeModel);
       renderSpecs(inv.specs);
       renderFeatures(inv.features);
-
       $("out-line-description").textContent = inv.description;
       $("out-qty").textContent = String(inv.quantity);
       $("out-unit-price").textContent = money(inv.unitPrice, inv.currency);
       $("out-line-total").textContent = money(inv.subtotal, inv.currency);
-
       $("out-total").textContent = money(inv.total, inv.currency);
       $("out-amount-paid").textContent = money(inv.amountPaid, inv.currency);
       $("out-balance-due").textContent = money(inv.balanceDue, inv.currency);
-
       $("out-notes").textContent = inv.notes || "—";
       $("notes-section").classList.toggle("hidden", !inv.notes);
-
       $("out-payment-note").textContent = inv.paymentNote || "—";
       $("payment-note-section").classList.toggle("hidden", !inv.paymentNote);
-
       $("out-terms").textContent = inv.terms;
       $("out-footer-right").textContent = `Invoice ${inv.invoiceNumber}`;
-
       $("btn-edit").setAttribute("href", `admin.html?invoice_id=${encodeURIComponent(inv.id)}`);
     }
 
     async function loadInvoice() {
       const id = getParam("id") || getParam("invoice_id");
-
-      if (!id) {
-        throw new Error("Missing invoice id in URL. Use invoice.html?id=123");
-      }
-
+      if (!id) throw new Error("Missing invoice id in URL. Use invoice.html?id=123");
       const { data: record, error } = await client
         .from("invoices")
         .select("*")
         .eq("id", id)
         .single();
-
-      if (error || !record) {
-        throw new Error(error?.message || "Invoice not found");
-      }
-
+      if (error || !record) throw new Error(error?.message || "Invoice not found");
       const snapshot = pickSnapshot(record);
       const bikeFallback = snapshot ? null : await fetchBikeFallback(record);
       return normalizeInvoice(record, snapshot, bikeFallback);
@@ -933,7 +1008,6 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       try {
         const invoice = await loadInvoice();
         renderInvoice(invoice);
-
         $("loading").classList.add("hidden");
         $("page").classList.remove("hidden");
       } catch (err) {
@@ -944,25 +1018,23 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       }
     }
 
-async function waitForImagesToLoad() {
-  const images = [...document.images];
-  await Promise.all(
-    images.map(img => {
-      if (img.complete) return Promise.resolve();
-      return new Promise(resolve => {
-        img.onload = resolve;
-        img.onerror = resolve;
-      });
-    })
-  );
-}
+    async function waitForImagesToLoad() {
+      const images = [...document.images];
+      await Promise.all(
+        images.map(img => {
+          if (img.complete) return Promise.resolve();
+          return new Promise(resolve => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        })
+      );
+    }
 
-$("btn-print").addEventListener("click", async () => {
-  await waitForImagesToLoad();
-  setTimeout(() => {
-    window.print();
-  }, 300);
-});
+    $("btn-print").addEventListener("click", async () => {
+      await waitForImagesToLoad();
+      setTimeout(() => { window.print(); }, 300);
+    });
 
     init();
   </script>
