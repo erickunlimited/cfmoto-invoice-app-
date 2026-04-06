@@ -903,7 +903,7 @@ Total outstanding balance: USD ${totalOutstanding.toLocaleString(undefined, { mi
       els.balanceDue.value = balanceDue.toFixed(2);
 
       return {
-        invoice_number: els.invoiceNumber.value.trim() || null,
+        invoice_number: els.invoiceNumber.value.trim(),
         invoice_date: els.invoiceDate.value || todayInputValue(),
 
         customer_id: customerId,
