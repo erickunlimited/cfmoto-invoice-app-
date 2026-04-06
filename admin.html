@@ -90,6 +90,24 @@
       margin-top: 4px;
       margin-bottom: 8px;
     }
+
+    .summary-box {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      max-width: 520px;
+      white-space: pre-wrap;
+    }
+
+    .warn {
+      color: #9a3412;
+      font-size: 13px;
+      margin-top: 6px;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
@@ -144,21 +162,35 @@
   </div>
 
   <div class="section">
-    <h3>Invoice Details</h3>
+    <h3>Customer</h3>
 
-    <input id="invoiceNumber" placeholder="Leave blank for auto number" />
-    <input id="invoiceDate" type="date" />
+    <select id="customerSelect"></select>
+
+    <div class="actions">
+      <button type="button" id="newCustomerBtn">+ Add New Customer</button>
+      <button type="button" id="reloadCustomersBtn">Reload Customers</button>
+    </div>
+
     <input id="customerName" placeholder="Customer Name" />
     <input id="customerCompany" placeholder="Customer Company" />
     <input id="customerPhone" placeholder="Customer Phone" />
     <input id="customerEmail" placeholder="Customer Email" />
     <textarea id="customerAddress" placeholder="Customer Address"></textarea>
 
+    <div id="customerDuplicateWarn" class="warn" style="display:none;"></div>
+    <div id="customerSummary" class="summary-box">No customer selected.</div>
+  </div>
+
+  <div class="section">
+    <h3>Invoice Details</h3>
+
+    <input id="invoiceNumber" placeholder="Leave blank for auto number" />
+    <input id="invoiceDate" type="date" />
     <input id="quantity" type="number" min="1" step="1" value="1" placeholder="Quantity" />
     <input id="invoiceUnitPrice" type="number" step="0.01" placeholder="Invoice Unit Price" />
     <input id="additionalCharges" type="number" step="0.01" value="0" placeholder="Additional Charges" />
     <input id="currency" value="USD" placeholder="Currency" />
-    <input id="status" value="Draft" placeholder="Status" />
+    <input id="status" value="Open" placeholder="Status" />
 
     <textarea id="invoiceNotes" placeholder="Notes"></textarea>
     <textarea id="invoiceTerms">3 years dealer-backed warranty from Rhobust Engineering Limited.
@@ -177,11 +209,11 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
 
     <input id="amountPaid" type="number" step="0.01" value="0" placeholder="Amount Paid" />
     <input id="balanceDue" type="number" step="0.01" value="0" placeholder="Balance Due" readonly />
-   <select id="paymentStatus">
-  <option value="Unpaid">Unpaid</option>
-  <option value="Part Paid">Part Paid</option>
-  <option value="Paid">Paid</option>
-</select>
+    <select id="paymentStatus">
+      <option value="Unpaid">Unpaid</option>
+      <option value="Part Paid">Part Paid</option>
+      <option value="Paid">Paid</option>
+    </select>
     <input id="datePaid" type="date" />
     <textarea id="paymentNote" placeholder="Payment Note"></textarea>
   </div>
@@ -201,6 +233,7 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
     const BUCKET_NAME = "bike-images";
     let currentBike = null;
     let currentInvoiceId = null;
+    let currentCustomerId = null;
 
     const els = {
       bikeSelect: document.getElementById("bikeSelect"),
@@ -235,13 +268,19 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       addFeatureBtn: document.getElementById("addFeatureBtn"),
       addImageUrlBtn: document.getElementById("addImageUrlBtn"),
 
-      invoiceNumber: document.getElementById("invoiceNumber"),
-      invoiceDate: document.getElementById("invoiceDate"),
+      customerSelect: document.getElementById("customerSelect"),
+      newCustomerBtn: document.getElementById("newCustomerBtn"),
+      reloadCustomersBtn: document.getElementById("reloadCustomersBtn"),
       customerName: document.getElementById("customerName"),
       customerCompany: document.getElementById("customerCompany"),
       customerPhone: document.getElementById("customerPhone"),
       customerEmail: document.getElementById("customerEmail"),
       customerAddress: document.getElementById("customerAddress"),
+      customerDuplicateWarn: document.getElementById("customerDuplicateWarn"),
+      customerSummary: document.getElementById("customerSummary"),
+
+      invoiceNumber: document.getElementById("invoiceNumber"),
+      invoiceDate: document.getElementById("invoiceDate"),
       quantity: document.getElementById("quantity"),
       invoiceUnitPrice: document.getElementById("invoiceUnitPrice"),
       additionalCharges: document.getElementById("additionalCharges"),
@@ -301,6 +340,19 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       els.featuresContainer.innerHTML = "";
       els.imageUrlsContainer.innerHTML = "";
       els.imagePreviewContainer.innerHTML = "";
+    }
+
+    function clearCustomerForm() {
+      currentCustomerId = null;
+      els.customerSelect.value = "";
+      els.customerName.value = "";
+      els.customerCompany.value = "";
+      els.customerPhone.value = "";
+      els.customerEmail.value = "";
+      els.customerAddress.value = "";
+      els.customerDuplicateWarn.style.display = "none";
+      els.customerDuplicateWarn.textContent = "";
+      els.customerSummary.textContent = "New customer. No invoice history yet.";
     }
 
     function addFeature(value = "") {
@@ -396,9 +448,6 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
         .select("*")
         .order("model", { ascending: true });
 
-      console.log("LOAD BIKES DATA:", data);
-      console.log("LOAD BIKES ERROR:", error);
-
       if (error) {
         console.error(error);
         alert(`Error loading bikes: ${error.message || JSON.stringify(error)}`);
@@ -427,56 +476,56 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       await loadBike(data[0].slug);
     }
 
-   async function loadBike(slug) {
-  if (!slug) {
-    clearBikeForm();
-    return;
-  }
+    async function loadBike(slug) {
+      if (!slug) {
+        clearBikeForm();
+        return;
+      }
 
-  const { data, error } = await client
-    .from("motorcycles")
-    .select("*")
-    .eq("slug", slug)
-    .single();
+      const { data, error } = await client
+        .from("motorcycles")
+        .select("*")
+        .eq("slug", slug)
+        .single();
 
-  if (error) {
-    console.error(error);
-    alert("Error loading bike");
-    return;
-  }
+      if (error) {
+        console.error(error);
+        alert("Error loading bike");
+        return;
+      }
 
-  currentBike = data;
+      currentBike = data;
 
-  els.model.value = data.model || "";
-  els.category.value = data.category || "";
-  els.unitPrice.value = data.unit_price ?? "";
-  els.invoiceUnitPrice.value = data.unit_price ?? "";
+      els.model.value = data.model || "";
+      els.category.value = data.category || "";
+      els.unitPrice.value = data.unit_price ?? "";
+      els.invoiceUnitPrice.value = data.unit_price ?? "";
 
-  els.engine.value = data.engine || "";
-  els.displacement.value = data.displacement || "";
-  els.power_hp.value = data.power_hp || "";
-  els.torque.value = data.torque || "";
-  els.fuel_system.value = data.fuel_system || "";
-  els.transmission.value = data.transmission || "";
-  els.throttle_type.value = data.throttle_type || "";
-  els.fuel_capacity.value = data.fuel_capacity || "";
-  els.abs.value = data.abs || "";
-  els.traction_control.value = data.traction_control || "";
-  els.headlight.value = data.headlight || "";
-  els.charging_port.value = data.charging_port || "";
-  els.color.value = data.color || "";
-  els.suspension.value = data.suspension || "";
-  els.brake.value = data.brake || "";
+      els.engine.value = data.engine || "";
+      els.displacement.value = data.displacement || "";
+      els.power_hp.value = data.power_hp || "";
+      els.torque.value = data.torque || "";
+      els.fuel_system.value = data.fuel_system || "";
+      els.transmission.value = data.transmission || "";
+      els.throttle_type.value = data.throttle_type || "";
+      els.fuel_capacity.value = data.fuel_capacity || "";
+      els.abs.value = data.abs || "";
+      els.traction_control.value = data.traction_control || "";
+      els.headlight.value = data.headlight || "";
+      els.charging_port.value = data.charging_port || "";
+      els.color.value = data.color || "";
+      els.suspension.value = data.suspension || "";
+      els.brake.value = data.brake || "";
 
-  els.featuresContainer.innerHTML = "";
-  (data.features || []).forEach(addFeature);
+      els.featuresContainer.innerHTML = "";
+      (data.features || []).forEach(addFeature);
 
-  els.imageUrlsContainer.innerHTML = "";
-  (data.image_urls || []).forEach(addImageUrl);
+      els.imageUrlsContainer.innerHTML = "";
+      (data.image_urls || []).forEach(addImageUrl);
 
-  renderImagePreviews();
-  recalculateInvoiceTotals();
-}
+      renderImagePreviews();
+      recalculateInvoiceTotals();
+    }
 
     async function saveBike() {
       if (!currentBike) {
@@ -557,6 +606,220 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       await loadBike(cleanSlug);
     }
 
+    async function loadCustomers() {
+      const { data, error } = await client
+        .from("customers")
+        .select("*")
+        .order("full_name", { ascending: true });
+
+      if (error) {
+        console.error(error);
+        alert(`Error loading customers: ${error.message || JSON.stringify(error)}`);
+        return;
+      }
+
+      els.customerSelect.innerHTML = `<option value="">Select a customer</option>${
+        (data || []).map(c => `<option value="${c.id}">${escapeHtml(c.full_name)}${c.company ? " · " + escapeHtml(c.company) : ""}</option>`).join("")
+      }`;
+
+      if (currentCustomerId) {
+        const exists = (data || []).some(c => String(c.id) === String(currentCustomerId));
+        if (exists) {
+          els.customerSelect.value = String(currentCustomerId);
+        }
+      }
+    }
+
+    async function loadCustomer(customerId) {
+      if (!customerId) {
+        clearCustomerForm();
+        return;
+      }
+
+      const { data, error } = await client
+        .from("customers")
+        .select("*")
+        .eq("id", customerId)
+        .single();
+
+      if (error) {
+        console.error(error);
+        alert("Error loading customer");
+        return;
+      }
+
+      currentCustomerId = data.id;
+
+      els.customerSelect.value = String(data.id);
+      els.customerName.value = data.full_name || "";
+      els.customerCompany.value = data.company || "";
+      els.customerPhone.value = data.phone || "";
+      els.customerEmail.value = data.email || "";
+      els.customerAddress.value = data.address || "";
+
+      els.customerDuplicateWarn.style.display = "none";
+      els.customerDuplicateWarn.textContent = "";
+
+      await renderCustomerSummary(data.id);
+    }
+
+    async function renderCustomerSummary(customerId) {
+      if (!customerId) {
+        els.customerSummary.textContent = "No customer selected.";
+        return;
+      }
+
+      const { data: invoices, error } = await client
+        .from("invoices")
+        .select("id, invoice_number, total, amount_paid, balance_due, payment_status, created_at")
+        .eq("customer_id", customerId)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error(error);
+        els.customerSummary.textContent = "Could not load customer invoice history.";
+        return;
+      }
+
+      const count = invoices?.length || 0;
+      if (!count) {
+        els.customerSummary.textContent = "No previous invoices for this customer.";
+        return;
+      }
+
+      const latest = invoices[0];
+      const totalOutstanding = invoices.reduce((sum, row) => sum + (Number(row.balance_due) || 0), 0);
+
+      els.customerSummary.textContent =
+`Previous invoices: ${count}
+Last invoice: ${latest.invoice_number || "INV-" + latest.id}
+Last payment status: ${latest.payment_status || "Unpaid"}
+Total outstanding balance: USD ${totalOutstanding.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    async function checkCustomerDuplicates() {
+      const name = (els.customerName.value || "").trim().toLowerCase();
+      const company = (els.customerCompany.value || "").trim().toLowerCase();
+      const phone = (els.customerPhone.value || "").trim();
+      const email = (els.customerEmail.value || "").trim().toLowerCase();
+
+      if (!name && !phone && !email) {
+        els.customerDuplicateWarn.style.display = "none";
+        els.customerDuplicateWarn.textContent = "";
+        return;
+      }
+
+      const { data, error } = await client
+        .from("customers")
+        .select("id, full_name, company, phone, email")
+        .limit(200);
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      const matches = (data || []).filter(c => {
+        if (currentCustomerId && String(c.id) === String(currentCustomerId)) return false;
+
+        const cName = (c.full_name || "").trim().toLowerCase();
+        const cCompany = (c.company || "").trim().toLowerCase();
+        const cPhone = (c.phone || "").trim();
+        const cEmail = (c.email || "").trim().toLowerCase();
+
+        return (
+          (phone && cPhone && phone === cPhone) ||
+          (email && cEmail && email === cEmail) ||
+          (name && cName && name === cName && company === cCompany)
+        );
+      });
+
+      if (!matches.length) {
+        els.customerDuplicateWarn.style.display = "none";
+        els.customerDuplicateWarn.textContent = "";
+        return;
+      }
+
+      els.customerDuplicateWarn.style.display = "block";
+      els.customerDuplicateWarn.textContent =
+        "Possible duplicate customer found:\n" +
+        matches.map(c => `${c.full_name}${c.company ? " · " + c.company : ""}${c.phone ? " · " + c.phone : ""}${c.email ? " · " + c.email : ""}`).join("\n");
+    }
+
+    async function ensureCustomer() {
+      const fullName = els.customerName.value.trim();
+      const company = els.customerCompany.value.trim();
+      const phone = els.customerPhone.value.trim();
+      const email = els.customerEmail.value.trim();
+      const address = els.customerAddress.value.trim();
+
+      if (!fullName) {
+        throw new Error("Customer name is required.");
+      }
+
+      if (currentCustomerId) {
+        const { error } = await client
+          .from("customers")
+          .update({
+            full_name: fullName,
+            company: company || null,
+            phone: phone || null,
+            email: email || null,
+            address: address || null
+          })
+          .eq("id", currentCustomerId);
+
+        if (error) throw error;
+        return currentCustomerId;
+      }
+
+      const { data: allCustomers, error: lookupError } = await client
+        .from("customers")
+        .select("id, full_name, company, phone, email")
+        .limit(500);
+
+      if (lookupError) throw lookupError;
+
+      const match = (allCustomers || []).find(c => {
+        const cName = (c.full_name || "").trim().toLowerCase();
+        const cCompany = (c.company || "").trim().toLowerCase();
+        const cPhone = (c.phone || "").trim();
+        const cEmail = (c.email || "").trim().toLowerCase();
+
+        return (
+          (phone && cPhone && phone === cPhone) ||
+          (email && cEmail && email.toLowerCase() === cEmail) ||
+          (fullName.toLowerCase() === cName && company.toLowerCase() === cCompany)
+        );
+      });
+
+      if (match) {
+        currentCustomerId = match.id;
+        await loadCustomers();
+        await loadCustomer(match.id);
+        return match.id;
+      }
+
+      const { data, error } = await client
+        .from("customers")
+        .insert([{
+          full_name: fullName,
+          company: company || null,
+          phone: phone || null,
+          email: email || null,
+          address: address || null
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      currentCustomerId = data.id;
+      await loadCustomers();
+      await loadCustomer(data.id);
+      return data.id;
+    }
+
     function getBikeSnapshot() {
       return {
         slug: currentBike?.slug || null,
@@ -583,78 +846,81 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
       };
     }
 
-function recalculateInvoiceTotals() {
-  const quantity = Number(els.quantity.value) || 1;
-  const unitPrice = Number(els.invoiceUnitPrice.value || els.unitPrice.value) || 0;
-  const additionalCharges = Number(els.additionalCharges.value) || 0;
-  const amountPaid = Number(els.amountPaid.value) || 0;
+    function recalculateInvoiceTotals() {
+      const quantity = Number(els.quantity.value) || 1;
+      const unitPrice = Number(els.invoiceUnitPrice.value || els.unitPrice.value) || 0;
+      const additionalCharges = Number(els.additionalCharges.value) || 0;
+      const amountPaid = Number(els.amountPaid.value) || 0;
 
-  const subtotal = quantity * unitPrice;
-  const total = subtotal + additionalCharges;
-  const balanceDue = Math.max(total - amountPaid, 0);
+      const subtotal = quantity * unitPrice;
+      const total = subtotal + additionalCharges;
+      const balanceDue = Math.max(total - amountPaid, 0);
 
-  els.balanceDue.value = balanceDue.toFixed(2);
+      els.balanceDue.value = balanceDue.toFixed(2);
 
-  if (amountPaid <= 0) {
-    els.paymentStatus.value = "Unpaid";
-  } else if (balanceDue <= 0) {
-    els.paymentStatus.value = "Paid";
-  } else {
-    els.paymentStatus.value = "Part Paid";
-  }
-}
+      if (amountPaid <= 0) {
+        els.paymentStatus.value = "Unpaid";
+      } else if (balanceDue <= 0) {
+        els.paymentStatus.value = "Paid";
+      } else {
+        els.paymentStatus.value = "Part Paid";
+      }
+    }
 
-function getInvoicePayload() {
-  if (!currentBike) throw new Error("Please select a bike first.");
+    function getInvoicePayload(customerId) {
+      if (!currentBike) throw new Error("Please select a bike first.");
 
-  const quantity = Number(els.quantity.value) || 1;
-  const unitPrice = Number(els.invoiceUnitPrice.value || els.unitPrice.value) || 0;
-  const additionalCharges = Number(els.additionalCharges.value) || 0;
-  const amountPaid = Number(els.amountPaid.value) || 0;
+      const quantity = Number(els.quantity.value) || 1;
+      const unitPrice = Number(els.invoiceUnitPrice.value || els.unitPrice.value) || 0;
+      const additionalCharges = Number(els.additionalCharges.value) || 0;
+      const amountPaid = Number(els.amountPaid.value) || 0;
 
-  const subtotal = quantity * unitPrice;
-  const total = subtotal + additionalCharges;
-  const balanceDue = Math.max(total - amountPaid, 0);
+      const subtotal = quantity * unitPrice;
+      const total = subtotal + additionalCharges;
+      const balanceDue = Math.max(total - amountPaid, 0);
 
-  els.balanceDue.value = balanceDue.toFixed(2);
+      els.balanceDue.value = balanceDue.toFixed(2);
 
-  return {
-    invoice_number: els.invoiceNumber.value.trim() || null,
-    invoice_date: els.invoiceDate.value || todayInputValue(),
+      return {
+        invoice_number: els.invoiceNumber.value.trim() || null,
+        invoice_date: els.invoiceDate.value || todayInputValue(),
 
-    customer_name: els.customerName.value.trim(),
-    customer_company: els.customerCompany.value.trim(),
-    customer_phone: els.customerPhone.value.trim(),
-    customer_email: els.customerEmail.value.trim(),
-    customer_address: els.customerAddress.value.trim(),
+        customer_id: customerId,
+        customer_name: els.customerName.value.trim(),
+        customer_company: els.customerCompany.value.trim(),
+        customer_phone: els.customerPhone.value.trim(),
+        customer_email: els.customerEmail.value.trim(),
+        customer_address: els.customerAddress.value.trim(),
 
-    bike_slug: currentBike.slug,
-    bike_model: els.model.value.trim(),
-    bike_category: els.category.value.trim(),
+        bike_slug: currentBike.slug,
+        bike_model: els.model.value.trim(),
+        bike_category: els.category.value.trim(),
 
-    quantity,
-    unit_price: unitPrice,
-    subtotal,
-    additional_charges: additionalCharges,
-    total,
-    currency: els.currency.value.trim() || "USD",
-    status: els.status.value.trim() || "Draft",
-    notes: els.invoiceNotes.value.trim(),
-    terms: els.invoiceTerms.value.trim(),
+        quantity,
+        unit_price: unitPrice,
+        subtotal,
+        additional_charges: additionalCharges,
+        total,
+        currency: els.currency.value.trim() || "USD",
+        status: els.status.value.trim() || "Open",
+        notes: els.invoiceNotes.value.trim(),
+        terms: els.invoiceTerms.value.trim(),
 
-    amount_paid: amountPaid,
-    balance_due: balanceDue,
-    payment_status: els.paymentStatus.value,
-    date_paid: els.datePaid.value || null,
-    payment_note: els.paymentNote.value.trim(),
+        amount_paid: amountPaid,
+        balance_due: balanceDue,
+        payment_status: els.paymentStatus.value,
+        date_paid: els.datePaid.value || null,
+        payment_note: els.paymentNote.value.trim(),
 
-    bike_snapshot: getBikeSnapshot()
-  };
-}
+        bike_snapshot: getBikeSnapshot()
+      };
+    }
 
     async function saveInvoice({ openPreview = false } = {}) {
       try {
-        const payload = getInvoicePayload();
+        const customerId = await ensureCustomer();
+        const payload = getInvoicePayload(customerId);
+
         let result;
 
         if (currentInvoiceId) {
@@ -680,6 +946,7 @@ function getInvoicePayload() {
         }
 
         els.invoiceNumber.value = result.invoice_number || payload.invoice_number;
+        await renderCustomerSummary(customerId);
 
         if (openPreview) {
           if (!result || !result.id) {
@@ -716,16 +983,18 @@ function getInvoicePayload() {
       currentInvoiceId = data.id;
       els.invoiceNumber.value = data.invoice_number || "";
       els.invoiceDate.value = data.invoice_date || todayInputValue();
+
       els.customerName.value = data.customer_name || "";
       els.customerCompany.value = data.customer_company || "";
       els.customerPhone.value = data.customer_phone || "";
       els.customerEmail.value = data.customer_email || "";
       els.customerAddress.value = data.customer_address || "";
+
       els.quantity.value = data.quantity ?? 1;
       els.invoiceUnitPrice.value = data.unit_price ?? "";
       els.additionalCharges.value = data.additional_charges ?? 0;
       els.currency.value = data.currency || "USD";
-      els.status.value = data.status || "Draft";
+      els.status.value = data.status || "Open";
       els.invoiceNotes.value = data.notes || "";
       els.invoiceTerms.value = data.terms || "";
 
@@ -734,6 +1003,19 @@ function getInvoicePayload() {
       els.paymentStatus.value = data.payment_status || "Unpaid";
       els.datePaid.value = data.date_paid || "";
       els.paymentNote.value = data.payment_note || "";
+
+      if (data.customer_id) {
+        currentCustomerId = data.customer_id;
+        await loadCustomers();
+        await loadCustomer(data.customer_id);
+      } else {
+        clearCustomerForm();
+        els.customerName.value = data.customer_name || "";
+        els.customerCompany.value = data.customer_company || "";
+        els.customerPhone.value = data.customer_phone || "";
+        els.customerEmail.value = data.customer_email || "";
+        els.customerAddress.value = data.customer_address || "";
+      }
 
       if (data.bike_snapshot?.slug) {
         els.bikeSelect.value = data.bike_snapshot.slug;
@@ -747,6 +1029,29 @@ function getInvoicePayload() {
     }
 
     els.bikeSelect.addEventListener("change", e => loadBike(e.target.value));
+
+    els.customerSelect.addEventListener("change", e => {
+      const id = e.target.value;
+      if (!id) {
+        clearCustomerForm();
+        return;
+      }
+      loadCustomer(id);
+    });
+
+    els.newCustomerBtn.addEventListener("click", clearCustomerForm);
+    els.reloadCustomersBtn.addEventListener("click", loadCustomers);
+
+    ["customerName", "customerCompany", "customerPhone", "customerEmail", "customerAddress"].forEach(key => {
+      els[key].addEventListener("input", () => {
+        if (currentCustomerId) {
+          currentCustomerId = null;
+          els.customerSelect.value = "";
+        }
+        checkCustomerDuplicates();
+      });
+    });
+
     els.saveBtn.addEventListener("click", saveBike);
     els.createBikeBtn.addEventListener("click", createBike);
     els.reloadBtn.addEventListener("click", loadBikes);
@@ -765,10 +1070,13 @@ function getInvoicePayload() {
       if (!els.invoiceDate.value) els.invoiceDate.value = todayInputValue();
 
       await loadBikes();
+      await loadCustomers();
 
       const invoiceId = getParam("invoice_id") || getParam("id");
       if (invoiceId) {
         await loadInvoiceIntoAdmin(invoiceId);
+      } else {
+        clearCustomerForm();
       }
 
       recalculateInvoiceTotals();
