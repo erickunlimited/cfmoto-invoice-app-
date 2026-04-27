@@ -482,7 +482,22 @@
       font-weight: 400;
       color: var(--white);
     }
+.inclusive-note {
+  margin-top: 10px;
+  margin-left: auto;
+  width: 320px;
+  padding: 10px 12px;
+  border: 1px solid var(--teal-line);
+  background: var(--teal-dim);
+  font-size: 10.5px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
 
+.inclusive-note strong {
+  color: var(--ink);
+  font-weight: 600;
+}
     /* ── NOTES / TERMS ──────────────────────────────────── */
     .notes, .terms {
       font-size: 11.5px;
@@ -583,7 +598,7 @@
 
       .meta-kicker { text-align: left; }
       .totals { width: 100%; }
-
+.inclusive-note { width: 100%; }
       .hero-gallery.two,
       .hero-gallery.three { grid-template-columns: 1fr; }
     }
@@ -721,19 +736,23 @@ Kokomlemle, Accra</div>
           </tbody>
         </table>
         <div class="totals">
-          <div class="totals-row">
-            <div>Original Total</div>
-            <div id="out-total">USD 0.00</div>
-          </div>
-          <div class="totals-row">
-            <div>Amount Paid</div>
-            <div id="out-amount-paid">USD 0.00</div>
-          </div>
-          <div class="totals-row final">
-            <div>Amount Due</div>
-            <div id="out-balance-due">USD 0.00</div>
-          </div>
-        </div>
+  <div class="totals-row">
+    <div>Original Total</div>
+    <div id="out-total">USD 0.00</div>
+  </div>
+  <div class="totals-row">
+    <div>Amount Paid</div>
+    <div id="out-amount-paid">USD 0.00</div>
+  </div>
+  <div class="totals-row final">
+    <div>Amount Due</div>
+    <div id="out-balance-due">USD 0.00</div>
+  </div>
+</div>
+
+<div class="inclusive-note">
+  <strong>All-Inclusive Price:</strong> This invoice includes Cost, Insurance, Freight (CIF), import duty, port/clearing charges, VAT, statutory levies and all applicable taxes required for delivery in Ghana.
+</div>
       </section>
 
       <!-- 06 · NOTES -->
