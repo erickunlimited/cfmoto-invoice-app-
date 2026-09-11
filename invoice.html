@@ -603,8 +603,31 @@
       .hero-gallery.three { grid-template-columns: 1fr; }
     }
   </style>
+
+  <style>
+    [hidden] { display: none !important; }
+    #company-auth { max-width: 720px; margin: 24px auto; padding: 24px; background: #fff; color: #222; border: 1px solid #ddd; font: 15px/1.5 Arial, sans-serif; }
+    #company-login { display: grid; gap: 12px; max-width: 380px; }
+    #company-login label { display: grid; gap: 4px; }
+    #company-login input { box-sizing: border-box; width: 100%; padding: 10px; border: 1px solid #aaa; color: #222; background: #fff; }
+    #company-auth button { padding: 10px 18px; background: #087f83; color: white; cursor: pointer; border: 0; }
+    #company-auth button:disabled { opacity: .6; cursor: wait; }
+    @media print { #company-auth { display: none !important; } }
+  </style>
 </head>
 <body>
+  <section id="company-auth" aria-label="Company sign-in">
+    <h2>Company access</h2>
+    <p id="company-auth-message" role="status" aria-live="polite">Checking your sign-in…</p>
+    <form id="company-login">
+      <label>Email<input name="email" type="email" autocomplete="username" required /></label>
+      <label>Password<input name="password" type="password" autocomplete="current-password" required /></label>
+      <button type="submit">Sign in</button>
+    </form>
+    <button id="company-sign-out" type="button" hidden>Sign out</button>
+  </section>
+  <main id="company-content" hidden inert>
+
 
   <!-- TOPBAR -->
   <div class="topbar">
@@ -796,6 +819,8 @@ Complimentary scheduled servicing for 2 years or 20,000 km, whichever is reached
   </div><!-- /page -->
 
   <!-- ── ALL ORIGINAL LOGIC UNCHANGED ── -->
+  </main>
+  <script src="auth.js"></script>
   <script>
     if (!window.supabase?.createClient) {
       throw new Error("Supabase library failed to load. Check your connection and refresh.");
@@ -1061,7 +1086,7 @@ if (inv.paymentStatus === "Unpaid" || !inv.datePaid) {
       setTimeout(() => { window.print(); }, 300);
     });
 
-    init();
+    window.requireCompanySignIn(client).then(init);
   </script>
 </body>
 </html>
